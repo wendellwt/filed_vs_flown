@@ -1,0 +1,8 @@
+# ignore the node_modules directory
+browser/node_modules/
+
+# Ignore the build/deploy directories
+rs_deploy/templates/
+rs_deploy/static/
+rs_deploy/copied/
+
