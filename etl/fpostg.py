@@ -86,7 +86,7 @@ def sq(s):
     return ("'" + s + "'")
 
 def pg(s):
-    return ("ST_GeomFromText('" + s + "',4326)")
+    return ("ST_GeogFromText('" + s + "')")
 
 # --------------------------------------------------------------------
 
@@ -97,9 +97,11 @@ def drop_cre8_sched(sch_tbl):
     drp = "DROP TABLE IF EXISTS %s ;" % sch_tbl
     pg_csr.execute(drp)
 
-    # TODO: rename geometry column to sched_path
+    # done: rename geometry column to sched_path
     # TODO: recast Geometry column to Geography (but dont think it matters;
     #        Postg says geometry with 4326 is equivalent to geography)
+    #        but NO, later it says that ST_Length is cartesian for geom,
+    #        spheroid for geography
 
     cre8 = """CREATE table %s (
     acid         text,
@@ -108,11 +110,11 @@ def drop_cre8_sched(sch_tbl):
     orig_time    timestamptz,
     dep_time     timestamptz,
     arr_time     timestamptz,
-    dept_aprt    text,
-    arr_aprt     text,
+    dep_apt      text,
+    arr_apt      text,
     source_type  text,
     waypoints    text,
-    geometry     Geometry(LineString, 4326)
+    geography    Geography(LineString, 4326)
 ); """ % sch_tbl
 
     pg_csr.execute(cre8)
@@ -142,17 +144,27 @@ def write_sched_df_as_loop(sch_df, sch_tbl, verbose=False):
         'SOURCE_TYPE'  : 'source_type',
         'DEP_TIME'     : 'dep_time',
         'ARR_TIME'     : 'arr_time',
-        'DEPT_APRT'    : 'dept_aprt',
-        'ARR_APRT'     : 'arr_aprt',
+        'DEPT_APRT'    : 'dep_apt',   # renamed
+        'ARR_APRT'     : 'arr_apt',   # renamed
         'WAYPOINTS'    : 'waypoints'
         }, inplace=True)
 
     # make a text / wkt column of the (shapely) linestring
 
-    sch_df['geometry'] = sch_df['sched_path'].apply(lambda g: g.wkt)
+    if verbose: print("lambda of wkt")
+
+    #geom: sch_df['geography'] = sch_df['sched_path'].apply(lambda g: g.wkt)
+    # make our own ewkt: (NO, all is 4326 anyway)
+    sch_df['geography'] = sch_df['sched_path'].apply(lambda g: g.wkt)
+
+    # ewkt = ";".join(["SRID=4326", wkt])
+
 
     # and get rid of the shapely column
     sch_df.drop('sched_path', inplace=True, axis=1)
+
+    # and rename the wkt column to the postgis column
+    #TODO: RENAME COLUMN LATER: sch_df.rename(columns={ 'sched_path_wkt' : 'sched_path'})
 
     if verbose: print("sch_df")
     if verbose: print(sch_df)
@@ -177,8 +189,8 @@ def write_sched_df_as_loop(sch_df, sch_tbl, verbose=False):
         # and genrate the insert statement -- FIXME: include dynamic tablename
 
         sql = "INSERT INTO " + sch_tbl + \
-         " (acid,fid,flight_index,orig_time, dep_time, arr_time,dept_aprt," + \
-        "arr_aprt, source_type, waypoints, geometry)" + \
+         " (acid,fid,flight_index,orig_time, dep_time, arr_time,dep_apt," + \
+        "arr_apt, source_type, waypoints, geography)" + \
         "values(" + \
             sq(row['acid']) + ',' + \
            str(row['fid']) + ',' + \
@@ -186,11 +198,11 @@ def write_sched_df_as_loop(sch_df, sch_tbl, verbose=False):
         sq(str(row['orig_time'])) + ',' + \
         sq(str(row['dep_time'])) + ',' + \
         sq(str(row['arr_time'])) + ',' + \
-            sq(row['dept_aprt']) + ',' + \
-            sq(row['arr_aprt']) + ',' + \
+            sq(row['dep_apt']) + ',' + \
+            sq(row['arr_apt']) + ',' + \
             sq(row['source_type']) + ',' + \
             sq(row['waypoints']) + ',' + \
-            pg(row['geometry']) + ');'
+            pg(row['geography']) + ');'
 
         # and actually do the insert
 
@@ -198,7 +210,10 @@ def write_sched_df_as_loop(sch_df, sch_tbl, verbose=False):
 
         good += 1
 
+    # TODO rename 'geometry' column to be 'sched_path'
+
     pg_conn.commit()     # only now do the commit
+
 
     print("sched paths written; good: %d  bad: %d" % (good, bad))
 
@@ -266,12 +281,14 @@ def drop_create_flown(flw_tbl, verbose=False):
 
     # FIXME!!!!!!!!!!!!!!!!!!!!!
     # FIXME put more metadata in here !!!!!!!
+    # FIXME add departure, arrival airport locations (but what about times???)
+    # FIXME add CORNER POST
     # FIXME!!!!!!!!!!!!!!!!!!!!!
 
     cre8 = """CREATE table %s (
-    flt_ndx  integer,
-    acid     text,
-    traj     TGeogPoint
+    flight_index integer,
+    acid         text,
+    flown_path   TGeogPoint
 ); """ % flw_tbl
 
     if verbose: print(cre8)

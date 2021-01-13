@@ -83,7 +83,11 @@ def form_linestring(row, verbose=False):
 
     #  and put them together in a (shapely) linestring
 
-    path_ls = LineString(pts)
+    try:
+        path_ls = LineString(pts)
+    except:
+        print("bad Linestring, len=", len(pts), row['DEPT_APRT'], row['ARR_APRT'])
+        return(None)     # bad shapely linestring ( < 2 points?)
 
     return(path_ls)
 
