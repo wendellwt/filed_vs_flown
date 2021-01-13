@@ -1,0 +1,11 @@
+{
+    "http://172.26.21.40:3939": {
+        "server_url": "http://172.26.21.40:3939",
+        "filename": "/home/wturner/flask_apps/asdex/rs_deploy",
+        "app_url": "http://172.26.21.40:3939/connect/#/apps/FIXME",
+        "app_id": "8f8ad458-5be3-4172-b3d5-46b2b26f90ea",
+        "app_guid": "8f8ad458-5be3-4172-b3d5-46b2b26f90ea",
+        "title": "file_vs_flown",
+        "app_mode": "python-api"
+    }
+}
