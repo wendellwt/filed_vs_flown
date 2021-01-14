@@ -41,3 +41,6 @@ first_tier = {
     'ZTL' : ("ZHU", "ZME", "ZID", "ZDC", "ZJX")
 }
 
+second_tier = {
+    'ZDV' : ("ZOA", "ZSE", "ZAU", "ZID", "ZME", "ZFW")
+}
