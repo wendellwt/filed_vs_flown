@@ -118,6 +118,11 @@ def drop_cre8_sched(sch_tbl):
 ); """ % sch_tbl
 
     pg_csr.execute(cre8)
+
+    # FIXME: please set your own permissions !!!!!
+    fixme="grant select on all tables in schema public to meow_user;"
+    pg_csr.execute(fixme)
+
     pg_conn.commit()           # commit both of them
 
 
@@ -293,6 +298,11 @@ def drop_create_flown(flw_tbl, verbose=False):
 
     if verbose: print(cre8)
     pg_csr.execute(cre8)
+
+    # FIXME: please set your own permissions !!!!!
+    fixme="grant select on all tables in schema public to meow_user;"
+    pg_csr.execute(fixme)
+
     pg_conn.commit()           # commit both of them
 
 # ----------------------------------------
