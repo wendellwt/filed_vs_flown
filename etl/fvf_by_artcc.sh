@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 # get arguments into useful vars
 
@@ -9,6 +9,7 @@ ARTCC=${3:-ZDV}
 # table names are  y_m_d, not y-m-d:
 YMD=${YMD//-/_}
 
+# and make output headers look nice
 ALOWER=`echo $ARTCC | tr '[:upper:]' '[:lower:]'`
 
 # ============================================================
@@ -36,8 +37,13 @@ CREATE OR REPLACE FUNCTION path_int_len(geography, geography) RETURNS numeric AS
 \$\$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION path_int_diff_pct(geography, geography, geography) RETURNS numeric AS \$\$
         BEGIN
-             RETURN (round((ST_Length(ST_Intersection(\$1, \$3))*100.0 /
-                            ST_Length(ST_Intersection(\$2, \$3)))::decimal,1) );
+             -- div by 0; a/c flew through center but sched didn't
+             IF ST_Length(ST_Intersection(\$2, \$3)) = 0 THEN
+                 RETURN 0;
+             ELSE
+                 RETURN (round((ST_Length(ST_Intersection(\$1, \$3))*100.0 /
+                                ST_Length(ST_Intersection(\$2, \$3)))::decimal,1) );
+             END IF;
         END;
 \$\$ LANGUAGE plpgsql;
 EOF
@@ -45,6 +51,7 @@ EOF
 
 # -- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
+echo querying sched, flown tables for: $YMD $APT $ARTCC
 psql << EOF
 --
 -- ============== E is the acid, flight_index, and ZDV entry time of each flight
@@ -69,9 +76,9 @@ WITH E AS (
 --
 -- ============== main:
 --
-SELECT  S.acid, F.corner, S.flight_index,
-  path_int_len(S.sched_path, C.boundary) as sched_dist_in_${ALOWER},
-  path_int_len(trajectory(F.flown_path), C.boundary) as flown_dist_in_${ALOWER},
+SELECT  S.acid, F.corner, S.flight_index, S.arr_time,
+  path_int_len(S.sched_path, C.boundary) as sched_dist_${ALOWER},
+  path_int_len(trajectory(F.flown_path), C.boundary) as flown_dist_${ALOWER},
   path_int_diff_pct( trajectory(f.flown_path), S.sched_path, C.boundary) as pct
 FROM J,
      flown_fvf_${YMD} F,
