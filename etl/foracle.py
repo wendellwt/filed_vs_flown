@@ -166,9 +166,9 @@ def get_all_tz_using_temp(ops_date, fids, args_verbose):
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ex_csr = cxo.Cursor(ex_conn)
 
-    print("for")
-    for row in ex_csr.execute("select fid from temp_table_session6 where rownum < 10"):
-        print(row)
+    #print("for")
+    #for row in ex_csr.execute("select fid from temp_table_session6 where rownum < 10"):
+    #    print(row)
     #sys.exit(1)
     # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
