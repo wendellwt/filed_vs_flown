@@ -55,20 +55,44 @@ EOF
 # -- $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 echo querying sched, flown tables for: $YMD $APT $ARTCC
+
 psql << EOF
 --
--- ============== E is the acid, flight_index, and ZDV entry time of each flight
+-- ============== C is the artcc polygon to use
+-- Notice: ST_Difference ONLY WORKS ON GEOGRAPHIES!!!!!!!!!!!!!!!!
+
+-- Issue: I knew making everything a Geography would be a challenge.
+--  1) convert ARTCC boundary to geometry
+--  2) (assuming it is a parent tracon) get the position of the airport and convert to geometry
+--  2a)  Transform that to a 'nice looking' crs, like one of the Lambert Conic Conformal ones
+--  3) make a pretend tracon by making an ST_Buffer around that airport
+--  4) finally, take the ST_Difference of the ARTCC geometry minus the tracon buffer geometry
+--  6) cast it back to a Geography (is this needed???)
+
+WITH C AS
+-- the OLD way:
+-- (SELECT boundary FROM centers WHERE name = '${ARTCC}'),
+
+-- the NEW way:
+(SELECT ST_Difference(
+    (SELECT boundary::geometry from centers where name='${ARTCC}'),
+    (SELECT ST_Transform(ST_Buffer(ST_Transform(position::geometry,26754),42*6076),4326) FROM airports WHERE ident='${APT}')
+) as boundary),
+
 --
-WITH E AS (
-  SELECT F.acid, F.flight_index, lower(period(atValue(tintersects(F.flown_path, C.boundary),TRUE))) as entry_time
+-- ============== E is the SELECTion of acid, flight_index, and ZDV entry time of each flight
+--
+E AS (
+  SELECT F.acid, F.flight_index,
+         lower(period(atValue(tintersects(F.flown_path, C.boundary),TRUE))) as entry_time
   FROM
-    (SELECT * FROM flown_fvf_${YMD} WHERE arr_apt='${APT}') F,
-    (SELECT boundary FROM centers WHERE name = '${ARTCC}') C
+    C,
+    (SELECT * FROM flown_fvf_${YMD} WHERE arr_apt='${APT}') F
   WHERE intersects(F.flown_path, C.boundary) ),
 --
 -- ============== J is the SELECTion of the scheduled path previous to artcc entry time
 --
-    J AS (
+J AS (
   SELECT S.acid, S.flight_index, E.entry_time, max(S.orig_time) as sched_active_at
   FROM E,
        sched_fvf_${YMD} S
@@ -76,6 +100,7 @@ WITH E AS (
   AND   S.orig_time < E.entry_time
   GROUP BY S.acid, S.flight_index, E.entry_time
 )
+--
 --
 -- ============== main:
 --
@@ -86,7 +111,7 @@ SELECT  S.acid, F.corner, S.flight_index, S.arr_time,
 FROM J,
      flown_fvf_${YMD} F,
      sched_fvf_${YMD} S,
-     (SELECT boundary FROM centers WHERE name = '${ARTCC}') C
+     C
 WHERE S.flight_index = J.flight_index
 AND   S.orig_time    = J.sched_active_at
 AND   F.flight_index = J.flight_index
