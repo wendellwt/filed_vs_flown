@@ -144,6 +144,9 @@ WHERE S.flight_index = J.flight_index
 AND   S.orig_time    = J.sched_active_at
 AND   F.flight_index = J.flight_index
 AND   F.corner = '${CORNER}'
+) UNION ALL (
+SELECT '#ffb366' as color, '${ARTCC}' as acid, 1 as gid, boundary as geom
+FROM C
 )
   -- ===========================
   ) inputs
