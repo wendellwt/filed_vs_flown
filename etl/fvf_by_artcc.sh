@@ -18,8 +18,11 @@ export PGHOST="localhost"
 export PGPORT=5432
 export PGDATABASE="meekma"
 export PGUSER="meow_user"
-export PGPASSWORD="1575eyest"
 
+if [ -z "${PGPASSWORD}" ] ; then
+    echo "you need to do this: export PGPASSWORD=putpasswordhere"
+    exit 1
+fi
 # ============================================================
 
 
