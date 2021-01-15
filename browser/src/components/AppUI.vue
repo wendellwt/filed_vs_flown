@@ -30,14 +30,24 @@
                     >GoKML</b-button>
        </div>
 
-       <!-- ========== asdex button ========= -->
+       <!-- ========== paths button ========= -->
         <div class="level-item has-text-centered">
           <b-button type="is-success"
                     size="is-small"
                     rounded
-                    v-on:click="GoASDEX()"
-                    >get ASDEX</b-button>
+                    v-on:click="GoPaths()"
+                    >get paths</b-button>
        </div>
+
+       <!-- ========== paths button ========= -->
+        <div class="level-item has-text-centered">
+          <b-button type="is-success"
+                    size="is-small"
+                    rounded
+                    v-on:click="GoFvF()"
+                    >get fvf</b-button>
+       </div>
+
 
        <!-- ========== nav end ========= -->
     </nav>
@@ -76,16 +86,28 @@ export default {
         this.$root.$emit('kmlurl', (the_query) );
     },
     // ---------------------------------------
-    GoASDEX() {
+    GoPaths() {
         let force_reload = Math.floor(Math.random() * 99999);
 
         // apt is bogus
-        let the_query = "get_asdex?apt=IAD&rand=" + force_reload;
+        let the_query = "get_paths?apt=IAD&rand=" + force_reload;
 
-        console.log("emit asdexurl");
+        console.log("emit paths url");
         console.log(the_query);
-        this.$root.$emit('asdexurl', (the_query) );
+        this.$root.$emit('pathsurl', (the_query) );
     },
+    // ---------------------------------------
+    GoFvF() {
+        let force_reload = Math.floor(Math.random() * 99999);
+
+        // apt is bogus
+        let the_query = "get_fvf?apt=IAD&rand=" + force_reload;
+
+        console.log("emit fvf url");
+        console.log(the_query);
+        this.$root.$emit('fvfurl', (the_query) );
+    },
+    // ---------------------------------------
     // ---------------------------------------
   }
 }

@@ -48,9 +48,18 @@
 
 <!-- ============ use loader-factory ============ -->
         <vl-source-vector
-                  :features.sync="asdexFeatures"
-                  :url="asdexUrl"
+                  :features.sync="pathFeatures"
+                  :url="pathUrl"
                   :loader-factory="loaderFactoryOuter"
+                  />
+
+       <vl-style-func :factory="asdexStyleFuncFac" />
+
+<!-- ============ use loader-factory ============ -->
+        <vl-source-vector
+                  :features.sync="fvfFeatures"
+                  :url="fvfUrl"
+                  :loader-factory="loaderFactoryOuterFvf"
                   />
 
        <vl-style-func :factory="asdexStyleFuncFac" />
@@ -140,10 +149,13 @@ const methods = {
 
 console.log("inside loaderFactoryInner:", extent, resolution, projection);
 
-      return fetch(this.asdexUrl)
+      return fetch(this.pathUrl)
         .then(response => response.json())
         .then(data =>  {
 
+          return(data); // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+            /*********************************************
           // clean up data
           // NOTE: but ONLY for the Points, not the LineStrings
           // which is track/id < 900000
@@ -173,9 +185,26 @@ console.log("inside loaderFactoryInner:", extent, resolution, projection);
           this.$root.$emit('dlist', (sortedlist) );
 
           return(data);
+            *********************************************/
+       })
+    },
+    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    loaderFactoryOuterFvf() {
+      return (extent, resolution, projection) => this.loaderFactoryInnerFvf(extent, resolution, projection)
+    },
+
+    loaderFactoryInnerFvf(extent, resolution, projection) {
+
+console.log("inside loaderFactoryInnerFvf:", extent, resolution, projection);
+
+      return fetch(this.fvfUrl)
+        .then(response => response.json())
+        .then(data =>  {
+          return(data); // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
        })
     },
 
+    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     onMapMounted () {
       // now ol.Map instance is ready and we can work with it directly
       this.$refs.map.$map.getControls().extend([
@@ -253,8 +282,10 @@ export default {
         kmlUrl: '',
 
         // all OLD, INOP:
-        asdexUrl: 'bogus',
-        asdexFeatures: [],
+        pathUrl: 'bogus',
+        fvfUrl: 'bogus',
+        pathFeatures: [],
+        fvfFeatures: [],
         aaaFeatures: [],   // rather old: https://github.com/ghettovoice/vuelayers/issues/25
         highLightMe: 15,  // track id of item to highlight
 
@@ -329,11 +360,18 @@ export default {
     })
 
     // -------------------------
-    this.$root.$on('asdexurl', (the_query) => {
-      console.log("asdex::"+the_query);
+    this.$root.$on('pathsurl', (the_query) => {
+      console.log("paths::"+the_query);
 
       // this fires off loaderFactory via vl-source-vector which does the actual fetch
-      this.asdexUrl = the_query;
+      this.pathUrl = the_query;
+    }),
+    // -------------------------
+    this.$root.$on('fvfurl', (the_query) => {
+      console.log("fvf::"+the_query);
+
+      // this fires off loaderFactory via vl-source-vector which does the actual fetch
+      this.fvfUrl = the_query;
     })
   }, // ---- mounted
 
