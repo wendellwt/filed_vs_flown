@@ -19,7 +19,7 @@ app = Flask(__name__)
 
 # --------------------------------------------------------------------
 
-lgr = web_logging.setup_logger("show_geosjon", "helpme")
+lgr = web_logging.setup_logger("fvf", "helpme")
 
 lgr.info("web app starting")
 
@@ -58,17 +58,33 @@ def do_kml():
 
 # --------------------------------------------------------------------
 
-@app.route('/get_paths', methods=['GET'])
+@app.route('/get_fvf', methods=['GET'])
 
-def do_paths():
+def do_fvf():
 
-    lgr.info("get_paths - in")
+    lgr.info("get_fvf - in")
+
+    bogus = request.args['apt']  # TODO! use this somehow
+
+    paths_gj = get_paths.query_fvf(lgr, bogus )
+
+    lgr.info("get_fvf - out")
+
+    return paths_gj
+
+# --------------------------------------------------------------------
+
+@app.route('/get_CLT_ORD', methods=['GET'])
+
+def do_CLT_ORD():
+
+    lgr.info("get_CLT_ORD - in")
 
     bogus = request.args['apt']  # TODO! use this somehow
 
     paths_gj = get_paths.query_all(lgr, bogus )
 
-    lgr.info("get_paths - out")
+    lgr.info("get_CLT_ORD - out")
 
     return paths_gj
 
