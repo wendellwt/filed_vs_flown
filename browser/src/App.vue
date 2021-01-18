@@ -1,37 +1,30 @@
 <template>
+  <div id="app">
+    <div class="columns">
+      <div class="column is-one-fifth">
 
-  <div class="columns">
-    <div class="column">
-      <app-ui></app-ui>
-      <app-ol></app-ol>
-      <charts></charts>
-    </div>
-    <div class="column is-one-quarter">
-      <data-pos></data-pos>
+        <Panel />
+
+      </div>
+      <div class="column">
+
+        <Tabs />
+
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 
-import AppUI   from "./components/AppUI.vue";
-import AppOL   from "./components/AppOL.vue";
-import DataPos from "./components/DataPos.vue";
-import Charts  from "./components/Charts.vue";
+import Panel from './components/Panel.vue';
+import Tabs from './components/Tabs.vue';
 
 export default {
-  name: 'app',
+  name: 'App',
   components: {
-    'app-ui'   : AppUI,
-    'app-ol'   : AppOL,
-    'data-pos' : DataPos,
-    'charts'   : Charts
-  },
-
-  data () {
-    return {
-        location  : null,
-   }
+    Panel,
+    Tabs
   }
 }
 
