@@ -11,6 +11,7 @@ from flask import Flask, render_template, request
 
 sys.path.append('copied')  # stupid git/sharing  work-around
 import get_paths
+import fvf_by_artcc
 import web_logging
 
 # --------------------------------------------------------------------
@@ -87,6 +88,27 @@ def do_CLT_ORD():
     lgr.info("get_CLT_ORD - out")
 
     return paths_gj
+
+# --------------------------------------------------------------------
+
+@app.route('/get_summary', methods=['GET'])
+
+def do_summary():
+
+    lgr.info("get_summary - in")
+
+    airport = request.args['apt']
+    center = request.args['ctr']
+    y_m_d = request.args['date']
+
+    sum_js = fvf_by_artcc.summarize_by_hour(lgr, airport, center, y_m_d)
+
+    lgr.info("get_summary - out")
+    lgr.info("+++++")
+    lgr.info(sum_js)
+    lgr.info("+++++")
+
+    return sum_js
 
 #######################################################################
 #                            main                                     #
