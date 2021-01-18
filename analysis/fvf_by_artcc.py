@@ -238,8 +238,10 @@ def summarize_by_corner(all_flts_df):  # UNUSED
 
 # ------------------------------------------------------------------------
 
-def summarize_by_hour(all_flts_df):
+def summarize_by_hour(lgr, airport, center, y_m_d):
 
+    all_flts_df = query_all_corners_flights_as_table(lgr, airport,
+                                                         center, y_m_d)
     # ---- summarize by hour
 
     all_flts_df['hour'] = all_flts_df['arr_time'].apply(lambda dt:
@@ -254,7 +256,19 @@ def summarize_by_hour(all_flts_df):
 
     hourly_df = pd.merge(sch_hr_sum_df, flw_hr_sum_df, on=["corner","hour"]).reset_index()
 
-    return(hourly_df)
+    #hourly_df.to_csv(hrly_fn, index=False)
+
+    # ---- now return pandas dataframe as json
+
+    hourly_js = hourly_df.to_json(date_format='iso', orient="records")
+
+    #print("+++++++ after to_json")
+    #print(hourly_js)  # print has dbl quotes
+
+    #print("+++++++ after loads")
+    #parsed_js = json.loads(hourly_js)
+
+    return(hourly_js)
 
 # ######################################################################## #
 #                              standalone main                             #
@@ -344,29 +358,13 @@ if __name__ == "__main__":
 
     if args.function == '2':
 
-        if args.pickle:
-            all_flts_df = pickle.load( open( "all_flts_df.p", "rb" ) )
-        else:
-            all_flts_df = query_all_corners_flights_as_table(lgr, args.airport,
-                                                         args.center, y_m_d)
-            pickle.dump(all_flts_df, open( "all_flts_df.p","wb" ) )
+        hourly_js = summarize_by_hour(lgr, args.airport, args.center, y_m_d)
 
-        hourly_res = summarize_by_hour(all_flts_df)
-        hourly_df = pd.DataFrame(hourly_res)
+        print(hourly_js)   # print has single quotes
 
-        hourly_df.to_csv(hrly_fn, index=False)
-
-        hourly_js = hourly_df.to_json(date_format='iso', orient="records")
-
-        print("+++++++ after to_json")
-        print(hourly_js)  # print has dbl quotes
-
-        #print("+++++++ after loads")
-        #parsed = json.loads(hourly_js)
-        #print(parsed)   # print has single quotes
         #print("+++++++ after dumps")
-        #print(json.dumps(parsed, indent=4))  # prettified
-        ##print(">>>>>>>")
+        #print(json.dumps(parsed_js, indent=4))  # prettified
+        #print(">>>>>>>")
 
     # ---- 3. call query as if were a flask call
 
