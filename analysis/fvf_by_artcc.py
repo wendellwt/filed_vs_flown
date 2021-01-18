@@ -13,10 +13,10 @@ import psycopg2
 import pandas as pd
 import geojson
 import socket
+import pickle
 
-from sqlalchemy import create_engine
-from shapely.wkt import dumps, loads
-from shapely.geometry import LineString, mapping, shape
+from shapely.wkt import dumps  #, loads
+#from shapely.geometry import LineString, mapping, shape
 
 # ------------------------------------------------------------------
 
@@ -205,7 +205,7 @@ FROM J,
 WHERE S.flight_index = J.flight_index
 AND   S.orig_time    = J.sched_active_at
 AND   F.flight_index = J.flight_index
-ORDER BY F.corner, pct""" % (corner, corner, y_m_d, y_m_d)
+ORDER BY F.corner, pct""" % (center, center, y_m_d, y_m_d)
 
     sql = sqlc + sqle + sqlj + sql_table
 
@@ -213,15 +213,48 @@ ORDER BY F.corner, pct""" % (corner, corner, y_m_d, y_m_d)
     lgr.debug(sql)
 
     all_flts_df = pd.read_sql(sql, con=pg_conn)
+    return(all_flts_df)
 
-    print(all_flts_df)
-    all_flts_df.to_csv("atest.csv", index=False)
 
-    #pg_csr.execute(sql)
-    #for res in pg_csr.fetchall():
-    #    print(res)
+# ######################################################################## #
+#                           turn tabular into summary                      #
+# ######################################################################## #
 
-    sys.exit(1)
+def summarize_by_corner(all_flts_df):  # UNUSED
+
+    # ----  just testing, are these useful???
+
+    sch_cnr_sum_df = all_flts_df.groupby(["corner"]) [["sched_dist_zdv"]].sum()
+    flw_cnr_sum_df = all_flts_df.groupby(["corner"]) [["flown_dist_zdv"]].sum()
+
+    print("sched:")
+    print(sch_cnr_sum_df)
+    print("flown:")
+    print(flw_cnr_sum_df)
+
+    together_df = pd.merge(sch_cnr_sum_df, flw_cnr_sum_df, on="corner")
+    print("together:")
+    print(together_df)
+
+# ------------------------------------------------------------------------
+
+def summarize_by_hour(all_flts_df):
+
+    # ---- summarize by hour
+
+    all_flts_df['hour'] = all_flts_df['arr_time'].apply(lambda dt:
+               datetime.datetime( dt.year, dt.month, dt.day, dt.hour,0,0,0))
+
+    # sch_hr_sum_df = all_flts_df.groupby(["corner","hour"]) [["sched_dist_zdv"]].sum()
+    # flw_hr_sum_df = all_flts_df.groupby(["corner","hour"]) [["flown_dist_zdv"]].sum()
+
+    # no difference:
+    sch_hr_sum_df = all_flts_df.groupby(["corner","hour"]).agg( {"sched_dist_zdv":'sum'})
+    flw_hr_sum_df = all_flts_df.groupby(["corner","hour"]).agg( {"flown_dist_zdv":'sum'})
+
+    hourly_df = pd.merge(sch_hr_sum_df, flw_hr_sum_df, on=["corner","hour"]).reset_index()
+
+    return(hourly_df)
 
 # ######################################################################## #
 #                              standalone main                             #
@@ -238,22 +271,111 @@ class NotLgr:  # pretend class to let lgr.info() work when not logging
 
 # ==========================================================================
 
+import argparse
+
 if __name__ == "__main__":
 
+    # ################################################################### #
+    #                           argparse                                  #
+    # ################################################################### #
+
+    parser = argparse.ArgumentParser(description="a very good program")
+
+    parser.add_argument('-d', '--date', default = datetime.date(2020, 1, 10),
+                type=lambda d: datetime.datetime.strptime(d, '%Y-%m-%d').date(),
+                        help='start date yyyy-mm-dd')
+
+    parser.add_argument('-a', '--airport', type=str,
+                help="arrival airport", default="DEN")
+
+    parser.add_argument('-z', '--center', type=str,   # abbr. is non-standard
+                help="center to transit", default="ZDV")
+
+    parser.add_argument('-c', '--corner', type=str,
+                help="corner post", default="ne",
+                choices=('ne', 'se', 'sw', 'nw') )
+
+    parser.add_argument('-v', '--verbose', action='store_const', const=True,
+                help="verbosity", default=False )
+
+    parser.add_argument('-p', '--pickle', action='store_const', const=True,
+                help="use pickle instead of oracle", default=False )
+
+    parser.add_argument('-f', '--function', type=str,
+                help="function to run", default="1",
+                choices=('1', '2', '3', '4') )
+
+    args = parser.parse_args()
+
+    # ####################################################################### #
+    # ---- and adjust args to be in a nice format
+
+    # filename of csv file (containing airport and operational day)
+    csv_fn = args.airport.lower() + '_' + args.date.strftime("%Y_%m_%d") + ".csv"
+    hrly_fn = args.airport.lower() + '_' + args.date.strftime("%Y_%m_%d") + "_hourly.csv"
+
+    y_m_d    = args.date.strftime("%Y_%m_%d")
+
+    # ####################################################################### #
+
     lgr = NotLgr()
-    print("hello sailor")
+    #print("hello sailor")
 
-    # get these from args: <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    y_m_d = "2020_01_10"
-    arr_apt = 'DEN'
-    center = 'ZDV'
-    corner = 'ne'
+    # ---- 1. retrieve tabular data of acid, corner, arr time, both distances
 
-    tbl = query_all_corners_flights_as_table(lgr, arr_apt, center, y_m_d)
+    if args.function == '1':
 
-    # fc = query_one_corner_flights_as_geojson(lgr, arr_apt, center, corner, y_m_d)
-    # print("+++++++")
-    # print(json.dumps(fc))
-    # print(">>>>>>>")
-    # pprint(fc)
+        if args.pickle:
+            all_flts_df = pickle.load( open( "all_flts_df.p", "rb" ) )
+        else:
+            all_flts_df = query_all_corners_flights_as_table(lgr, args.airport,
+                                                         args.center, y_m_d)
+            pickle.dump(all_flts_df, open( "all_flts_df.p","wb" ) )
+
+        with pd.option_context('display.max_rows', None,
+                               'display.max_columns', None,
+                               'display.width', 299,
+                               ):
+            print(all_flts_df)
+
+        all_flts_df.to_csv(csv_fn, index=False)
+
+    # ---- 2. analyze corners and return as json
+
+    if args.function == '2':
+
+        if args.pickle:
+            all_flts_df = pickle.load( open( "all_flts_df.p", "rb" ) )
+        else:
+            all_flts_df = query_all_corners_flights_as_table(lgr, args.airport,
+                                                         args.center, y_m_d)
+            pickle.dump(all_flts_df, open( "all_flts_df.p","wb" ) )
+
+        hourly_res = summarize_by_hour(all_flts_df)
+        hourly_df = pd.DataFrame(hourly_res)
+
+        hourly_df.to_csv(hrly_fn, index=False)
+
+        hourly_js = hourly_df.to_json(date_format='iso', orient="records")
+
+        print("+++++++ after to_json")
+        print(hourly_js)  # print has dbl quotes
+
+        #print("+++++++ after loads")
+        #parsed = json.loads(hourly_js)
+        #print(parsed)   # print has single quotes
+        #print("+++++++ after dumps")
+        #print(json.dumps(parsed, indent=4))  # prettified
+        ##print(">>>>>>>")
+
+    # ---- 3. call query as if were a flask call
+
+    if args.function == '3':
+
+        fc = query_one_corner_flights_as_geojson(lgr, args.airport,
+                                    args.center, args.corner, y_m_d)
+        print("+++++++")
+        print(json.dumps(fc))
+        print(">>>>>>>")
+        pprint(fc)
 
