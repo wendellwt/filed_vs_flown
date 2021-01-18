@@ -48,6 +48,15 @@
                     >get fvf</b-button>
        </div>
 
+       <!-- ========== summary button ========= -->
+        <div class="level-item has-text-centered">
+          <b-button type="is-success"
+                    size="is-small"
+                    rounded
+                    v-on:click="GoSummary()"
+                    >get summary</b-button>
+       </div>
+
 
        <!-- ========== nav end ========= -->
     </nav>
@@ -108,6 +117,16 @@ export default {
         this.$root.$emit('fvfurl', (the_query) );
     },
     // ---------------------------------------
+    GoSummary() {
+        let force_reload = Math.floor(Math.random() * 99999);
+
+        // apt is bogus
+        let the_query = "get_summary?apt=DEN&ctr=ZDV&date=2020_01_10&rand=" + force_reload;
+
+        console.log("emit summary url");
+        console.log(the_query);
+        this.$root.$emit('summaryurl', (the_query) );
+    },
     // ---------------------------------------
   }
 }
