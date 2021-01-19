@@ -54,6 +54,25 @@
             <div class="column">{{arr_selected}}</div>
           </div>
        </div>
+        <!-- ========== center ========= -->
+        <div class="panel-block">
+          <div class="columns">
+            <div class="column is-three-quarters">
+              <b-dropdown :triggers="['hover']" aria-role="list"
+                    v-model="center_selected" >
+              <button class="button is-light is-small" slot="trigger">
+                <span>Center</span>
+                <b-icon icon="menu-down"></b-icon>
+              </button>
+
+              <b-dropdown-item  v-for="ctr in centerlist"
+                          v-bind:value="ctr"
+                          :key="ctr">{{ ctr }}</b-dropdown-item>
+              </b-dropdown>
+            </div>
+            <div class="column">{{center_selected}}</div>
+          </div>
+       </div>
         <!-- ========== begin window time ========= -->
         <div class="panel-block">
           <b-field label="Begin and end times">
@@ -122,11 +141,13 @@ export default {
         incrementMinuts_d: 15,
         date_selected: new Date(),
         time_selected: new Date(),
-        dep_selected: "buy",
-        arr_selected: "tri",
+        dep_selected: "unk",
+        arr_selected: "DEN",
+        center_selected: "ZDV",
         dates: [],
 
         airportlist: [ "DEN", "DFW", "ATL", 'JFK', 'LAX', 'MIA' ],
+        centerlist: [ "ZDV", "ZFW", "ZLA", 'ZKC', 'ZME' ],
    }
   },
     methods: {
