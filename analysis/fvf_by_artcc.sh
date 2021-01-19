@@ -6,11 +6,17 @@ YMD=${1:-2019-06-02}
 APT=${2:-DEN}
 ARTCC=${3:-ZDV}
 
-# table names are  y_m_d, not y-m-d:
-YMD=${YMD//-/_}
-
 # and make output headers look nice
 ALOWER=`echo $ARTCC | tr '[:upper:]' '[:lower:]'`
+
+# ============================================================
+
+./fvf_by_artcc.py --date $YMD --airport $APT --center ${ARTCC}
+
+exit 1
+
+# table names are  y_m_d, not y-m-d:
+YMD=${YMD//-/_}
 
 # ============================================================
 
