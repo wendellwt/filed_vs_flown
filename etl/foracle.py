@@ -54,9 +54,13 @@ def read_ops_day_data(ops_date, arr_apt, args_verbose):
     today = (ops_date                             ).strftime("%Y%m%d")
     tomor = (ops_date + datetime.timedelta(days=1)).strftime("%Y%m%d")
 
-    ora_tbls = "(SELECT * FROM ROUTE_" + yestr + "@ETMSREP UNION ALL " + \
-                "SELECT * FROM ROUTE_" + today + "@ETMSREP UNION ALL " + \
-                "SELECT * FROM ROUTE_" + tomor + "@ETMSREP) "
+    #ora_tbls = "(SELECT * FROM ROUTE_" + yestr + "@ETMSREP UNION ALL " + \
+    #            "SELECT * FROM ROUTE_" + today + "@ETMSREP UNION ALL " + \
+    #            "SELECT * FROM ROUTE_" + tomor + "@ETMSREP) "
+
+    ora_tbls = "(SELECT * FROM ROUTE_" + yestr + "@ETMSREP WHERE FID > 0 UNION ALL " + \
+                "SELECT * FROM ROUTE_" + today + "@ETMSREP WHERE FID > 0 UNION ALL " + \
+                "SELECT * FROM ROUTE_" + tomor + "@ETMSREP WHERE FID > 0 ) "
 
     # NOT: this: tz_diff = +7 # hours to get to utc
     # new def: ops day it 8 (am) UTC to 8(am) UTC
