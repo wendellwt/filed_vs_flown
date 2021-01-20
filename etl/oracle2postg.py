@@ -50,8 +50,8 @@ args = parser.parse_args()
 
 #csv_fn = args.airport.lower() + '_' + args.date.strftime("%Y_%m_%d") + ".csv"
 
-ora_ymd  = args.date.strftime("%Y%m%d")
-y_m_d    = args.date.strftime("%Y-%m-%d")
+#ora_ymd  = args.date.strftime("%Y%m%d")
+#y_m_d    = args.date.strftime("%Y-%m-%d")
 
 sched_tablename = "sched_fvf_" + args.date.strftime("%Y_%m_%d")
 flown_tablename = "flown_fvf_" + args.date.strftime("%Y_%m_%d")
