@@ -42,15 +42,13 @@
             </b-tab-item xx >
 
             <!xx b-tab-item label="Codepen"> <CodePen /> </b-tab-item xx>
-
             <!xx b-tab-item label="BarJs"> <BarJs /> </b-tab-item xx >
-
             <!xx b-tab-item label="Fiddle"> <Fiddle /> </b-tab-item xx >
-
             <!xx b-tab-item label="Random"> <Random /> </b-tab-item xx >
             <!xxmissing: b-tab-item label="Vc"> <Vc /> </b-tab-item xx >
             <b-tab-item label="D3bc"> <D3bc /> </b-tab-item>
 ******************************************** -->
+            <b-tab-item label="Gallery"> <Gallery /> </b-tab-item>
 
             <!-- ============= table tab ============== -->
 
@@ -77,13 +75,14 @@ import Vd3Charts  from "./Vd3Charts.vue";
 //missing: import Vc    from "./Vc.vue";
 import D3bc    from "./D3bc.vue";
             *******************************/
+import Gallery    from "./Gallery.vue";
 
 export default {
   name: 'Tabs',
     components: {
       'app-ol'   : AppOL,
       'data-pos' : DataPos,
-      'mytable'  : Table    // duh! 'table' is bad choice for a local html component!
+      'mytable'  : Table,    // duh! 'table' is bad choice for a local html component!
 /*******************************
        Vd3Charts,
       BarChart,
@@ -95,6 +94,7 @@ export default {
         //missing: Vc,
          D3bc
 *******************************/
+        Gallery
   },
   props: {
     msg: String
@@ -102,6 +102,7 @@ export default {
     data() {
       return {
           // BarChart
+          /******************
         data: [
           ["Bob", 33],
           ["Robin", 24],
@@ -125,8 +126,8 @@ export default {
     chartOptions: {
       responsive: true,
       maintainAspectRatio: false
-    }
-
+    },
+          ******************/
       };
     },
 }

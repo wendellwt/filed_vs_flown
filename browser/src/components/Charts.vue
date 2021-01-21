@@ -1,125 +1,117 @@
 <template>
-  <div id="container" class="svg-container" align="center">
-    <h1>{{ title }}</h1>
-    <svg v-if="redrawToggle === true" :width="svgWidth" :height="svgHeight">
-      <g>
-        <rect
-          v-for="item in data"
-          class="bar-positive"
-          :key="item[xKey]"
-          :x="xScale(item[xKey])"
-          :y="yScale(0)"
-          :width="xScale.bandwidth()"
-          :height="0"
-        ></rect>
-      </g>
-    </svg>
-  </div>
+
+    <!-- Create a div where the graph will take place -->
+    <div id="my_dataviz"></div>
+
 </template>
 
 <script>
-import { scaleLinear, scaleBand } from "d3-scale";
-import { max, min } from "d3-array";
-import { selectAll } from "d3-selection";
-// import { transition } from "d3-transition";
+
+import * as d3 from 'd3';
 
 export default {
-  name: "BarChart",
-  props: {
-    title: String,
-    xKey: String,
-    yKey: String,
-    data: Array
+  name: 'Gallery',
+    data() {
+      return {
+        jdata:   [
+  {"group" :   "banana", "Nitrogen" : 12, "normal" :  1, "stress" : 13},
+  {"group" :   "poacee", "Nitrogen" :  6, "normal" :  6, "stress" : 33},
+  {"group" :   "sorgho", "Nitrogen" : 11, "normal" : 28, "stress" : 33},
+  {"group" : "triticum", "Nitrogen" : 19, "normal" :  6, "stress" :  1}
+]
+      }
+    },
+
+  mounted: function() {
+      this.$root.$on('update', (ndata) => {
+          console.log("Gallery received update");
+          this.displayGData(ndata);
+          console.log("Gallery done");
+  })
   },
-  mounted() {
-    this.svgWidth = document.getElementById("container").offsetWidth * 0.75;
-    this.AddResizeListener();
-    this.AnimateLoad();
-  },
-  data: () => ({
-    svgWidth: 0,
-    redrawToggle: true
-  }),
-  methods: {
-    AnimateLoad() {
-      selectAll("rect")
-        .data(this.data)
-        .transition()
-        .delay((d, i) => {
-          return i * 150;
-        })
-        .duration(1000)
-        .attr("y", d => {
-          return this.yScale(d[this.yKey]);
-        })
-        .attr("height", d => {
-          return this.svgHeight - this.yScale(d[this.yKey]);
-        });
-    },
-    AddResizeListener() {
-      // redraw the chart 300ms after the window has been resized
-      window.addEventListener("resize", () => {
-        this.$data.redrawToggle = false;
-        setTimeout(() => {
-          this.$data.redrawToggle = true;
-          this.$data.svgWidth =
-            document.getElementById("container").offsetWidth * 0.75;
-          this.AnimateLoad();
-        }, 300);
-      });
-    }
-  },
-  computed: {
-    dataMax() {
-      return max(this.data, d => {
-        return d[this.yKey];
-      });
-    },
-    dataMin() {
-      return min(this.data, d => {
-        return d[this.yKey];
-      });
-    },
-    xScale() {
-      return scaleBand()
-        .rangeRound([0, this.svgWidth])
-        .padding(0.1)
-        .domain(
-          this.data.map(d => {
-            return d[this.xKey];
-          })
-        );
-    },
-    yScale() {
-      return scaleLinear()
-        .rangeRound([this.svgHeight, 0])
-        .domain([this.dataMin > 0 ? 0 : this.dataMin, this.dataMax]);
-    },
-    svgHeight() {
-      return this.svgWidth / 1.61803398875; // golden ratio
-    }
-  }
-};
+
+    /************************ new:  ******************/
+    /**************** Gallery ***************/
+    /* https://www.d3-graph-gallery.com/graph/barplot_stacked_basicWide.html */
+    /**************** Gallery ***************/
+
+    methods: {
+        displayGData : function(ndata) {
+
+// set the dimensions and margins of the graph
+var margin = {top: 10, right: 30, bottom: 20, left: 50},
+    width = 460 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
+
+// append the svg object to the body of the page
+var svg = d3.select("#my_dataviz")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+    // =========================== my edits
+  // List of subgroups = header of the csv files = soil condition here
+  //var subgroups = data.columns.slice(1)
+  //var subgroups = [ "Nitrogen", "normal", "stress" ];  // <<<<<<<<<<<<<<<<<<<< FIXME
+  var subgroups = [ "sched_dist_zdv", "flown_dist_zdv" ];  // <<<<<<<<<<<<<<<<<<<< FIXME
+
+  // List of groups = species here = value of the first column called group -> I show them on the X axis
+  //var groups = d3.map(data, function(d){return(d.group)}).keys()
+
+  //var groups = [ "banana", "poacee", "sorgho", "triticum" ];  // <<<<<<<<<<<<<<<<<<<< FIXME
+  var groups = [ "ne", "se", "sw", "nw" ];  // <<<<<<<<<<<<<<<<<<<< FIXME
+
+    // =========================== my edits - end
+
+  // Add X axis
+  var x = d3.scaleBand()
+      .domain(groups)
+      .range([0, width])
+      .padding([0.2])
+  svg.append("g")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(x).tickSizeOuter(0));
+
+  // Add Y axis
+  var y = d3.scaleLinear()
+    //.domain([0, 60])
+    .domain([0, 120000])    // <<<<<<<<<<<<<<<<<<<<<<<<
+    .range([ height, 0 ]);
+  svg.append("g")
+    .call(d3.axisLeft(y));
+
+  // color palette = one color per subgroup
+  var color = d3.scaleOrdinal()
+    .domain(subgroups)
+    .range(['#e41a1c','orange'])
+    //.range(['#e41a1c','#377eb8','#4daf4a'])
+
+  //stack the data? --> stack per subgroup
+  var stackedData = d3.stack().keys(subgroups)(ndata)
+
+  // Show the bars
+  svg.append("g")
+    .selectAll("g")
+    // Enter in the stack data = loop key per key = group per group
+    .data(stackedData)
+    .enter().append("g")
+      .attr("fill", function(d) { return color(d.key); })
+      .selectAll("rect")
+      // enter a second time = loop subgroup per subgroup to add all rectangles
+      .data(function(d) { return d; })
+      .enter().append("rect")
+        //.attr("x", function(d) { return x(d.data.group); })
+        .attr("x", function(d) { return x(d.data.corner); })  // <<<<<<<<<<<<<<<< wt
+        .attr("y", function(d) { return y(d[1]); })
+        .attr("height", function(d) { return y(d[0]) - y(d[1]); })
+        .attr("width",x.bandwidth())
+} // set new data function
+} // methods
+} // export
+
 </script>
-
-<style scoped>
-.bar-positive {
-  fill: steelblue;
-  transition: r 0.2s ease-in-out;
-}
-
-.bar-positive:hover {
-  fill: brown;
-}
-
-.svg-container {
-  display: inline-block;
-  position: relative;
-  width: 100%;
-  padding-bottom: 1%;
-  vertical-align: top;
-  overflow: hidden;
-}
-</style>
 
 
