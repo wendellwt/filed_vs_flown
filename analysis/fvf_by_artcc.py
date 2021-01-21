@@ -220,21 +220,42 @@ ORDER BY F.corner, pct""" % (center, center, y_m_d, y_m_d)
 #                           turn tabular into summary                      #
 # ######################################################################## #
 
-def summarize_by_corner(all_flts_df):  # UNUSED
+def summarize_by_corner(lgr, airport, center, y_m_d):
+
+    all_flts_df = query_all_corners_flights_as_table(lgr, airport,
+                                                         center, y_m_d)
 
     # ----  just testing, are these useful???
 
     sch_cnr_sum_df = all_flts_df.groupby(["corner"]) [["sched_dist_zdv"]].sum()
     flw_cnr_sum_df = all_flts_df.groupby(["corner"]) [["flown_dist_zdv"]].sum()
 
-    print("sched:")
-    print(sch_cnr_sum_df)
-    print("flown:")
-    print(flw_cnr_sum_df)
+    lgr.info("sched:")
+    lgr.info(sch_cnr_sum_df)
+    lgr.info("flown:")
+    lgr.info(flw_cnr_sum_df)
 
     together_df = pd.merge(sch_cnr_sum_df, flw_cnr_sum_df, on="corner")
-    print("together:")
-    print(together_df)
+
+    # and make everything integers
+    together_df['sched_dist_zdv'] = together_df['sched_dist_zdv'].map(lambda s: int(s))
+    together_df['flown_dist_zdv'] = together_df['flown_dist_zdv'].map(lambda s: int(s))
+
+    lgr.info("together - 1:")
+    lgr.info(together_df)
+    lgr.info(together_df.columns)
+    lgr.info(type(together_df))
+
+    together_df.reset_index(inplace=True)
+    together_df = together_df.rename(columns = {'index':'cornere'})
+
+    lgr.info("together - 2:")
+    lgr.info(together_df)
+    lgr.info(together_df.columns)
+    lgr.info(type(together_df))
+
+    together_js = together_df.to_json(date_format='iso', orient="records")
+    return(together_js)
 
 # ------------------------------------------------------------------------
 
@@ -358,7 +379,8 @@ if __name__ == "__main__":
 
     if args.function == '2':
 
-        hourly_js = summarize_by_hour(lgr, args.airport, args.center, y_m_d)
+        #hourly_js = summarize_by_hour(lgr, args.airport, args.center, y_m_d)
+        hourly_js = summarize_by_corner(lgr, args.airport, args.center, y_m_d)
 
         print(hourly_js)   # print has single quotes
 
