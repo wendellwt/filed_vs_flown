@@ -101,7 +101,8 @@ def do_summary():
     center = request.args['ctr']
     y_m_d = request.args['date']
 
-    sum_js = fvf_by_artcc.summarize_by_hour(lgr, airport, center, y_m_d)
+    #sum_js = fvf_by_artcc.summarize_by_hour(lgr, airport, center, y_m_d)
+    sum_js = fvf_by_artcc.summarize_by_corner(lgr, airport, center, y_m_d)
 
     lgr.info("get_summary - out")
     lgr.info("+++++")
