@@ -10,7 +10,7 @@
 import * as d3 from 'd3';
 
 export default {
-  name: 'Gallery',
+  name: 'Charts',
     data() {
       return {
         jdata:   [
@@ -24,51 +24,50 @@ export default {
 
   mounted: function() {
       this.$root.$on('update', (ndata) => {
-          console.log("Gallery received update");
+          console.log("Charts received update");
           this.displayGData(ndata);
-          console.log("Gallery done");
-  })
+          console.log("Charts done");
+      })
   },
 
-    /************************ new:  ******************/
-    /**************** Gallery ***************/
+    /**************** Charts ***************/
     /* https://www.d3-graph-gallery.com/graph/barplot_stacked_basicWide.html */
-    /**************** Gallery ***************/
+    /**************** Charts ***************/
 
     methods: {
         displayGData : function(ndata) {
 
-// set the dimensions and margins of the graph
-var margin = {top: 10, right: 30, bottom: 20, left: 50},
-    width = 460 - margin.left - margin.right,
-    height = 400 - margin.top - margin.bottom;
-
-// append the svg object to the body of the page
-var svg = d3.select("#my_dataviz")
-  .append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-  .append("g")
-    .attr("transform",
-          "translate(" + margin.left + "," + margin.top + ")");
-
     // =========================== my edits
-  // List of subgroups = header of the csv files = soil condition here
-  //var subgroups = data.columns.slice(1)
-  //var subgroups = [ "Nitrogen", "normal", "stress" ];  // <<<<<<<<<<<<<<<<<<<< FIXME
-  var subgroups = [ "sched_dist_zdv", "flown_dist_zdv" ];  // <<<<<<<<<<<<<<<<<<<< FIXME
 
-  // List of groups = species here = value of the first column called group -> I show them on the X axis
+  // List of groups = species here = value of the first column called group
   //var groups = d3.map(data, function(d){return(d.group)}).keys()
+  let wt_groups = [ "ne", "se", "sw", "nw" ];  // <<<<<<<<<< FIXME
 
-  //var groups = [ "banana", "poacee", "sorgho", "triticum" ];  // <<<<<<<<<<<<<<<<<<<< FIXME
-  var groups = [ "ne", "se", "sw", "nw" ];  // <<<<<<<<<<<<<<<<<<<< FIXME
+  // List of subgroups = header of the csv files
+  //var subgroups = data.columns.slice(1)
+  let wt_subgroups = [ "sched_dist_zdv", "flown_dist_zdv" ];  // <<<< FIXME
+
+  let y_max = 120000;    // <<<<<<<<<<<<<<<<<<<<<<<<
 
     // =========================== my edits - end
 
+  // set the dimensions and margins of the graph
+  let margin = {top: 10, right: 30, bottom: 20, left: 50},
+      width  = 460 - margin.left - margin.right,
+      height = 400 - margin.top  - margin.bottom;
+
+  // append the svg object to the body of the page
+  let svg = d3.select("#my_dataviz")
+    .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+      .attr("transform",
+            "translate(" + margin.left + "," + margin.top + ")");
+
   // Add X axis
-  var x = d3.scaleBand()
-      .domain(groups)
+  let x = d3.scaleBand()
+      .domain(wt_groups)
       .range([0, width])
       .padding([0.2])
   svg.append("g")
@@ -76,21 +75,20 @@ var svg = d3.select("#my_dataviz")
     .call(d3.axisBottom(x).tickSizeOuter(0));
 
   // Add Y axis
-  var y = d3.scaleLinear()
-    //.domain([0, 60])
-    .domain([0, 120000])    // <<<<<<<<<<<<<<<<<<<<<<<<
+  let y = d3.scaleLinear()
+    .domain([0, y_max])
     .range([ height, 0 ]);
   svg.append("g")
     .call(d3.axisLeft(y));
 
   // color palette = one color per subgroup
-  var color = d3.scaleOrdinal()
-    .domain(subgroups)
+  let color = d3.scaleOrdinal()
+    .domain(wt_subgroups)
     .range(['#e41a1c','orange'])
     //.range(['#e41a1c','#377eb8','#4daf4a'])
 
   //stack the data? --> stack per subgroup
-  var stackedData = d3.stack().keys(subgroups)(ndata)
+  let stackedData = d3.stack().keys(wt_subgroups)(ndata)
 
   // Show the bars
   svg.append("g")
@@ -108,8 +106,8 @@ var svg = d3.select("#my_dataviz")
         .attr("y", function(d) { return y(d[1]); })
         .attr("height", function(d) { return y(d[0]) - y(d[1]); })
         .attr("width",x.bandwidth())
-} // set new data function
-} // methods
+    } // displayGData
+  } // methods
 } // export
 
 </script>

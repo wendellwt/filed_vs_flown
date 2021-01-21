@@ -114,12 +114,6 @@
                     rounded
                     v-on:click="GoSummary()"
                     >get summary</b-button>
-
-          <b-button type="is-success"
-                    size="is-small"
-                    rounded
-                    v-on:click="GoGallery()"
-                    >get gallery</b-button>
         </div>
 
         <!-- ========== go ========= -->
@@ -183,20 +177,6 @@ export default {
         console.log("emit summary url");
         console.log(the_query);
         this.$root.$emit('summaryurl', (the_query) );
-    },
-    // ---------------------------------------
-    // ---------------------------------------
-      GoGallery() {
-
-        let jdata =   [
-  {"group" :   "banana", "Nitrogen" :  3, "normal" :  1, "stress" : 13},
-  {"group" :   "poacee", "Nitrogen" :  6, "normal" :  6, "stress" : 33},
-  {"group" :   "sorgho", "Nitrogen" :  9, "normal" : 28, "stress" : 33},
-  {"group" : "triticum", "Nitrogen" : 12, "normal" :  6, "stress" :  1}
-];
-        console.log("emit update");
-        console.log(jdata);
-        this.$root.$emit('update', (jdata) );
     },
     // ---------------------------------------
   }

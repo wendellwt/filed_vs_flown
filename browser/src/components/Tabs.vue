@@ -17,38 +17,9 @@
             </b-tab-item>
 
             <!-- ============= bar chart tab ============== -->
+            <!-- ============= YIPEE!! one finally worked! ============== -->
 
-<!-- ********************************************
-            <b-tab-item label="BarChart">
-    <BarChart
-      class="chart"
-      :data-set="data"
-      :margin-left="40"
-      :margin-top="40"
-      :tick-count="5"
-      :bar-padding="0.5"
-    />
-            </b-tab-item>
-******************************************** -->
-
-            <!-- ============= v3bar chart tab ============== -->
-
-<!-- ********************************************
-            <b-tab-item label="Vd3Chart">
-                        <Vd3Charts />
-            </b-tab-item>
-            < ! xx b-tab-item label="ChartJs">
-                   <Chartjs :chartdata="chartData" :options="chartOptions"/>
-            </b-tab-item xx >
-
-            <!xx b-tab-item label="Codepen"> <CodePen /> </b-tab-item xx>
-            <!xx b-tab-item label="BarJs"> <BarJs /> </b-tab-item xx >
-            <!xx b-tab-item label="Fiddle"> <Fiddle /> </b-tab-item xx >
-            <!xx b-tab-item label="Random"> <Random /> </b-tab-item xx >
-            <!xxmissing: b-tab-item label="Vc"> <Vc /> </b-tab-item xx >
-            <b-tab-item label="D3bc"> <D3bc /> </b-tab-item>
-******************************************** -->
-            <b-tab-item label="Gallery"> <Gallery /> </b-tab-item>
+            <b-tab-item label="Charts"> <Charts /> </b-tab-item>
 
             <!-- ============= table tab ============== -->
 
@@ -63,19 +34,7 @@
 import AppOL   from './AppOL.vue';
 import DataPos from "./DataPos.vue";
 import Table   from "./Table.vue";
-            /*******************************
-//import Charts  from "./Charts.vue";
-import BarChart  from "./BarChart.vue";
-import Vd3Charts  from "./Vd3Charts.vue";
-//blank: import Chartjs    from "./Chartjs.vue";
-//import CodePen    from "./CodePen.vue";
-//blank: import BarJs    from "./BarJs.vue";
-//import Fiddle    from "./Fiddle.vue";
-//chartData: import Random    from "./Random.vue";
-//missing: import Vc    from "./Vc.vue";
-import D3bc    from "./D3bc.vue";
-            *******************************/
-import Gallery    from "./Gallery.vue";
+import Charts  from "./Charts.vue";
 
 export default {
   name: 'Tabs',
@@ -83,61 +42,20 @@ export default {
       'app-ol'   : AppOL,
       'data-pos' : DataPos,
       'mytable'  : Table,    // duh! 'table' is bad choice for a local html component!
-/*******************************
-       Vd3Charts,
-      BarChart,
-      //blank: Chartjs,
-        //CodePen,
-        //blank: BarJs,
-        //Fiddle,
-        //chartData: Random,
-        //missing: Vc,
-         D3bc
-*******************************/
-        Gallery
+      Charts
   },
   props: {
     msg: String
   },
     data() {
       return {
-          // BarChart
-          /******************
-        data: [
-          ["Bob", 33],
-          ["Robin", 24],
-          ["Mark", 22],
-          ["Joe", 29],
-          ["Eve", 38],
-          ["Karen", 21],
-          ["Kirsty", 25],
-          ["Chris", 30],
-        ],
-    chartData: {
-      labels: ['January', 'February'],
-      datasets: [
-        {
-          label: 'Data One',
-          backgroundColor: '#f87979',
-          data: [40, 20]
-        }
-      ]
-    },
-    chartOptions: {
-      responsive: true,
-      maintainAspectRatio: false
-    },
-          ******************/
+          foo : 1
       };
     },
 }
 </script>
 
 <style lang="scss" scoped>
-  .chart {
-    margin: 40px auto 0;
-    display: block;
-  }
 </style>
 
 
