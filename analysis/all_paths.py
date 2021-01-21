@@ -301,7 +301,7 @@ if __name__ == "__main__":
     parser.add_argument('-a', '--airport', type=str,
                 help="arrival airport", default="DEN")
 
-    parser.add_argument('-z', '--center', type=str, # arg abbr. is non-standard
+    parser.add_argument('-c', '--center', type=str,
                 help="center to transit", default="ZDV")
 
     #  debugging items follow.
