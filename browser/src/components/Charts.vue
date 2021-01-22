@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h3>Corner Chart</h3>
+      <h3>Corner Chart {{the_date}}</h3>
 
     <!-- Create a div where the graph will take place -->
     <div id="my_dataviz"></div>
@@ -16,12 +16,16 @@ export default {
   name: 'Charts',
     data() {
       return {
-        jdata:   [ ]  // remnants of original example
+        jdata:   [ ],  // remnants of original example
+        the_date: new Date()
       }
     },
 
   mounted: function() {
-      this.$root.$on('update', (ndata) => {
+      this.$root.$on('draw_new_chart', (ndata) => {
+
+          //this.the_date = ndate;
+
           console.log("Charts received update");
           this.displayGData(ndata);
           console.log("Charts done");

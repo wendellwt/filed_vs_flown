@@ -1,6 +1,6 @@
 <template>
     <div>
-       <h1>Summary Table</h1>
+        <h1>Summary Table {{the_date}}</h1>
 
          <table class="table table-bordered">
             <thead>
@@ -32,7 +32,8 @@
 export default {
     data () {
       return {
-        summaryData: 'bogus'
+        summaryData: 'bogus',
+        the_date: new Date()
       }
     },
 
@@ -45,21 +46,18 @@ export default {
 
   mounted () {
 
-    this.$root.$on('summaryurl', (the_query) => {
+    this.$root.$on('draw_new_table', (the_data) => {
+      console.log("draw_new_table::"+the_data);
+
+      //this.the_date = the_date;
+
+      // first, set our own variable to display (locally) table
+      this.summaryData = the_data;
+
+    }),
+
+    this.$root.$on('summaryurl_OLD_UNUSED', (the_query) => {
       console.log("summary::"+the_query);
-
-/* %%%%%%%%%%%%%%%%%%%%%%% WORKS:
-let HELPME = [
-  {"corner":"ne","sched_dist_zdv":52854,"flown_dist_zdv":52913},
-  {"corner":"nw","sched_dist_zdv":26231,"flown_dist_zdv":26401},
-  {"corner":"se","sched_dist_zdv":38674,"flown_dist_zdv":38408},
-  {"corner":"sw","sched_dist_zdv":56440,"flown_dist_zdv":56410}
-];
-            console.log("emit v3");
-            console.log(HELPME);  // does this change???
-
-            this.$root.$emit('update', (HELPME) );
-%%%%%%%%%%%%%%%%%%%%%%% */
 
       fetch(the_query)
         .then(response => response.json())
@@ -72,7 +70,7 @@ let HELPME = [
             console.log("emit update");
             console.log(data);
 
-            this.$root.$emit('update', (data) );
+            this.$root.$emit('draw_new_chart', (data) );
         });
 
     })

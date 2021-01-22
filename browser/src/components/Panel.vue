@@ -176,7 +176,7 @@ export default {
                        String(this.sel_date.getUTCMonth()+1).padStart(2,'0')  + '_' +
                               this.sel_date.getUTCDate() ;
 
-        //let udate = "&date=" + this.sel_date.strftime("%Y_%m+_%d");
+        //don't I wish: let udate = "&date=" + this.sel_date.strftime("%Y_%m_%d");
 
 console.log("udate=" + udate);
 
@@ -184,9 +184,27 @@ console.log("udate=" + udate);
 
         let the_query = "get_summary?apt=DEN&ctr=ZDV" + udate + force_reload;
 
-        console.log("emit summary url");
-        console.log(the_query);
-        this.$root.$emit('summaryurl', (the_query) );
+        console.log("fetch:" + the_query);
+        //console.log(the_query);
+        // this.$root.$emit('summaryurl', (the_query) );
+
+       fetch(the_query)
+        .then(response => response.json())
+        .then(data => {
+
+            console.log(data);
+
+            // first, send data over to Table page for tabular/text
+            console.log("emit draw_new_table");
+            this.$root.$emit('draw_new_table', (data) );
+            // nope: this.$root.$emit('draw_new_table', (data, this.sel_date) );
+
+            // second, send data over to Charts page for bar charts
+            console.log("emit draw_new_chart");
+            this.$root.$emit('draw_new_chart', (data) );
+            // nope: this.$root.$emit('draw_new_chart', (data, this.sel_date) );
+        });
+
     },
     // ---------------------------------------
   }
