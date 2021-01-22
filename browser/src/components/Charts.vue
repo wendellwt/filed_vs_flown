@@ -50,7 +50,7 @@ export default {
   //var subgroups = data.columns.slice(1)
   let wt_subgroups = [ "sched_dist_zdv", "flown_dist_zdv" ];  // <<<< FIXME
 
-  let y_max = 120000;    // <<<<<<<<<<<<<<<<<<<<<<<<
+  let y_max = 70000;    // <<<<<<<<<<<<<<<<<<<<<<<<
 
   let wt_chart_colors = [ // I think these look nice:
             '#996600'    // brown
@@ -98,19 +98,43 @@ export default {
   svg.append("g")
     .call(d3.axisLeft(y));
 
+// ++++++++++++ addition for grouping
+  // Another scale for subgroup position?
+  var xSubgroup = d3.scaleBand()
+    .domain(wt_subgroups)
+    .range([0, x.bandwidth()])
+    .padding([0.05])
+// ++++++++++++
+
   // color palette = one color per subgroup
   let color = d3.scaleOrdinal()
     .domain(wt_subgroups)
     .range(wt_chart_colors)
 
   //stack the data? --> stack per subgroup
-  let stackedData = d3.stack().keys(wt_subgroups)(ndata)
+  // ++++++++++++ addition / subtraction for grouping
+  // ++ let stackedData = d3.stack().keys(wt_subgroups)(ndata)
 
   // Show the bars
   svg.append("g")
     .selectAll("g")
     // Enter in the stack data = loop key per key = group per group
-    .data(stackedData)
+    //++ stacked: .data(stackedData)
+    .data(ndata)
+      // ++++++++++++++++++++ 
+    .enter()
+    .append("g")
+      .attr("transform", function(d) { return "translate(" + x(d.corner) + ",0)"; })
+    .selectAll("rect")
+    .data(function(d) { return wt_subgroups.map(function(key) { return {key: key, value: d[key]}; }); })
+    .enter().append("rect")
+      .attr("x", function(d) { return xSubgroup(d.key); })
+      .attr("y", function(d) { return y(d.value); })
+      .attr("width", xSubgroup.bandwidth())
+      .attr("height", function(d) { return height - y(d.value); })
+      .attr("fill", function(d) { return color(d.key); });
+
+      /* +++++++++++++++++ stacked:
     .enter().append("g")
       .attr("fill", function(d) { return color(d.key); })
       .selectAll("rect")
@@ -121,6 +145,7 @@ export default {
         .attr("y", function(d) { return y(d[1]); })
         .attr("height", function(d) { return y(d[0]) - y(d[1]); })
         .attr("width",x.bandwidth())
+        *******/
     } // displayGData
   } // methods
 } // export
