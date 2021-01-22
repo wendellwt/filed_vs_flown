@@ -8,10 +8,11 @@
             <b-field label="Select dates">
           <b-datepicker
             placeholder="Click to select..."
-             v-model="dates"
+             v-model="sel_date"
              :min-date="our_min_date"
              :max-date="our_max_date"
-            range>
+            >
+            <!-- removed for now (too hard): range -->
           </b-datepicker>
         </b-field>
   </div>
@@ -142,10 +143,11 @@ export default {
         incrementMinuts_d: 15,
         date_selected: new Date(),
         time_selected: new Date(),
-        dep_selected: "unk",
+        dep_selected: "any",
         arr_selected: "DEN",
         center_selected: "ZDV",
-        dates: [],
+        // back when 'range' was included: dates: [],
+        sel_date: new Date('January 10, 2020 09:00:00'),  // start???
 
         airportlist: [ "DEN", "DFW", "ATL", 'JFK', 'LAX', 'MIA' ],
         centerlist: [ "ZDV", "ZFW", "ZLA", 'ZKC', 'ZME' ],
@@ -169,10 +171,18 @@ export default {
     },
     // ---------------------------------------
     GoSummary() {
-        let force_reload = Math.floor(Math.random() * 99999);
 
-        // apt is bogus
-        let the_query = "get_summary?apt=DEN&ctr=ZDV&date=2020_01_10&rand=" + force_reload;
+        let udate = "&date="+ this.sel_date.getUTCFullYear() + '_' +
+                       String(this.sel_date.getUTCMonth()+1).padStart(2,'0')  + '_' +
+                              this.sel_date.getUTCDate() ;
+
+        //let udate = "&date=" + this.sel_date.strftime("%Y_%m+_%d");
+
+console.log("udate=" + udate);
+
+        let force_reload = "&rand=" + Math.floor(Math.random() * 99999);
+
+        let the_query = "get_summary?apt=DEN&ctr=ZDV" + udate + force_reload;
 
         console.log("emit summary url");
         console.log(the_query);

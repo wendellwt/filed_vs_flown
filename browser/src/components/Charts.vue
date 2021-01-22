@@ -1,8 +1,11 @@
 <template>
+  <div>
+    <h3>Corner Chart</h3>
 
     <!-- Create a div where the graph will take place -->
     <div id="my_dataviz"></div>
 
+  </div>
 </template>
 
 <script>
@@ -13,12 +16,7 @@ export default {
   name: 'Charts',
     data() {
       return {
-        jdata:   [
-  {"group" :   "banana", "Nitrogen" : 12, "normal" :  1, "stress" : 13},
-  {"group" :   "poacee", "Nitrogen" :  6, "normal" :  6, "stress" : 33},
-  {"group" :   "sorgho", "Nitrogen" : 11, "normal" : 28, "stress" : 33},
-  {"group" : "triticum", "Nitrogen" : 19, "normal" :  6, "stress" :  1}
-]
+        jdata:   [ ]  // remnants of original example
       }
     },
 
@@ -31,6 +29,7 @@ export default {
   },
 
     /**************** Charts ***************/
+    /* FINALLY, an example d3 chart that works!!!:     */
     /* https://www.d3-graph-gallery.com/graph/barplot_stacked_basicWide.html */
     /**************** Charts ***************/
 
@@ -49,6 +48,12 @@ export default {
 
   let y_max = 120000;    // <<<<<<<<<<<<<<<<<<<<<<<<
 
+  let wt_chart_colors = [ // I think these look nice:
+            '#996600'    // brown
+           ,'#3399ff'    // blue
+         //,'#339933'    // green-ish
+          ];
+
     // =========================== my edits - end
 
   // set the dimensions and margins of the graph
@@ -57,6 +62,14 @@ export default {
       height = 400 - margin.top  - margin.bottom;
 
   // append the svg object to the body of the page
+    // wt: .append("svg")
+    // wt made no difference: .insert("svg")
+
+  // BAD: d3.select("#my_dataviz").remove();  // does this work???
+
+  // Q: is "svg" just the name of the component???
+  d3.select("#my_dataviz").selectAll("svg").remove();
+
   let svg = d3.select("#my_dataviz")
     .append("svg")
       .attr("width", width + margin.left + margin.right)
@@ -84,8 +97,7 @@ export default {
   // color palette = one color per subgroup
   let color = d3.scaleOrdinal()
     .domain(wt_subgroups)
-    .range(['#e41a1c','orange'])
-    //.range(['#e41a1c','#377eb8','#4daf4a'])
+    .range(wt_chart_colors)
 
   //stack the data? --> stack per subgroup
   let stackedData = d3.stack().keys(wt_subgroups)(ndata)
@@ -101,8 +113,7 @@ export default {
       // enter a second time = loop subgroup per subgroup to add all rectangles
       .data(function(d) { return d; })
       .enter().append("rect")
-        //.attr("x", function(d) { return x(d.data.group); })
-        .attr("x", function(d) { return x(d.data.corner); })  // <<<<<<<<<<<<<<<< wt
+        .attr("x", function(d) { return x(d.data.corner); })  // <<<< wt  - 'corner' specified
         .attr("y", function(d) { return y(d[1]); })
         .attr("height", function(d) { return y(d[0]) - y(d[1]); })
         .attr("width",x.bandwidth())
