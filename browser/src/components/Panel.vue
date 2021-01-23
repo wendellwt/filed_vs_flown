@@ -121,6 +121,17 @@
         <div class="panel-block">
           <b-button @click="clickMe" class="is-primary is-light is-small">Go</b-button>
        </div>
+        <!-- ========== slider ========= -->
+        <div class="panel-block">
+          <b-field label="Hour selector">
+              <b-slider size="is-medium" :min="0" :max="70"
+                            type="is-info" 
+                            v-model="slider_vals"
+                  >
+              </b-slider>
+          </b-field>
+       </div>
+
   </nav>
 </template>
 
@@ -151,8 +162,26 @@ export default {
 
         airportlist: [ "DEN", "DFW", "ATL", 'JFK', 'LAX', 'MIA' ],
         centerlist: [ "ZDV", "ZFW", "ZLA", 'ZKC', 'ZME' ],
+
+        slider_vals : [0,70],
+        chart_data : []
    }
   },
+    watch: {
+        slider_vals: function(vals) {
+
+            this.slider_vals  = vals ; // redundant???
+
+            //console.log("slider is now:" + vals);
+
+            if (this.chart_data.length > 0 ) {
+                let chart_args = { cdata: this.chart_data, slider_vals : this.slider_vals };
+                this.$root.$emit('draw_new_chart', (chart_args) );
+            } else {
+                console.log("nothing to chart");
+            }
+        }
+    },
     methods: {
       // -----------------------------------------------
       clickMe() {
@@ -192,7 +221,8 @@ console.log("udate=" + udate);
         .then(response => response.json())
         .then(data => {
 
-            console.log(data);
+            this.chart_data = data;
+            console.log(this.chart_data);
 
             // first, send data over to Table page for tabular/text
             console.log("emit draw_new_table");
@@ -201,8 +231,8 @@ console.log("udate=" + udate);
 
             // second, send data over to Charts page for bar charts
             console.log("emit draw_new_chart");
-            this.$root.$emit('draw_new_chart', (data) );
-            // nope: this.$root.$emit('draw_new_chart', (data, this.sel_date) );
+            let chart_args = { cdata: this.chart_data, slider_vals : this.slider_vals };
+            this.$root.$emit('draw_new_chart', (chart_args) );
         });
 
     },

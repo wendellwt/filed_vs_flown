@@ -22,12 +22,13 @@ export default {
     },
 
   mounted: function() {
-      this.$root.$on('draw_new_chart', (ndata) => {
+      this.$root.$on('draw_new_chart', (chart_args) => {
 
-          //this.the_date = ndate;
+          let ndata = chart_args.cdata;
+          let ymin = chart_args.slider_vals[0] * 1000;
+          let ymax = chart_args.slider_vals[1] * 1000;
 
-          console.log("Charts received update");
-          this.displayGData(ndata);
+          this.displayGData(ndata, ymin, ymax);
           console.log("Charts done");
       })
   },
@@ -38,7 +39,7 @@ export default {
     /**************** Charts ***************/
 
     methods: {
-        displayGData : function(ndata) {
+        displayGData : function(ndata, y_min, y_max) {
 
     // =========================== my edits
 
@@ -50,7 +51,7 @@ export default {
   //var subgroups = data.columns.slice(1)
   let wt_subgroups = [ "sched_dist_zdv", "flown_dist_zdv" ];  // <<<< FIXME
 
-  let y_max = 70000;    // <<<<<<<<<<<<<<<<<<<<<<<<
+  // let y_max = 70000;    // <<<<<<<<<<<<<<<<<<<<<<<<
 
   let wt_chart_colors = [ // I think these look nice:
             '#996600'    // brown
@@ -93,7 +94,7 @@ export default {
 
   // Add Y axis
   let y = d3.scaleLinear()
-    .domain([0, y_max])
+    .domain([y_min, y_max])
     .range([ height, 0 ]);
   svg.append("g")
     .call(d3.axisLeft(y));
@@ -111,17 +112,10 @@ export default {
     .domain(wt_subgroups)
     .range(wt_chart_colors)
 
-  //stack the data? --> stack per subgroup
-  // ++++++++++++ addition / subtraction for grouping
-  // ++ let stackedData = d3.stack().keys(wt_subgroups)(ndata)
-
   // Show the bars
   svg.append("g")
     .selectAll("g")
-    // Enter in the stack data = loop key per key = group per group
-    //++ stacked: .data(stackedData)
     .data(ndata)
-      // ++++++++++++++++++++ 
     .enter()
     .append("g")
       .attr("transform", function(d) { return "translate(" + x(d.corner) + ",0)"; })
@@ -134,18 +128,6 @@ export default {
       .attr("height", function(d) { return height - y(d.value); })
       .attr("fill", function(d) { return color(d.key); });
 
-      /* +++++++++++++++++ stacked:
-    .enter().append("g")
-      .attr("fill", function(d) { return color(d.key); })
-      .selectAll("rect")
-      // enter a second time = loop subgroup per subgroup to add all rectangles
-      .data(function(d) { return d; })
-      .enter().append("rect")
-        .attr("x", function(d) { return x(d.data.corner); })  // <<<< wt  - 'corner' specified
-        .attr("y", function(d) { return y(d[1]); })
-        .attr("height", function(d) { return y(d[0]) - y(d[1]); })
-        .attr("width",x.bandwidth())
-        *******/
     } // displayGData
   } // methods
 } // export
