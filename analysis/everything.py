@@ -45,7 +45,8 @@ pg_csr = pg_conn.cursor( )
 #                              common sql                                    #
 # ########################################################################## #
 
-def get_everything(lgr):
+def get_everything_from_postgis(lgr):
+
     sql = """ WITH C AS
 (SELECT ST_Difference(
     (SELECT boundary::geometry from centers where name='ZDV'),
@@ -100,8 +101,6 @@ AND   F.flight_index = ENTTIME.flight_index)
 
 -- ================ all together
 
--- SELECT sch.acid, sch.flight_index, sch.arr_time, sch.orig_time, sch.first_sch_dist, sch.first_sch_geom,
-        -- atent.corner, atent.at_ent_dist, atent.at_ent_geom, atent.flown_dist, atent.flown_geom
 SELECT *
 FROM SCH, ATENT
 WHERE SCH.flight_index = ATENT.flight_index_a"""
@@ -109,8 +108,8 @@ WHERE SCH.flight_index = ATENT.flight_index_a"""
     lgr.info("reading postg")
     lgr.debug(sql)
 
-    everything_df = pd.read_sql(sql, con=pg_conn)
-    return(everything_df)
+    evry_df = pd.read_sql(sql, con=pg_conn)
+    return(evry_df)
 
 # ######################################################################## #
 #                        form GeoJson of all paths                         #
@@ -119,12 +118,12 @@ WHERE SCH.flight_index = ATENT.flight_index_a"""
 import json
 from geojson import Feature, FeatureCollection
 
-def form_feature_collection(everything_df):
+def form_feature_collection(evry_df):
 
     features = []
     #bad = 0
 
-    for index, row in everything_df.iterrows():
+    for index, row in evry_df.iterrows():
 
         #if index > 5:
         #    break
@@ -181,6 +180,35 @@ def form_feature_collection(everything_df):
 # ######################################################################## #
 #                              standalone main                             #
 # ######################################################################## #
+    # 'acid', 'flight_index', 'arr_time', 'corner',
+    #           'first_sch_dist', 'first_sch_geom'
+    #           'at_ent_dist', 'at_ent_geom'
+    #           'flown_dist', 'flown_geom'
+
+
+def form_chart_data(evry_df):
+
+    sch_cnr_sum_df = evry_df.groupby(["arr_hr", "corner"]) [["first_sch_dist"]].sum()
+    ate_cnr_sum_df = evry_df.groupby(["arr_hr", "corner"]) [["at_ent_dist"   ]].sum()
+    flw_cnr_sum_df = evry_df.groupby(["arr_hr", "corner"]) [["flown_dist"    ]].sum()
+
+    print("sch_cnr_sum_df")
+    print(sch_cnr_sum_df)
+
+    print("ate_cnr_sum_df")
+    print(ate_cnr_sum_df)
+
+    print("flw_cnr_sum_df")
+    print(flw_cnr_sum_df)
+
+    chart_df = pd.merge(sch_cnr_sum_df, ate_cnr_sum_df, on=["arr_hr", "corner"])
+    chart_df = pd.merge(chart_df,       flw_cnr_sum_df, on=["arr_hr", "corner"])
+
+    return(chart_df)
+
+# ######################################################################## #
+#                              standalone main                             #
+# ######################################################################## #
 
 from pprint import pprint
 
@@ -233,17 +261,26 @@ if __name__ == "__main__":
     if args.pickle:
         everything_df = pickle.load( open( "peverything_df.p", "rb" ) )
     else:
-        everything_df = get_everything(lgr)
+        everything_df = get_everything_from_postgis(lgr)
         pickle.dump(everything_df, open( "peverything_df.p","wb" ) )
 
-    # [762 rows x 12 columns]
-    # Index(['acid', 'flight_index', 'arr_time', 'orig_time', 'first_sch_dist',
-    #    'first_sch_geom', 'flight_index_a', 'corner', 'at_ent_dist',
-    #    'at_ent_geom', 'flown_dist', 'flown_geom'],
+    # 'acid', 'flight_index', 'arr_time', 'corner',
+    #           'first_sch_dist', 'first_sch_geom'
+    #           'at_ent_dist', 'at_ent_geom'
+    #           'flown_dist', 'flown_geom'
 
     # ---- 2. form GeoJson of all paths
 
-    fc = form_feature_collection(everything_df)
+    fc_gj = form_feature_collection(everything_df)
 
-    print(fc)
+    #print(fc_gj)
+
+    everything_df['arr_hr'] = everything_df['arr_time'].map(
+                                     lambda t: t.strftime("%Y_%m_%d_%H"))
+
+    # ---- 3. get corner data for charts
+
+    chart_df = form_chart_data(everything_df)
+
+    print(chart_df)
 
