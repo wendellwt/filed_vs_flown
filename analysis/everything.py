@@ -45,65 +45,73 @@ pg_csr = pg_conn.cursor( )
 #                              common sql                                    #
 # ########################################################################## #
 
-def get_everything_from_postgis(lgr):
+def get_everything_from_postgis(lgr, y_m_d, airport, center):
 
-    sql = """ WITH C AS
+    # artcc / poly to crop (intersection) with
+
+    sql_c = """ WITH C AS
 (SELECT ST_Difference(
-    (SELECT boundary::geometry from centers where name='ZDV'),
-    (SELECT ST_Transform(ST_Buffer(ST_Transform(position::geometry,26754),42*6076),4326) FROM airports WHERE ident='DEN')
-) as boundary),
+    (SELECT boundary::geometry from centers where name='%s'),
+    (SELECT ST_Transform(ST_Buffer(ST_Transform(position::geometry,26754),42*6076),4326) FROM airports WHERE ident='%s')
+) as boundary), """  % (center, airport)
 
--- query_for_first_scheduled (meta, (intersection) dist, (intersection) path
+    # query_for_first_scheduled (meta, (intersection) dist, (intersection) path
 
+    sql_s = """
 SCH AS (SELECT  S.acid, S.flight_index, S.arr_time, min(orig_time) as orig_time,
                    path_int_len(S.sched_path, C.boundary) as first_sch_dist,
   ST_AsGeoJSON( ST_Intersection(S.sched_path, C.boundary)) as first_sch_geog
-FROM sched_fvf_2020_01_10 S, C
-WHERE arr_apt='DEN'
+FROM sched_fvf_%s S, C
+WHERE arr_apt='%s'
 AND   source_type='S'
 GROUP BY  S.acid, S.flight_index, S.arr_time, first_sch_dist, first_sch_geog),
+""" % (y_m_d, airport)
 
--- ================ time of entry into artcc
+    # ================ time of entry into artcc
 
-E AS (
+    sql_e = """E AS (
   SELECT F.acid, F.flight_index,
          lower(period(atValue(tintersects(F.flown_path, C.boundary),TRUE))) as entry_time
   FROM
     C,
-    (SELECT * FROM flown_fvf_2020_01_10 WHERE arr_apt='DEN') F
-  WHERE intersects(F.flown_path, C.boundary) ),
+    (SELECT * FROM flown_fvf_%s WHERE arr_apt='%s') F
+  WHERE intersects(F.flown_path, C.boundary) ), """ % (y_m_d, airport)
 
--- ================ schedule orig time before time of entry into artcc
+    # ================ schedule orig time before time of entry into artcc
 
-ENTTIME AS (
+    sql_n = """ENTTIME AS (
   SELECT S.flight_index, E.entry_time, max(S.orig_time) as sched_active_at
   FROM E,
-       sched_fvf_2020_01_10 S
+       sched_fvf_%s S
   WHERE S.flight_index = E.flight_index
   AND   S.orig_time < E.entry_time
   GROUP BY S.acid, S.flight_index, E.entry_time
-),
+), """ % y_m_d
 
--- ================ sch_at_entry, flown
+    # ================ sch_at_entry, flown
 
+    sql_a = """
 ATENT AS (SELECT  S.flight_index as flight_index_a, F.corner,
                              path_int_len(S.sched_path,  C.boundary)  as at_ent_dist,
              ST_AsGeoJSON(ST_Intersection(S.sched_path,  C.boundary)) as at_ent_geog,
                   path_int_len(trajectory(F.flown_path), C.boundary)  as flown_dist,
   ST_AsGeoJSON(ST_Intersection(trajectory(F.flown_path), C.boundary)) as flown_geog
 FROM ENTTIME,
-     flown_fvf_2020_01_10 F,
-     sched_fvf_2020_01_10 S,
+     flown_fvf_%s F,
+     sched_fvf_%s S,
      C
 WHERE S.flight_index = ENTTIME.flight_index
 AND   S.orig_time    = ENTTIME.sched_active_at  -- the important part
-AND   F.flight_index = ENTTIME.flight_index)
+AND   F.flight_index = ENTTIME.flight_index) """ %  (y_m_d, y_m_d)
 
--- ================ all together
+    #  ================ all together
 
+    sql_t = """
 SELECT *
 FROM SCH, ATENT
 WHERE SCH.flight_index = ATENT.flight_index_a"""
+
+    sql = sql_c + sql_s + sql_e + sql_n + sql_a + sql_t
 
     lgr.info("reading postg")
     lgr.debug(sql)
@@ -172,10 +180,11 @@ def form_feature_collection(evry_df):
         features.append(sch_feat)
 
     feature_collection = FeatureCollection(features)
+    return(feature_collection)
 
-    ret_jsn = json.dumps(feature_collection)  # geojson FC structure to string
-
-    return(ret_jsn)
+    # this gets done later
+    #ret_jsn = json.dumps(feature_collection)  # geojson FC structure to string
+    #return(ret_jsn)
 
 # ######################################################################## #
 #                           form data for charts tab                       #
@@ -203,6 +212,57 @@ def form_details(every_df):
 
     return(details_df)
 
+# ########################################################################### #
+# retrieve everything for one day and form json of geogs, charts, and details #
+# ########################################################################### #
+
+def get_everything(lgr, y_m_d, airport, center):
+
+    # ---- 1. get all data from PostGIS (intersection distances and paths)
+
+    if args.pickle:
+        everything_df = pickle.load( open( "peverything_df.p", "rb" ) )
+    else:
+        everything_df = get_everything_from_postgis(lgr, y_m_d, airport, center)
+        pickle.dump(everything_df, open( "peverything_df.p","wb" ) )
+
+    #everything_df = everything_df[:3] # <<<<<<<<<< TESTING
+
+    # ---- 2. form GeoJson of all paths
+
+    fc_gj = form_feature_collection(everything_df)
+
+    #print(fc_gj)
+
+    everything_df['arr_hr'] = everything_df['arr_time'].map(
+                                     lambda t: t.strftime("%Y_%m_%d_%H"))
+
+    # ---- 3. get corner data for charts
+
+    chart_df = form_chart_data(everything_df)
+
+    #print(type(chart_df))
+
+    # ---- 4. trim geogs for details table
+
+    details_df = form_details(everything_df)
+
+    # print(details_df)
+
+    # ---- 5. assemble into one massive json
+
+    chart_jn = json.loads(chart_df.to_json(date_format='iso', orient="records"))
+    #print(type(chart_jn))
+
+    details_jn = json.loads(details_df.to_json(date_format='iso', orient="records"))
+    #print(type(details_jn))
+
+    every_dict = { 'map_data'     : fc_gj,
+                   'chart_data'   : chart_jn,
+                   'details_data' : details_jn }
+
+    return(every_dict)
+
 # ######################################################################## #
 #                              standalone main                             #
 # ######################################################################## #
@@ -220,7 +280,6 @@ class NotLgr:  # pretend class to let lgr.info() work when not logging
 #           'first_sch_dist', 'first_sch_geog'
 #           'at_ent_dist', 'at_ent_geog'
 #           'flown_dist', 'flown_geog'
-
 
 import argparse
 
@@ -256,47 +315,7 @@ if __name__ == "__main__":
 
     y_m_d    = args.date.strftime("%Y_%m_%d")
 
-    # ####################################################################### #
+    everything_dict = get_everything(lgr, y_m_d, args.airport, args.center)
 
-    # ---- 1. get all data from PostGIS (intersection distances and paths)
-
-    if args.pickle:
-        everything_df = pickle.load( open( "peverything_df.p", "rb" ) )
-    else:
-        everything_df = get_everything_from_postgis(lgr)
-        pickle.dump(everything_df, open( "peverything_df.p","wb" ) )
-
-    everything_df = everything_df[:3] # <<<<<<<<<< TESTING
-
-    # ---- 2. form GeoJson of all paths
-
-    fc_gj = form_feature_collection(everything_df)
-
-    #print(fc_gj)
-
-    everything_df['arr_hr'] = everything_df['arr_time'].map(
-                                     lambda t: t.strftime("%Y_%m_%d_%H"))
-
-    # ---- 3. get corner data for charts
-
-    chart_df = form_chart_data(everything_df)
-
-    print(chart_df)
-
-    # ---- 4. trim geogs for details table
-
-    details_df = form_details(everything_df)
-
-    print(details_df)
-
-    # ---- 5. assemble into one massive json
-
-    chart_jn = chart_df.to_json(date_format='iso', orient="records")
-    details_jn = details_df.to_json(date_format='iso', orient="records")
-
-    every_dict = { 'map_data'     : fc_gj,
-                   'chart_data'   : chart_jn,
-                   'details_data' : details_jn }
-
-    pprint(every_dict)
+    print(json.dumps(everything_dict))
 
