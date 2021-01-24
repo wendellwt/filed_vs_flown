@@ -37,6 +37,7 @@
 
       <vl-layer-vector >
         <vl-source-vector :features.sync="everythingFeatures" />
+        <vl-style-func    :factory="everyFormatFactory"></vl-style-func>
       </vl-layer-vector>
 
       <!-- ===================== FeatureCollection everything ========= -->
@@ -271,6 +272,15 @@ console.log("inside loaderFactoryInnerFvf:", extent, resolution, projection);
           return unk_style;
         }
         return unk_style;
+     }
+   },
+       // ------------ everything paths have color in them
+   everyFormatFactory() {
+      return (feature) => {
+          //return src_a_style;
+          return new Style({ stroke: new Stroke(
+                                 { color: feature.get('color'),
+                                   width: 3.0 }) })
      }
    }
 }
