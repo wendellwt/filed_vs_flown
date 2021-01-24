@@ -2,7 +2,7 @@
 
 <nav class="panel">
   <p class="panel-heading">
-    Commands
+    Retrieve Dataset
   </p>
   <div class="panel-block">
             <b-field label="Select dates">
@@ -115,17 +115,26 @@
                     rounded
                     v-on:click="GoSummary()"
                     >get summary</b-button>
+
+          <b-button type="is-success"
+                    size="is-small"
+                    rounded
+                    v-on:click="GoEverything()"
+                    >get all one day</b-button>
         </div>
 
         <!-- ========== go ========= -->
         <div class="panel-block">
           <b-button @click="clickMe" class="is-primary is-light is-small">Go</b-button>
        </div>
+  <p class="panel-heading">
+    Analyze Dataset
+  </p>
         <!-- ========== slider ========= -->
         <div class="panel-block">
           <b-field label="Hour selector">
               <b-slider size="is-medium" :min="0" :max="70"
-                            type="is-info" 
+                            type="is-info"
                             v-model="slider_vals"
                   >
               </b-slider>
@@ -235,6 +244,38 @@ console.log("udate=" + udate);
             this.$root.$emit('draw_new_chart', (chart_args) );
         });
 
+    },
+    // ---------------------------------------
+    // ---------------------------------------
+    GoEverything() {
+
+        let udate =           this.sel_date.getUTCFullYear() + '_' +
+                       String(this.sel_date.getUTCMonth()+1).padStart(2,'0')  + '_' +
+                              this.sel_date.getUTCDate() ;
+
+        //don't I wish: let udate = "&date=" + this.sel_date.strftime("%Y_%m_%d");
+
+console.log("udate=" + udate);
+
+        let force_reload = Math.floor(Math.random() * 99999);
+
+        let the_query = "get_everything" +
+                        "?apt="  + this.arr_selected +
+                        "&ctr="  + this.center_selected +
+                        "&date=" + udate +
+                        "&rand=" + force_reload;
+
+console.log("fetch:" + the_query);
+
+       fetch(the_query)
+        .then(response => response.json())
+        .then(data => {
+
+            this.chart_data = data;
+            //console.log(this.chart_data);
+
+            this.$root.$emit('draw_all_fc', (this.chart_data.map_data) );
+        });
     },
     // ---------------------------------------
   }

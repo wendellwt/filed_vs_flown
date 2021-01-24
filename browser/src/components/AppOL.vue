@@ -33,6 +33,14 @@
         <vl-style-func :factory="geojStyleFuncFactory"></vl-style-func>
       </vl-layer-vector>
 
+      <!-- ===================== FeatureCollection everything ========= -->
+
+      <vl-layer-vector >
+        <vl-source-vector :features.sync="everythingFeatures" />
+      </vl-layer-vector>
+
+      <!-- ===================== FeatureCollection everything ========= -->
+
       <!-- kml features layer
       -->
       <vl-layer-vector >
@@ -83,6 +91,11 @@
 
       <!-- ========== end layers ========= -->
     </vl-map>
+
+    <p v-if="everythingFeatures.length > 0">
+      Loaded features: {{ everythingFeatures.map(feature => feature.id) }}
+    </p>
+
   </div>
 </template>
 
@@ -278,6 +291,8 @@ export default {
         geojsonUrl: '',
         geojFeatures: [],
 
+        everythingFeatures: [],
+
         kmlUrl: '',
 
         // all OLD, INOP:
@@ -371,6 +386,16 @@ export default {
 
       // this fires off loaderFactory via vl-source-vector which does the actual fetch
       this.fvfUrl = the_query;
+    })
+    // -------------------------
+    this.$root.$on('draw_all_fc', (newFC) => {
+      console.log("dafc- in");
+
+      this.everythingFeatures = newFC.features;  // maybe it just wants the features LIST, not the FC???
+      console.log(this.everythingFeatures);
+      // nope: this.everythingFeatures = newFC;
+
+      console.log("dafc- out");
     })
   } // ---- mounted
 }
