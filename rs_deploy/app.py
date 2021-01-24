@@ -12,6 +12,7 @@ from flask import Flask, render_template, request
 sys.path.append('copied')  # stupid git/sharing  work-around
 import get_paths
 import fvf_by_artcc
+import everything    # CATION: each of these makes a new PosgGreSQL connection
 import web_logging
 
 # --------------------------------------------------------------------
@@ -110,6 +111,31 @@ def do_summary():
     lgr.info("+++++")
 
     return sum_js
+
+# --------------------------------------------------------------------
+
+@app.route('/get_everything', methods=['GET'])
+
+# TODO: make sure json/encode/struct/decode is appropriate
+# TODO: enable application/gzip compression!
+
+
+def do_everything():
+
+    lgr.info("get_everything - in")
+
+    airport = request.args['apt']
+    center = request.args['ctr']
+    y_m_d = request.args['date']
+
+    every_js = everything.get_everything(lgr, y_m_d, airport, center)
+
+    lgr.info("get_everything - out")
+    lgr.info("+++++")
+    lgr.info(every_js)
+    lgr.info("+++++")
+
+    return every_js
 
 #######################################################################
 #                            main                                     #
