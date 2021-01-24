@@ -117,6 +117,9 @@ WHERE SCH.flight_index = ATENT.flight_index_a"""
     lgr.debug(sql)
 
     evry_df = pd.read_sql(sql, con=pg_conn)
+
+    lgr.debug("postg read completed")
+
     return(evry_df)
 
 # ######################################################################## #
@@ -125,6 +128,7 @@ WHERE SCH.flight_index = ATENT.flight_index_a"""
 
 import json
 from geojson import Feature, FeatureCollection
+HELPME_OFFSET = 1000000
 
 def form_feature_collection(evry_df):
 
@@ -147,7 +151,8 @@ def form_feature_collection(evry_df):
             continue
 
         flw_feat = Feature(geometry = json.loads(row['flown_geog']),
-                    properties = { "acid"     : row['acid'],
+                           id=row['flight_index'],
+                           properties = { "acid"     : row['acid'],
                                    "flt_ndx"  : row['flight_index'],
                                    "arr_time" : row['arr_time'].isoformat(),
                                    "corner"   : row['corner'],
@@ -158,6 +163,7 @@ def form_feature_collection(evry_df):
         features.append(flw_feat)
 
         ate_feat = Feature(geometry = json.loads(row['at_ent_geog']),
+                           id=row['flight_index'] + HELPME_OFFSET,
                     properties = { "acid"     : row['acid'],
                                    "flt_ndx"  : row['flight_index'],
                                    "arr_time" : row['arr_time'].isoformat(),
@@ -169,6 +175,7 @@ def form_feature_collection(evry_df):
         features.append(ate_feat)
 
         sch_feat = Feature(geometry = json.loads(row['first_sch_geog']),
+                           id=row['flight_index'] + HELPME_OFFSET*2,
                     properties = { "acid"     : row['acid'],
                                    "flt_ndx"  : row['flight_index'],
                                    "arr_time" : row['arr_time'].isoformat(),
@@ -216,17 +223,29 @@ def form_details(every_df):
 # retrieve everything for one day and form json of geogs, charts, and details #
 # ########################################################################### #
 
+#pfile = "/home/data/wturner/peverything_small.p"
+pfile = "/tmp/peverything_small.p"
+
 def get_everything(lgr, y_m_d, airport, center):
+
 
     # ---- 1. get all data from PostGIS (intersection distances and paths)
 
-    if args.pickle:
-        everything_df = pickle.load( open( "peverything_df.p", "rb" ) )
-    else:
-        everything_df = get_everything_from_postgis(lgr, y_m_d, airport, center)
-        pickle.dump(everything_df, open( "peverything_df.p","wb" ) )
+    # <<<<<<<<<<<<<<<<<< TESTING
+    #everything_df = get_everything_from_postgis(lgr, y_m_d, airport, center)
+    everything_df = pickle.load( open( pfile, "rb" ) )
 
-    #everything_df = everything_df[:3] # <<<<<<<<<< TESTING
+    # BAD IN app.py: (maybe)
+    #args_pickle = False # <<<<<<<<<<<<<<<<<<<< FIXME
+    #if args_pickle:
+    #    everything_df = pickle.load( open( pfile, "rb" ) )
+    #else:
+    #    everything_df = get_everything_from_postgis(lgr, y_m_d, airport, center)
+    #    pickle.dump(everything_df, open( "peverything_df.p","wb" ) )
+
+    #everything_df = everything_df[:6] # <<<<<<<<<< TESTING
+    #pickle.dump(everything_df, open( pfile,"wb" ) )
+    # <<<<<<<<<<<<<<<<<< TESTING
 
     # ---- 2. form GeoJson of all paths
 
