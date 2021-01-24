@@ -57,11 +57,11 @@ def get_everything_from_postgis(lgr):
 
 SCH AS (SELECT  S.acid, S.flight_index, S.arr_time, min(orig_time) as orig_time,
                    path_int_len(S.sched_path, C.boundary) as first_sch_dist,
-  ST_AsGeoJSON( ST_Intersection(S.sched_path, C.boundary)) as first_sch_geom
+  ST_AsGeoJSON( ST_Intersection(S.sched_path, C.boundary)) as first_sch_geog
 FROM sched_fvf_2020_01_10 S, C
 WHERE arr_apt='DEN'
 AND   source_type='S'
-GROUP BY  S.acid, S.flight_index, S.arr_time, first_sch_dist, first_sch_geom),
+GROUP BY  S.acid, S.flight_index, S.arr_time, first_sch_dist, first_sch_geog),
 
 -- ================ time of entry into artcc
 
@@ -88,9 +88,9 @@ ENTTIME AS (
 
 ATENT AS (SELECT  S.flight_index as flight_index_a, F.corner,
                              path_int_len(S.sched_path,  C.boundary)  as at_ent_dist,
-             ST_AsGeoJSON(ST_Intersection(S.sched_path,  C.boundary)) as at_ent_geom,
+             ST_AsGeoJSON(ST_Intersection(S.sched_path,  C.boundary)) as at_ent_geog,
                   path_int_len(trajectory(F.flown_path), C.boundary)  as flown_dist,
-  ST_AsGeoJSON(ST_Intersection(trajectory(F.flown_path), C.boundary)) as flown_geom
+  ST_AsGeoJSON(ST_Intersection(trajectory(F.flown_path), C.boundary)) as flown_geog
 FROM ENTTIME,
      flown_fvf_2020_01_10 F,
      sched_fvf_2020_01_10 S,
@@ -138,7 +138,7 @@ def form_feature_collection(evry_df):
             #bad += 1
             continue
 
-        flw_feat = Feature(geometry = json.loads(row['flown_geom']),
+        flw_feat = Feature(geometry = json.loads(row['flown_geog']),
                     properties = { "acid"     : row['acid'],
                                    "flt_ndx"  : row['flight_index'],
                                    "arr_time" : row['arr_time'].isoformat(),
@@ -149,7 +149,7 @@ def form_feature_collection(evry_df):
                                     })
         features.append(flw_feat)
 
-        ate_feat = Feature(geometry = json.loads(row['at_ent_geom']),
+        ate_feat = Feature(geometry = json.loads(row['at_ent_geog']),
                     properties = { "acid"     : row['acid'],
                                    "flt_ndx"  : row['flight_index'],
                                    "arr_time" : row['arr_time'].isoformat(),
@@ -160,7 +160,7 @@ def form_feature_collection(evry_df):
                                     })
         features.append(ate_feat)
 
-        sch_feat = Feature(geometry = json.loads(row['first_sch_geom']),
+        sch_feat = Feature(geometry = json.loads(row['first_sch_geog']),
                     properties = { "acid"     : row['acid'],
                                    "flt_ndx"  : row['flight_index'],
                                    "arr_time" : row['arr_time'].isoformat(),
@@ -178,13 +178,8 @@ def form_feature_collection(evry_df):
     return(ret_jsn)
 
 # ######################################################################## #
-#                              standalone main                             #
+#                           form data for charts tab                       #
 # ######################################################################## #
-    # 'acid', 'flight_index', 'arr_time', 'corner',
-    #           'first_sch_dist', 'first_sch_geom'
-    #           'at_ent_dist', 'at_ent_geom'
-    #           'flown_dist', 'flown_geom'
-
 
 def form_chart_data(evry_df):
 
@@ -192,19 +187,21 @@ def form_chart_data(evry_df):
     ate_cnr_sum_df = evry_df.groupby(["arr_hr", "corner"]) [["at_ent_dist"   ]].sum()
     flw_cnr_sum_df = evry_df.groupby(["arr_hr", "corner"]) [["flown_dist"    ]].sum()
 
-    print("sch_cnr_sum_df")
-    print(sch_cnr_sum_df)
-
-    print("ate_cnr_sum_df")
-    print(ate_cnr_sum_df)
-
-    print("flw_cnr_sum_df")
-    print(flw_cnr_sum_df)
-
     chart_df = pd.merge(sch_cnr_sum_df, ate_cnr_sum_df, on=["arr_hr", "corner"])
     chart_df = pd.merge(chart_df,       flw_cnr_sum_df, on=["arr_hr", "corner"])
 
     return(chart_df)
+
+# ######################################################################## #
+#                       form data for details table tab                    #
+# ######################################################################## #
+
+def form_details(every_df):
+
+    details_df = every_df.drop([ 'orig_time', 'flight_index_a',
+                  'first_sch_geog', 'at_ent_geog', 'flown_geog'], axis=1)
+
+    return(details_df)
 
 # ######################################################################## #
 #                              standalone main                             #
@@ -219,6 +216,11 @@ class NotLgr:  # pretend class to let lgr.info() work when not logging
         if args.verbose: print(s)
 
 # ==========================================================================
+# 'acid', 'flight_index', 'arr_time', 'corner',
+#           'first_sch_dist', 'first_sch_geog'
+#           'at_ent_dist', 'at_ent_geog'
+#           'flown_dist', 'flown_geog'
+
 
 import argparse
 
@@ -264,10 +266,7 @@ if __name__ == "__main__":
         everything_df = get_everything_from_postgis(lgr)
         pickle.dump(everything_df, open( "peverything_df.p","wb" ) )
 
-    # 'acid', 'flight_index', 'arr_time', 'corner',
-    #           'first_sch_dist', 'first_sch_geom'
-    #           'at_ent_dist', 'at_ent_geom'
-    #           'flown_dist', 'flown_geom'
+    everything_df = everything_df[:3] # <<<<<<<<<< TESTING
 
     # ---- 2. form GeoJson of all paths
 
@@ -283,4 +282,21 @@ if __name__ == "__main__":
     chart_df = form_chart_data(everything_df)
 
     print(chart_df)
+
+    # ---- 4. trim geogs for details table
+
+    details_df = form_details(everything_df)
+
+    print(details_df)
+
+    # ---- 5. assemble into one massive json
+
+    chart_jn = chart_df.to_json(date_format='iso', orient="records")
+    details_jn = details_df.to_json(date_format='iso', orient="records")
+
+    every_dict = { 'map_data'     : fc_gj,
+                   'chart_data'   : chart_jn,
+                   'details_data' : details_jn }
+
+    pprint(every_dict)
 
