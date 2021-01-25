@@ -53,9 +53,9 @@ import ScaleLine  from 'ol/control/ScaleLine'
 
 import Stroke     from 'ol/style/Stroke'
 import Style      from 'ol/style/Style'
-import Text       from 'ol/style/Text'
-import Fill       from 'ol/style/Fill'
-import Circle     from 'ol/style/Circle'
+// import Text       from 'ol/style/Text'
+// import Fill       from 'ol/style/Fill'
+// import Circle     from 'ol/style/Circle'
 
 import { Vector as VectorLayer } from 'ol/layer'
 
@@ -179,12 +179,12 @@ export default {
     // -------------------------
     this.$root.$on('highlightthis', (the_target) => {
 
-      // old: the_target = the_target+900000;  // just the tracks, not the target
-
       //console.log("highLightMe:"+the_target);
       this.highLightMe = the_target;
 
-// ================================  Q: does asdexStyleFuncFac replace this???
+      /*************************** OLD, but need something that works:
+
+      // ==========  Q: does asdexStyleFuncFac replace this???
 
       // turn off the previous one:
       if (this.highlightedFeat != 0) {
@@ -219,6 +219,7 @@ export default {
 
           this.highlightedFeat.setStyle(targetHigh);
       }
+        ***************************/
     })
 
     // ================================
