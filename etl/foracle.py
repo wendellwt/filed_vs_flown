@@ -76,7 +76,8 @@ def read_ops_day_data(ops_date, arr_apt, args_verbose):
     #apt_where = " = '" + arr_apt + "'"
     apt_where = " in ('" + "','".join(opsnet_45) + "') "
 
-    sql = """SELECT acid, fid, flight_index, orig_time, source_type, dep_time, arr_time, dept_aprt, arr_aprt, waypoints
+    sql = """SELECT acid, fid, flight_index, orig_time, source_type,
+             dep_time, arr_time, dept_aprt, arr_aprt, acft_type, waypoints
 FROM %s
 WHERE %s
 AND arr_aprt %s """ % (ora_tbls, arr_time, apt_where)

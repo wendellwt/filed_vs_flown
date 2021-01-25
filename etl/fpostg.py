@@ -113,6 +113,7 @@ def drop_cre8_sched(sch_tbl):
     dep_apt      text,
     arr_apt      text,
     source_type  text,
+    ac_type      text,
     waypoints    text,
     geography    Geography(LineString, 4326)
 ); """ % sch_tbl
@@ -151,6 +152,7 @@ def write_sched_df_as_loop(sch_df, sch_tbl, verbose=False):
         'ARR_TIME'     : 'arr_time',
         'DEPT_APRT'    : 'dep_apt',   # renamed
         'ARR_APRT'     : 'arr_apt',   # renamed
+        'ACFT_TYPE'    : 'ac_type',   # renamed
         'WAYPOINTS'    : 'waypoints'
         }, inplace=True)
 
@@ -195,7 +197,7 @@ def write_sched_df_as_loop(sch_df, sch_tbl, verbose=False):
 
         sql = "INSERT INTO " + sch_tbl + \
          " (acid,fid,flight_index,orig_time, dep_time, arr_time,dep_apt," + \
-        "arr_apt, source_type, waypoints, geography)" + \
+        "arr_apt, source_type, ac_type, waypoints, geography)" + \
         "values(" + \
             sq(row['acid']) + ',' + \
            str(row['fid']) + ',' + \
@@ -206,6 +208,7 @@ def write_sched_df_as_loop(sch_df, sch_tbl, verbose=False):
             sq(row['dep_apt']) + ',' + \
             sq(row['arr_apt']) + ',' + \
             sq(row['source_type']) + ',' + \
+            sq(row['ac_type']) + ',' + \
             sq(row['waypoints']) + ',' + \
             pg(row['geography']) + ');'
 
