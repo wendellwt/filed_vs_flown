@@ -47,7 +47,7 @@ export default {
   mounted () {
 
       this.$root.$on('dlist', (dlist) => {
-      console.log("DataPos received dlist");
+      // console.log("DataPos received dlist");
 
       // FIXME: find out how/why PostGIS allowed duplicate track
       // why do we need to do this here?: remove duplicate key / track
