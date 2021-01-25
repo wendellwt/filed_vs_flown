@@ -132,10 +132,16 @@
   </p>
         <!-- ========== slider ========= -->
         <div class="panel-block">
-          <b-field label="Hour selector">
+          <b-field label="Max/Min selector">
               <b-slider size="is-medium" :min="0" :max="70"
                             type="is-info"
                             v-model="slider_vals"
+                  >
+              </b-slider>
+          <b-field label="Hour selector">
+              <b-slider size="is-medium" :min="0" :max="23"
+                            type="is-info"
+                            v-model="hour_val"
                   >
               </b-slider>
           </b-field>
@@ -173,7 +179,11 @@ export default {
         centerlist: [ "ZDV", "ZFW", "ZLA", 'ZKC', 'ZME' ],
 
         slider_vals : [0,70],
-        chart_data : []
+        hour_val : 8,
+
+        details_data : [],
+        chart_data   : [],
+        map_data     : []
    }
   },
     watch: {
@@ -189,6 +199,19 @@ export default {
             } else {
                 console.log("nothing to chart");
             }
+        },
+        hour_val: function(hval) {
+
+            this.hour_val  = hval ; // redundant???
+
+            console.log("hour is now:" + hval);
+
+            //if (this.everything_data.length > 0 ) {
+            //    let chart_args = { cdata: this.everything_data, slider_vals : this.slider_vals };
+            //    this.$root.$emit('draw_new_chart', (chart_args) );
+            //} else {
+            //    console.log("nothing to chart");
+           // }
         }
     },
     methods: {
@@ -230,8 +253,8 @@ console.log("udate=" + udate);
         .then(response => response.json())
         .then(data => {
 
-            this.chart_data = data;
-            console.log(this.chart_data);
+            //this.everything_data = data;
+            console.log("HELP: this is not valid any more: this.everything_data");
 
             // first, send data over to Table page for tabular/text
             console.log("emit draw_new_table");
@@ -240,18 +263,21 @@ console.log("udate=" + udate);
 
             // second, send data over to Charts page for bar charts
             console.log("emit draw_new_chart");
-            let chart_args = { cdata: this.chart_data, slider_vals : this.slider_vals };
+            let chart_args = { cdata: this.details_data, slider_vals : this.slider_vals };
             this.$root.$emit('draw_new_chart', (chart_args) );
         });
 
     },
-    // ---------------------------------------
-    // ---------------------------------------
+    // --------------------------------------------
+    // ----------- everything processing  ---------
+    // --------------------------------------------
     GoEverything() {
 
-        let udate =           this.sel_date.getUTCFullYear() + '_' +
-                       String(this.sel_date.getUTCMonth()+1).padStart(2,'0')  + '_' +
-                              this.sel_date.getUTCDate() ;
+        // =========== query url ==============
+
+        let udate =        this.sel_date.getUTCFullYear() + '_' +
+                    String(this.sel_date.getUTCMonth()+1).padStart(2,'0')  + '_' +
+                           this.sel_date.getUTCDate() ;
 
         //don't I wish: let udate = "&date=" + this.sel_date.strftime("%Y_%m_%d");
 
@@ -267,14 +293,25 @@ console.log("udate=" + udate);
 
 console.log("fetch:" + the_query);
 
+       // =========== fetch / response ==============
+
        fetch(the_query)
         .then(response => response.json())
         .then(data => {
 
-            this.chart_data = data;
-            //console.log(this.chart_data);
+            this.map_data     = data.map_data;
+            this.chart_data   = data.chart_data;
+            this.details_data = data.details_data;
 
-            this.$root.$emit('draw_all_fc', (this.chart_data.map_data) );
+            // =========== OL FeatureCollection ==============
+
+            this.$root.$emit('draw_all_fc', (this.map_data) );
+
+            // =========== table details ==============
+
+            console.log(this.details_data);
+            this.$root.$emit('draw_new_details', (this.details_data) );
+
         });
     },
     // ---------------------------------------

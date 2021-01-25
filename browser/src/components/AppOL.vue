@@ -399,13 +399,13 @@ export default {
     })
     // -------------------------
     this.$root.$on('draw_all_fc', (newFC) => {
-      console.log("dafc- in");
+      // console.log("dafc- in");
 
       this.everythingFeatures = newFC.features;  // maybe it just wants the features LIST, not the FC???
-      console.log(this.everythingFeatures);
+      // console.log(this.everythingFeatures);
       // nope: this.everythingFeatures = newFC;
 
-      console.log("dafc- out");
+      // console.log("dafc- out");
     })
   } // ---- mounted
 }
