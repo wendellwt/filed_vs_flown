@@ -119,13 +119,18 @@ import { Vector as VectorLayer } from 'ol/layer'
 // ==========================================================
 
 // -------------- linestrings
-const unk_style   =new Style({ stroke: new Stroke({ color: 'brown',  width: 3.0 }) })
+const unk_style   =new Style({ stroke: new Stroke({ color: 'grey',   width: 2.0 }) })
 const plainStyle  =new Style({ stroke: new Stroke({ color: 'purple', width: 3.0 }) })
 
-// -------------- unused linestrings (was going to be source_type)
-const src_s_style =new Style({ stroke: new Stroke({ color: 'green',  width: 3.0 }) })
-const src_f_style =new Style({ stroke: new Stroke({ color: 'blue',   width: 3.0 }) })
-const src_a_style =new Style({ stroke: new Stroke({ color: 'magenta',width: 3.0 }) })
+// -------------- SAME colors as in Charts.vue
+const wt_map_colors = [
+            '#996600'    // (sched) brown
+           ,'#3399ff'    // (at entry) blue
+           ,'green' ];   // (flown)
+
+const src_s_style =new Style({ stroke: new Stroke({ color: wt_map_colors[0], width: 2.0 }) })
+const src_a_style =new Style({ stroke: new Stroke({ color: wt_map_colors[1], width: 2.0 }) })
+const src_f_style =new Style({ stroke: new Stroke({ color: wt_map_colors[2], width: 2.0 }) })
 
 //const activeStyle =new Style({ stroke: new Stroke({ color: 'orange', width: 5.0 }) })
 //const highlightSt =new Style({ stroke: new Stroke({ color: 'magenta',width: 5.0 }) })
@@ -161,6 +166,9 @@ const methods = {
     loaderFactoryInner(extent, resolution, projection) {
 
 console.log("inside loaderFactoryInner:", extent, resolution, projection);
+console.log(this.pathUrl);
+
+if (this.pathUrl == 'bogus') { console.log("bogus url, no fetch"); return; }
 
       return fetch(this.pathUrl)
         .then(response => response.json())
@@ -210,10 +218,19 @@ console.log("inside loaderFactoryInner:", extent, resolution, projection);
 
 console.log("inside loaderFactoryInnerFvf:", extent, resolution, projection);
 
+if (this.fvfUrl == 'bogus') { console.log("bogus url, no fetch"); return(
+
+{
+  "type": "FeatureCollection",
+  "features": []
+}
+
+); }
+
       return fetch(this.fvfUrl)
         .then(response => response.json())
         .then(data =>  {
-          return(data); // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+          return(data);
        })
     },
 
@@ -221,7 +238,7 @@ console.log("inside loaderFactoryInnerFvf:", extent, resolution, projection);
     onMapMounted () {
       // now ol.Map instance is ready and we can work with it directly
       this.$refs.map.$map.getControls().extend([
-        new ScaleLine(),
+        new ScaleLine( { units: 'nautical'} ),
         new ZoomSlider(),
       ])
     },
@@ -459,7 +476,7 @@ export default {
        let flts_to_disp = [ ]
        for (let k = 0; k < all_flights.features.length; k++) {
 
-           console.log(all_flights.features[k].geometry.type);
+           //console.log(all_flights.features[k].geometry.type);
 
            // Q: should this just check for existance of an 'arr_time' property???
 
@@ -469,6 +486,7 @@ export default {
 
                if (all_flights.features[k].properties.arr_time.substr(0,13) == hour_to_disp) {
                   // TODO: COMBINE this with DataPos generation!!!
+                  // (maybe not so bad; DataPos list is constructed from this list)
                   flts_to_disp.push(all_flights.features[k]);
                }
            } else {
@@ -490,6 +508,6 @@ console.log("done with new flights.");
 
 <style lang="scss">
 .map {
-    height: 90%;
+    height: 600px;
 }
 

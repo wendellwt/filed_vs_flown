@@ -12,6 +12,27 @@
 
 import * as d3 from 'd3';
 
+// ======================== common to maps and charts
+
+// List of groups = species here = value of the first column called group
+var wt_groups = [ "ne", "se", "sw", "nw" ];
+
+// List of subgroups = header of the csv files
+//var subgroups = data.columns.slice(1)
+//old: let wt_subgroups = [ "sched_dist_zdv", "flown_dist_zdv" ];  // <<<< FIXME
+var wt_subgroups = [ "first_sch_dist", "at_ent_dist", 'flown_dist' ];
+
+// let y_max = 70000;    // <<<<<<<<<<<<<<<<<<<<<<<<
+
+var wt_chart_colors = [ // I think these look nice:
+            '#996600'    // brown
+           ,'#3399ff'    // blue
+           ,'green'
+         //,'#339933'    // green-ish
+          ];
+
+// ======================== common to maps and charts
+
 export default {
   name: 'Charts',
     data() {
@@ -42,31 +63,12 @@ export default {
         displayGData : function(ndata, y_min, y_max) {
 
     // =========================== my edits
-
-  // List of groups = species here = value of the first column called group
-  //var groups = d3.map(data, function(d){return(d.group)}).keys()
-  let wt_groups = [ "ne", "se", "sw", "nw" ];  // <<<<<<<<<< FIXME
-
-  // List of subgroups = header of the csv files
-  //var subgroups = data.columns.slice(1)
-  //old: let wt_subgroups = [ "sched_dist_zdv", "flown_dist_zdv" ];  // <<<< FIXME
-  let wt_subgroups = [ "first_sch_dist", "at_ent_dist", 'flown_dist' ];
-
-  // let y_max = 70000;    // <<<<<<<<<<<<<<<<<<<<<<<<
-
-  let wt_chart_colors = [ // I think these look nice:
-            '#996600'    // brown
-           ,'#3399ff'    // blue
-           ,'green'
-         //,'#339933'    // green-ish
-          ];
-
     // =========================== my edits - end
 
   // set the dimensions and margins of the graph
   let margin = {top: 10, right: 30, bottom: 20, left: 50},
       width  = 460 - margin.left - margin.right,
-      height = 400 - margin.top  - margin.bottom;
+      height = 200 - margin.top  - margin.bottom;   // HEIGHT is fixed!!!
 
   // append the svg object to the body of the page
     // wt: .append("svg")

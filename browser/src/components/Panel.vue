@@ -5,6 +5,7 @@
     Retrieve Dataset
   </p>
   <div class="panel-block">
+      <!-- FIXME:  put label left of entry ===================== -->
             <b-field label="Select date">
           <b-datepicker
             placeholder="Click to select..."
@@ -17,7 +18,7 @@
         </b-field>
   </div>
 
-        <!-- ========== departure ========= -->
+        <!-- ========== departure =========
         <div class="panel-block">
           <div class="columns">
             <div class="column is-three-quarters">
@@ -25,7 +26,7 @@
                     v-model="dep_selected" >
               <button class="button is-light is-small" slot="trigger">
                     <span>Departure</span>
-                    <!-- TODO: find this icon -->
+                    <    TODO: find this icon     >
                     <b-icon icon="menu-down"></b-icon>
               </button>
               <b-dropdown-item  v-for="apt in airportlist"
@@ -36,6 +37,7 @@
             <div class="column">{{dep_selected}}</div>
           </div>
         </div>
+        -->
         <!-- ========== arrival ========= -->
         <div class="panel-block">
           <div class="columns">
@@ -74,7 +76,7 @@
             <div class="column">{{center_selected}}</div>
           </div>
        </div>
-        <!-- ========== begin window time ========= -->
+        <!-- ========== begin window time =========
         <div class="panel-block">
           <b-field label="Begin and end times">
               <b-timepicker
@@ -99,11 +101,13 @@
               </b-timepicker>
           </b-field>
        </div>
+        -->
 
         <!-- ========== brought over from AppUI ========= -->
 
         <div class="panel-block">
 
+          <!-- UNUSED in this version
           <b-button type="is-success"
                     size="is-small"
                     rounded
@@ -115,31 +119,28 @@
                     rounded
                     v-on:click="GoSummary()"
                     >get summary</b-button>
+          -->
 
-          <b-button type="is-success"
+          <b-button type='is-info'
                     size="is-small"
+                    :loading.sync="go_button_loading"
                     rounded
                     v-on:click="GoEverything()"
-                    >get all one day</b-button>
+                    >GET DATA</b-button>
         </div>
 
-        <!-- ========== go ========= -->
+        <!-- ========== go ========= just testing???
         <div class="panel-block">
-          <b-button @click="clickMe" class="is-primary is-light is-small">Go</b-button>
+          <b-button @click="clickMe"
+                    type="is-success"
+                    class="is-primary
+                    is-light
+                    is-small">Retrieve</b-button>
        </div>
+        -->
   <p class="panel-heading">
     Analyze Dataset
   </p>
-        <!-- ========== max/min slider ========= -->
-        <div class="panel-block">
-          <b-field label="Max/Min selector">
-              <b-slider size="is-medium" :min="0" :max="70"
-                            type="is-info"
-                            v-model="slider_vals"
-                  >
-              </b-slider>
-          </b-field>
-        </div>
         <!-- ========== hour slider ========= -->
         <div class="panel-block">
           <b-field label="Hour selector">
@@ -150,6 +151,16 @@
               </b-slider>
           </b-field>
        </div>
+        <!-- ========== max/min slider ========= -->
+        <div class="panel-block">
+          <b-field label="max/min selector">
+              <b-slider size="is-medium" :min="0" :max="70"
+                            type="is-info"
+                            v-model="slider_vals"
+                  >
+              </b-slider>
+          </b-field>
+        </div>
         <!-- ========== end ========= -->
 
   </nav>
@@ -168,8 +179,9 @@ export default {
         locale : "en-US",
         minutesGranularity: 15,
 
-        our_min_date: new Date("2019-01-01"),
-        our_max_date: new Date("2021-05-31"),
+        our_min_date: new Date("2020-01-01"),  // the only ones we've run so far
+        our_max_date: new Date("2020-01-31"),  // the only ones we've run so far
+
         hourFormat_d: "24",
         incrementMinuts_d: 15,
         date_selected: new Date(),
@@ -180,7 +192,7 @@ export default {
         // back when 'range' was included: dates: [],
         sel_date: new Date('January 10, 2020 09:00:00'),  // start???
 
-        airportlist: [ "DEN", "DFW", "ATL", 'JFK', 'LAX', 'MIA' ],
+        airportlist: [ "DEN", "DFW" ],  // the only ones we've run so far
         centerlist: [ "ZDV", "ZFW", "ZLA", 'ZKC', 'ZME' ],
 
         slider_vals : [0,70],
@@ -189,7 +201,9 @@ export default {
         details_data : [],
         chart_data   : [],
         map_data     : [],
-        hourly_data  : []
+        hourly_data  : [],
+
+        go_button_loading : false,
    }
   },
     watch: {
@@ -300,10 +314,13 @@ console.log("fetch:" + the_query);
     // =========== fetch / response ==============
 
     document.body.style.cursor='wait';
+    this.go_button_loading = true;
+
     fetch(the_query, { headers: { 'Content-Type': 'application/json' }})
         .then(response => response.json())
         .then(data => {
             document.body.style.cursor='default';
+            this.go_button_loading = false;
 
             this.map_data     = data.map_data;
             this.chart_data   = data.chart_data;
@@ -325,6 +342,7 @@ console.log("fetch:" + the_query);
         })
        .catch((error) => {
            document.body.style.cursor='default';
+            this.go_button_loading = false;
            alert('Error:', error);
            console.error('Error:', error);
        });

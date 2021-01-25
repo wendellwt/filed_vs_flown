@@ -9,6 +9,7 @@
   <div class="columns">
     <div class="column">
       <app-ol></app-ol>
+      <Charts />
     </div>
     <div class="column is-one-quarter">
       <data-pos></data-pos>
@@ -18,11 +19,11 @@
 
             <!-- ============= bar chart tab ============== -->
 
-            <b-tab-item label="Charts"> <Charts /> </b-tab-item>
+            <!---b-tab-item label="Charts"> <Charts /> </b-tab-item -->
 
-            <!-- ============= table tab ============== -->
-
+            <!-- ============= table tab ==============
             <b-tab-item label="Table"><mytable /></b-tab-item>
+            -->
 
             <!-- ============= details tab ============== -->
 
@@ -36,16 +37,16 @@
 
 import AppOL   from './AppOL.vue';
 import DataPos from "./DataPos.vue";
-import Table   from "./Table.vue";
 import Charts  from "./Charts.vue";
 import Details from "./Details.vue";
+//import Table   from "./Table.vue";
 
 export default {
   name: 'Tabs',
     components: {
       'app-ol'   : AppOL,
       'data-pos' : DataPos,
-      'mytable'  : Table,    // duh! 'table' is bad choice for a local html component!
+      // 'mytable'  : Table,    // duh! 'table' is bad choice for a local html component!
       'mydetails': Details,
       Charts
   },
