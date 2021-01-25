@@ -6,7 +6,6 @@
 
 import os
 import sys
-import pytz
 import datetime
 import psycopg2
 import pandas as pd
@@ -15,24 +14,10 @@ import socket
 import pickle
 
 from shapely.wkt import dumps  #, loads
-#from shapely.geometry import LineString, mapping, shape
 
 #==========================================================
+# note: d.b. access credentials are in dot files or var panel in Connect
 
-if socket.gethostname() == 'acy_test_app_vm_rserver':
-
-    # we're on Linux, under RConnect, with Flask
-
-    # ISSUE: in RConnect deployment: use Settings panel to configure these
-    connect_alchemy = "postgresql+psycopg2://"            + \
-                    os.environ.get('PGUSER')     + ':' + \
-                    os.environ.get('PGPASSWORD') + '@' + \
-                    os.environ.get('PGHOST')     + '/' + \
-                    os.environ.get('PGDATABASE')
-
-# ------------------- common
-
-# note: d.b. access credentials are in dot files
 pg_conn = psycopg2.connect(
         host      = os.environ.get('PGHOST'),
         database  = os.environ.get('PGDATABASE'),
@@ -42,7 +27,7 @@ pg_conn = psycopg2.connect(
 pg_csr = pg_conn.cursor( )
 
 # ########################################################################## #
-#                              common sql                                    #
+#                  the one sql to retrieve everything all at once            #
 # ########################################################################## #
 
 def get_everything_from_postgis(lgr, y_m_d, airport, center):
@@ -55,16 +40,18 @@ def get_everything_from_postgis(lgr, y_m_d, airport, center):
     (SELECT ST_Transform(ST_Buffer(ST_Transform(position::geometry,26754),42*6076),4326) FROM airports WHERE ident='%s')
 ) as boundary), """  % (center, airport)
 
-    # query_for_first_scheduled (meta, (intersection) dist, (intersection) path
+    # query_for_first_scheduled (intersection) dist, (intersection) path
+    # and metadata of flight
 
     sql_s = """
-SCH AS (SELECT  S.acid, S.flight_index, S.arr_time, min(orig_time) as orig_time,
+SCH AS (SELECT  S.acid, S.flight_index, S.arr_time, S.dep_apt, S.ac_type,
                    path_int_len(S.sched_path, C.boundary) as first_sch_dist,
   ST_AsGeoJSON( ST_Intersection(S.sched_path, C.boundary)) as first_sch_geog
 FROM sched_fvf_%s S, C
 WHERE arr_apt='%s'
 AND   source_type='S'
-GROUP BY  S.acid, S.flight_index, S.arr_time, first_sch_dist, first_sch_geog),
+GROUP BY  S.acid, S.flight_index, S.arr_time, S.dep_apt, S.ac_type,
+first_sch_dist, first_sch_geog),
 """ % (y_m_d, airport)
 
     # ================ time of entry into artcc
@@ -130,10 +117,9 @@ import json
 from geojson import Feature, FeatureCollection
 HELPME_OFFSET = 1000000
 
-def form_feature_collection(evry_df):
+def form_feature_collection(evry_df, center_feat):
 
-    features = []
-    #bad = 0
+    features = [center_feat, ]
 
     for index, row in evry_df.iterrows():
 
@@ -144,46 +130,64 @@ def form_feature_collection(evry_df):
         #(str(row['dep_time' ]) == 'NaT') | \
         #    str(row['dep_time' ]),
 
-        if (str(row['orig_time']) == 'NaT') |  \
-           (str(row['arr_time' ]) == 'NaT'):
-            print("bad time:", str(row['orig_time']), str(row['arr_time' ]))
-            #bad += 1
+        if (str(row['arr_time' ]) == 'NaT'):
+            print("bad time:", str(row['arr_time' ]))
             continue
 
-        flw_feat = Feature(geometry = json.loads(row['flown_geog']),
-                           id=row['flight_index'],
-                           properties = { "acid"     : row['acid'],
+        #if (str(row['orig_time']) == 'NaT') |  \
+        #   (str(row['arr_time' ]) == 'NaT'):
+        #    print("bad time:", str(row['orig_time']), str(row['arr_time' ]))
+        #    continue
+
+        # color removed from properties; worked ok
+        #"color"    : "magenta",
+
+        # these are items put into GeoJson properties which AppOL will
+        # send to DataPos for display in the datablock list
+
+        try:
+            pct = "{:.1f}".format( row['flown_dist']*100.0 / row['at_ent_dist'] )
+        except:
+            pct = "0.0"
+
+        flw_feat = Feature(geometry   = json.loads(row['flown_geog']),
+                           id         = row['flight_index'],
+                           properties =
+                                 { "acid"     : row['acid'],
                                    "flt_ndx"  : row['flight_index'],
                                    "arr_time" : row['arr_time'].isoformat(),
                                    "corner"   : row['corner'],
+                                   "dep_apt"  : row['dep_apt'],
+                                   "actype"   : row['ac_type'],
                                    "ptype"    : "flw",
-                                   "color"    : "magenta",
-                                   "dist"     : row['flown_dist'],
+                                   "sdist"    : row['first_sch_dist'],
+                                   "adist"    : row['at_ent_dist'],
+                                   "fdist"    : row['flown_dist'],
+                                   "pct"      : pct
                                     })
         features.append(flw_feat)
 
-        ate_feat = Feature(geometry = json.loads(row['at_ent_geog']),
-                           id=row['flight_index'] + HELPME_OFFSET,
-                    properties = { "acid"     : row['acid'],
-                                   "flt_ndx"  : row['flight_index'],
-                                   "arr_time" : row['arr_time'].isoformat(),
-                                   "corner"   : row['corner'],
-                                   "ptype"    : "ate",
-                                   "color"    : "blue",
-                                   "dist"     : row['at_ent_dist'],
-                                    })
+        # Q: do the rest of these need full properties elements???
+        ate_feat = Feature(geometry   = json.loads(row['at_ent_geog']),
+                           id         = row['flight_index'] + HELPME_OFFSET,
+                           properties = {
+                               "acid"     : row['acid'],
+                               "flt_ndx"  : row['flight_index'],
+                               "arr_time" : row['arr_time'].isoformat(),
+                               "ptype"    : "ate",
+                               "dist"     : row['at_ent_dist'],
+                                     })
         features.append(ate_feat)
 
-        sch_feat = Feature(geometry = json.loads(row['first_sch_geog']),
-                           id=row['flight_index'] + HELPME_OFFSET*2,
-                    properties = { "acid"     : row['acid'],
-                                   "flt_ndx"  : row['flight_index'],
-                                   "arr_time" : row['arr_time'].isoformat(),
-                                   "corner"   : row['corner'],
-                                   "ptype"    : "sch",
-                                   "color"    : "green",
-                                   "dist"     : row['first_sch_dist'],
-                                    })
+        sch_feat = Feature(geometry   = json.loads(row['first_sch_geog']),
+                           id         = row['flight_index'] + HELPME_OFFSET*2,
+                           properties = {
+                               "acid"     : row['acid'],
+                               "flt_ndx"  : row['flight_index'],
+                               "arr_time" : row['arr_time'].isoformat(),
+                               "ptype"    : "sch",
+                               "dist"     : row['first_sch_dist'],
+                                      })
         features.append(sch_feat)
 
     feature_collection = FeatureCollection(features)
@@ -192,6 +196,33 @@ def form_feature_collection(evry_df):
     # this gets done later
     #ret_jsn = json.dumps(feature_collection)  # geojson FC structure to string
     #return(ret_jsn)
+
+# ==========================================================================
+
+def get_center_polygon(lgr, center, airport):
+
+    lgr.info("in get_center")
+    lgr.info("center:" + center)
+    lgr.info("airport:" + airport)
+
+    # ---- x. get ARTCC polygon
+
+    sql_poly = """ SELECT ST_AsGeoJSON(ST_Difference(
+    (SELECT boundary::geometry from centers where name='%s'),
+    (SELECT ST_Transform(ST_Buffer(ST_Transform(position::geometry,26754),42*6076),4326) FROM airports WHERE ident='%s')
+)) """  % (center, airport)
+
+    lgr.info("reading postg")
+    lgr.debug(sql_poly)
+
+    pg_csr.execute(sql_poly)
+    res = pg_csr.fetchall()
+
+    center_feat = Feature(geometry   = json.loads(res[0][0]),
+                          id         = 1,
+                          properties = { "name" : center } )
+
+    return(center_feat)
 
 # ######################################################################## #
 #                           form data for charts tab                       #
@@ -216,7 +247,8 @@ def form_chart_data(evry_df):
 
 def form_details(every_df):
 
-    details_df = every_df.drop([ 'orig_time', 'flight_index_a',
+    #details_df = every_df.drop([ 'orig_time', 'flight_index_a',
+    details_df = every_df.drop([ 'flight_index_a',
                   'first_sch_geog', 'at_ent_geog', 'flown_geog'], axis=1)
 
     return(details_df)
@@ -234,12 +266,11 @@ def get_everything(lgr, y_m_d, airport, center):
 
     # ---- 1. get all data from PostGIS (intersection distances and paths)
 
-    # <<<<<<<<<<<<<<<<<< TESTING
     everything_df = get_everything_from_postgis(lgr, y_m_d, airport, center)
 
+    # <<<<<<<<<<<<<<<<<< TESTING
     #pickle.dump(everything_df, open( pfile,"wb" ) )
     #everything_df = pickle.load( open( pfile, "rb" ) )
-    # <<<<<<<<<<<<<<<<<< TESTING
 
     #args_pickle = False # <<<<<<<<<<<<<<<<<<<< FIXME
     #if args_pickle:
@@ -247,15 +278,28 @@ def get_everything(lgr, y_m_d, airport, center):
     #else:
     #    everything_df = get_everything_from_postgis(lgr, y_m_d, airport, center)
     #    pickle.dump(everything_df, open( "peverything_df.p","wb" ) )
+
     #everything_df = everything_df[:6] # <<<<<<<<<< TESTING
 
     # <<<<<<<<<<<<<<<<<< TESTING
 
+    # ---------------
+
+    lgr.info("calling get_center")
+    lgr.info("center:" + center)
+    lgr.info("airport:" + airport)
+    center_feat = get_center_polygon(lgr, center, airport)
+    lgr.info("return get_center")
+    lgr.info(center_feat)
+
+    # ---------------
+
     # ---- 2. form GeoJson of all paths
 
-    fc_gj = form_feature_collection(everything_df)
+    fc_gj = form_feature_collection(everything_df, center_feat)
 
-    #print(fc_gj)
+    lgr.info("fc_gj")
+    lgr.info(fc_gj)
 
     everything_df['arr_hr'] = everything_df['arr_time'].map(
                                      lambda t: t.strftime("%Y_%m_%d_%H"))
@@ -340,5 +384,5 @@ if __name__ == "__main__":
 
     everything_dict = get_everything(lgr, y_m_d, args.airport, args.center)
 
-    print(json.dumps(everything_dict['chart_data']))
+    print(json.dumps(everything_dict['map_data']))
 

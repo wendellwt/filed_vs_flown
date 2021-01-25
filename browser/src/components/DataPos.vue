@@ -8,11 +8,19 @@
 
   <li  class="datalist"
        v-for="item in datablocks"
-       :key="item.track"
+       :key="item.flt_ndx"
        @click="datablocklist(item)" >
-    {{ item.acid }} &nbsp; &nbsp;
-    {{ item.actype }} &nbsp; &nbsp;
-    {{ item.track }}
+          {{ item.acid }} &nbsp; &nbsp;
+          {{ item.corner }} &nbsp; &nbsp;
+          {{ item.dep_apt }} &nbsp; &nbsp;
+          <br/>
+          <div class="dbsmall">
+              {{ item.flt_ndx }} &nbsp; &nbsp;
+              {{ item.actype  }} &nbsp; &nbsp;
+              {{ item.adist   }} &nbsp; &nbsp;
+              {{ item.fdist   }} &nbsp; &nbsp;
+              ({{ item.pct     }}%)
+          </div>
   </li>
 
 </ul>
@@ -28,11 +36,11 @@ export default {
         last_rcvd: new Date(),
 
         datablocks : [
-          { track: 1, acid: 'N111', actype: 'C172' },
-          { track: 2, acid: 'N112', actype: 'C172' },
-          { track: 3, acid: 'N113', actype: 'C172' },
-          { track: 4, acid: 'N114', actype: 'C172' },
-          { track: 5, acid: 'N115', actype: 'C172' } ]
+          { flt_ndx: 1, acid: 'N111', actype: 'C172', corner: 'ne' },
+          { flt_ndx: 2, acid: 'N112', actype: 'C172', corner: 'se' },
+          { flt_ndx: 3, acid: 'N113', actype: 'C172', corner: 'sw' },
+          { flt_ndx: 4, acid: 'N114', actype: 'C172', corner: 'nw' },
+          { flt_ndx: 5, acid: 'N115', actype: 'C172', corner: 'ne' } ]
       }
     },
 
@@ -43,8 +51,9 @@ export default {
 
       // FIXME: find out how/why PostGIS allowed duplicate track
       // why do we need to do this here?: remove duplicate key / track
+      // WAIT: is this an old hold-over from asdex ops???
 
-      this.datablocks = this.removeDuplicates(dlist, 'track');
+      this.datablocks = this.removeDuplicates(dlist, 'flt_ndx');
     })
   },
 
@@ -65,8 +74,8 @@ export default {
           //console.log("datablocklist");
           //console.log(item);
           // console.log(item.key); // undefined
-          console.log("highlightthis-emit:" + item.track + ":" + item.acid + "_" + item.actype);
-          this.$root.$emit('highlightthis', (item.track) );
+          console.log("highlightthis-emit:" + item.flt_ndx + ":" + item.acid + "_" + item.actype);
+          this.$root.$emit('highlightthis', (item.flt_ndx) );
       }
   }
 }
@@ -81,6 +90,10 @@ div.datacolumn {
 }
 
 div.timestamp {
+  font-size: 70%;
+}
+
+div.dbsmall {
   font-size: 70%;
 }
 

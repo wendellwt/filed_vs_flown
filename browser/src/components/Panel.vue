@@ -138,6 +138,7 @@
                             v-model="slider_vals"
                   >
               </b-slider>
+          </b-field>
         </div>
         <!-- ========== hour slider ========= -->
         <div class="panel-block">
@@ -215,7 +216,6 @@ export default {
 
             let map_args = { mdata: this.map_data, hour : this.hour_val };
             this.$root.$emit('draw_all_fc', (map_args) );
-
         }
     },
     methods: {

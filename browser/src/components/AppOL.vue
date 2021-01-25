@@ -277,32 +277,44 @@ console.log("inside loaderFactoryInnerFvf:", extent, resolution, projection);
        // ------------ everything paths have color in them
    everyFormatFactory() {
       return (feature) => {
-          //return src_a_style;
-          return new Style({ stroke: new Stroke(
-                                 { color: feature.get('color'),
-                                   width: 3.0 }) })
+        if (feature.get('ptype')) {
+          if (feature.get('ptype')=='flw') { return src_f_style; }
+          if (feature.get('ptype')=='ate') { return src_a_style; }
+          if (feature.get('ptype')=='sch') { return src_s_style; }
+          return unk_style;
+        }
+        return unk_style;
      }
    },
 
    populate_datalist(features_list) {
 
-console.log("populate:" + features_list);
-
        let dlist = [];
        for (let k = 0; k < features_list.length; k++) {
 
+           if ((features_list[k].geometry.type == "LineString")  ||
+               (features_list[k].geometry.type == "MultiLineString")) {
+
               if (features_list[k].id < 900000) {
                   //HELP: let elem = { track:  features_list[k].properties.flight_index,
-                  let elem = { track:  features_list[k].id,
-                               acid:   features_list[k].properties.acid,
-                               actype: "actype"  };
-                  dlist.push(elem);
-console.log("populate-b:" + k, ':' + features_list[k].id + ':' + features_list[k].properties.acid);
-              }
-       }
+                  // pick out important fields from GeoJson properties
+                  // and populate object to send to DataPos
+                  let elem = { acid:     features_list[k].properties.acid,
+                               flt_ndx:  features_list[k].properties.flt_ndx,
+                               corner:   features_list[k].properties.corner,
+                               dep_apt:  features_list[k].properties.dep_apt,
+                               actype:   features_list[k].properties.actype,
+                               arr_time: features_list[k].properties.arr_time,
 
-console.log("populate-c:");
-console.log(dlist);
+                               sdist:    features_list[k].properties.sdist,
+                               adist:    features_list[k].properties.adist,
+                               fdist:    features_list[k].properties.fdist,
+                               pct:      features_list[k].properties.pct,
+                              };
+                  dlist.push(elem);
+              }
+           }
+       }
 
        // ---------------------------------
        const sortedlist = dlist.sort(function(a, b) {
@@ -316,7 +328,7 @@ console.log(dlist);
        });
        // ---------------------------------
 console.log("populate-d:");
-console.log(dlist);
+//console.log(dlist);
 
        this.$root.$emit('dlist', (sortedlist) );
    }
@@ -325,14 +337,15 @@ console.log(dlist);
 // ==========================================================
 
 // center map on center of usa
-var KSTL = [-90.3700289, 38.7486972];
+//r KSTL = [ -90.3700289, 38.7486972];
+var KDEN = [-104.6731667, 39.8616667];
 
 export default {
     methods,
     data () {
       return {
         zoom: 5,
-        center: KSTL,
+        center: KDEN,
         rotation: 0,
 
         geojsonUrl: '',
@@ -441,11 +454,28 @@ export default {
       let hour_to_disp = map_args.hour;
       hour_to_disp = "2020-01-10T" +  String(hour_to_disp).padStart(2,'0');  // do here or by caller?
 
+      console.log(hour_to_disp)
+
        let flts_to_disp = [ ]
        for (let k = 0; k < all_flights.features.length; k++) {
-              if (all_flights.features[k].properties.arr_time.substr(0,13) == hour_to_disp) {
+
+           console.log(all_flights.features[k].geometry.type);
+
+           // Q: should this just check for existance of an 'arr_time' property???
+
+           // if it is a (Multi) LineString (i.e. flight), then check arr time
+           if ( (all_flights.features[k].geometry.type == "LineString") ||
+                (all_flights.features[k].geometry.type == "MultiLineString")) {
+
+               if (all_flights.features[k].properties.arr_time.substr(0,13) == hour_to_disp) {
+                  // TODO: COMBINE this with DataPos generation!!!
                   flts_to_disp.push(all_flights.features[k]);
-              }
+               }
+           } else {
+
+              // and always draw everything else
+              flts_to_disp.push(all_flights.features[k]);
+           }
        }
 
       this.everythingFeatures = flts_to_disp;
