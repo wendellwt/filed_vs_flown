@@ -93,9 +93,9 @@
       <!-- ========== end layers ========= -->
     </vl-map>
 
-    <p v-if="everythingFeatures.length > 0">
+    <!-- p v-if="everythingFeatures.length > 0">
       Loaded features: {{ everythingFeatures.map(feature => feature.id) }}
-    </p>
+    </p -->
 
   </div>
 </template>
@@ -282,6 +282,43 @@ console.log("inside loaderFactoryInnerFvf:", extent, resolution, projection);
                                  { color: feature.get('color'),
                                    width: 3.0 }) })
      }
+   },
+
+   populate_datalist(features_list) {
+
+console.log("populate:" + features_list);
+
+       let dlist = [];
+       for (let k = 0; k < features_list.length; k++) {
+
+              if (features_list[k].id < 900000) {
+                  //HELP: let elem = { track:  features_list[k].properties.flight_index,
+                  let elem = { track:  features_list[k].id,
+                               acid:   features_list[k].properties.acid,
+                               actype: "actype"  };
+                  dlist.push(elem);
+console.log("populate-b:" + k, ':' + features_list[k].id + ':' + features_list[k].properties.acid);
+              }
+       }
+
+console.log("populate-c:");
+console.log(dlist);
+
+       // ---------------------------------
+       const sortedlist = dlist.sort(function(a, b) {
+           if (a.acid < b.acid) {
+                return -1; //nameA comes first
+           }
+           if (a.acid > b.acid) {
+                return 1; // nameB comes first
+           }
+           return 0;  // names must be equal
+       });
+       // ---------------------------------
+console.log("populate-d:");
+console.log(dlist);
+
+       this.$root.$emit('dlist', (sortedlist) );
    }
 }
 
@@ -398,14 +435,23 @@ export default {
       this.fvfUrl = the_query;
     })
     // -------------------------
-    this.$root.$on('draw_all_fc', (newFC) => {
-      // console.log("dafc- in");
+    this.$root.$on('draw_all_fc', (map_args) => {
 
-      this.everythingFeatures = newFC.features;  // maybe it just wants the features LIST, not the FC???
-      // console.log(this.everythingFeatures);
-      // nope: this.everythingFeatures = newFC;
+      let all_flights  = map_args.mdata;  // this is the FC, should it be just the Features[] ???
+      let hour_to_disp = map_args.hour;
+      hour_to_disp = "2020-01-10T" +  String(hour_to_disp).padStart(2,'0');  // do here or by caller?
 
-      // console.log("dafc- out");
+       let flts_to_disp = [ ]
+       for (let k = 0; k < all_flights.features.length; k++) {
+              if (all_flights.features[k].properties.arr_time.substr(0,13) == hour_to_disp) {
+                  flts_to_disp.push(all_flights.features[k]);
+              }
+       }
+
+      this.everythingFeatures = flts_to_disp;
+
+      this.populate_datalist(flts_to_disp);
+console.log("done with new flights.");
     })
   } // ---- mounted
 }

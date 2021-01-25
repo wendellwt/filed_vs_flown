@@ -5,7 +5,7 @@
     Retrieve Dataset
   </p>
   <div class="panel-block">
-            <b-field label="Select dates">
+            <b-field label="Select date">
           <b-datepicker
             placeholder="Click to select..."
              v-model="sel_date"
@@ -183,7 +183,7 @@ export default {
         centerlist: [ "ZDV", "ZFW", "ZLA", 'ZKC', 'ZME' ],
 
         slider_vals : [0,70],
-        hour_val : 8,
+        hour_val : 5,
 
         details_data : [],
         chart_data   : [],
@@ -212,6 +212,10 @@ export default {
             //console.log("hour is now:" + hval);
 
             this.set_and_show_hourly_data();
+
+            let map_args = { mdata: this.map_data, hour : this.hour_val };
+            this.$root.$emit('draw_all_fc', (map_args) );
+
         }
     },
     methods: {
@@ -293,11 +297,13 @@ console.log("udate=" + udate);
 
 console.log("fetch:" + the_query);
 
-       // =========== fetch / response ==============
+    // =========== fetch / response ==============
 
-       fetch(the_query)
+    document.body.style.cursor='wait';
+    fetch(the_query, { headers: { 'Content-Type': 'application/json' }})
         .then(response => response.json())
         .then(data => {
+            document.body.style.cursor='default';
 
             this.map_data     = data.map_data;
             this.chart_data   = data.chart_data;
@@ -305,7 +311,8 @@ console.log("fetch:" + the_query);
 
             // =========== OL FeatureCollection ==============
 
-            this.$root.$emit('draw_all_fc', (this.map_data) );
+            let map_args = { mdata: this.map_data, hour : this.hour_val };
+            this.$root.$emit('draw_all_fc', (map_args) );
 
             // =========== table details ==============
 
@@ -315,7 +322,12 @@ console.log("fetch:" + the_query);
 
             this.set_and_show_hourly_data();
 
-        });
+        })
+       .catch((error) => {
+           document.body.style.cursor='default';
+           alert('Error:', error);
+           console.error('Error:', error);
+       });
     },
     // ---------------------------------------
 
@@ -333,8 +345,11 @@ console.log("fetch:" + the_query);
 
     set_and_show_hourly_data() {
 
-        let use_this_hr = "2020_01_10_" +  String(this.hour_val).padStart(2,'0');
-        console.log("hr=" + use_this_hr);
+        let hr_0pad  = String(this.hour_val).padStart(2,'0');
+
+        let use_this_hr  = "2020_01_10_" +  hr_0pad;
+        let disp_this_hr = "2020_01_10 " +  hr_0pad + ":00";
+        //console.log("hr=" + use_this_hr);
 
         this.hourly_data = [ ];
         for (let k = 0; k < this.chart_data.length; k++ ){
@@ -343,7 +358,9 @@ console.log("fetch:" + the_query);
             }
         }
 
-        let chart_args = { cdata: this.hourly_data, slider_vals : this.slider_vals };
+        let chart_args = { cdata       : this.hourly_data,
+                           slider_vals : this.slider_vals,
+                           title_date  : disp_this_hr     };
         this.$root.$emit('draw_new_chart', (chart_args) );
     }
   }

@@ -53,7 +53,7 @@ export default {
   mounted () {
 
     this.$root.$on('draw_new_details', (the_data) => {
-      console.log("draw_new_details::"+the_data);
+      //console.log("draw_new_details::"+the_data);
 
       //this.the_date = the_date;
 

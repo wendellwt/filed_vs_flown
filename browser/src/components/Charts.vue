@@ -24,9 +24,10 @@ export default {
   mounted: function() {
       this.$root.$on('draw_new_chart', (chart_args) => {
 
-          let ndata = chart_args.cdata;
-          let ymin = chart_args.slider_vals[0] * 100;
-          let ymax = chart_args.slider_vals[1] * 100;
+          let ndata     = chart_args.cdata;
+          let ymin      = chart_args.slider_vals[0] * 100;
+          let ymax      = chart_args.slider_vals[1] * 100;
+          this.the_date = chart_args.title_date
 
           this.displayGData(ndata, ymin, ymax);
       })
