@@ -235,9 +235,11 @@ def get_everything(lgr, y_m_d, airport, center):
     # ---- 1. get all data from PostGIS (intersection distances and paths)
 
     # <<<<<<<<<<<<<<<<<< TESTING
-    #everything_df = get_everything_from_postgis(lgr, y_m_d, airport, center)
+    everything_df = get_everything_from_postgis(lgr, y_m_d, airport, center)
+
     #pickle.dump(everything_df, open( pfile,"wb" ) )
-    everything_df = pickle.load( open( pfile, "rb" ) )
+    #everything_df = pickle.load( open( pfile, "rb" ) )
+    # <<<<<<<<<<<<<<<<<< TESTING
 
     #args_pickle = False # <<<<<<<<<<<<<<<<<<<< FIXME
     #if args_pickle:
