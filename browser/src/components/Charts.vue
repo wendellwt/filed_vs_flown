@@ -25,11 +25,10 @@ export default {
       this.$root.$on('draw_new_chart', (chart_args) => {
 
           let ndata = chart_args.cdata;
-          let ymin = chart_args.slider_vals[0] * 1000;
-          let ymax = chart_args.slider_vals[1] * 1000;
+          let ymin = chart_args.slider_vals[0] * 100;
+          let ymax = chart_args.slider_vals[1] * 100;
 
           this.displayGData(ndata, ymin, ymax);
-          console.log("Charts done");
       })
   },
 
@@ -49,13 +48,15 @@ export default {
 
   // List of subgroups = header of the csv files
   //var subgroups = data.columns.slice(1)
-  let wt_subgroups = [ "sched_dist_zdv", "flown_dist_zdv" ];  // <<<< FIXME
+  //old: let wt_subgroups = [ "sched_dist_zdv", "flown_dist_zdv" ];  // <<<< FIXME
+  let wt_subgroups = [ "first_sch_dist", "at_ent_dist", 'flown_dist' ];
 
   // let y_max = 70000;    // <<<<<<<<<<<<<<<<<<<<<<<<
 
   let wt_chart_colors = [ // I think these look nice:
             '#996600'    // brown
            ,'#3399ff'    // blue
+           ,'green'
          //,'#339933'    // green-ish
           ];
 

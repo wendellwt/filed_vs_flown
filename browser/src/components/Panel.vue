@@ -130,7 +130,7 @@
   <p class="panel-heading">
     Analyze Dataset
   </p>
-        <!-- ========== slider ========= -->
+        <!-- ========== max/min slider ========= -->
         <div class="panel-block">
           <b-field label="Max/Min selector">
               <b-slider size="is-medium" :min="0" :max="70"
@@ -138,6 +138,9 @@
                             v-model="slider_vals"
                   >
               </b-slider>
+        </div>
+        <!-- ========== hour slider ========= -->
+        <div class="panel-block">
           <b-field label="Hour selector">
               <b-slider size="is-medium" :min="0" :max="23"
                             type="is-info"
@@ -146,6 +149,7 @@
               </b-slider>
           </b-field>
        </div>
+        <!-- ========== end ========= -->
 
   </nav>
 </template>
@@ -183,7 +187,8 @@ export default {
 
         details_data : [],
         chart_data   : [],
-        map_data     : []
+        map_data     : [],
+        hourly_data  : []
    }
   },
     watch: {
@@ -193,8 +198,8 @@ export default {
 
             //console.log("slider is now:" + vals);
 
-            if (this.chart_data.length > 0 ) {
-                let chart_args = { cdata: this.chart_data, slider_vals : this.slider_vals };
+            if (this.hourly_data.length > 0 ) {
+                let chart_args = { cdata: this.hourly_data, slider_vals : this.slider_vals };
                 this.$root.$emit('draw_new_chart', (chart_args) );
             } else {
                 console.log("nothing to chart");
@@ -204,14 +209,9 @@ export default {
 
             this.hour_val  = hval ; // redundant???
 
-            console.log("hour is now:" + hval);
+            //console.log("hour is now:" + hval);
 
-            //if (this.everything_data.length > 0 ) {
-            //    let chart_args = { cdata: this.everything_data, slider_vals : this.slider_vals };
-            //    this.$root.$emit('draw_new_chart', (chart_args) );
-            //} else {
-            //    console.log("nothing to chart");
-           // }
+            this.set_and_show_hourly_data();
         }
     },
     methods: {
@@ -263,7 +263,7 @@ console.log("udate=" + udate);
 
             // second, send data over to Charts page for bar charts
             console.log("emit draw_new_chart");
-            let chart_args = { cdata: this.details_data, slider_vals : this.slider_vals };
+            let chart_args = { cdata: this.hourly_data, slider_vals : this.slider_vals };
             this.$root.$emit('draw_new_chart', (chart_args) );
         });
 
@@ -309,13 +309,43 @@ console.log("fetch:" + the_query);
 
             // =========== table details ==============
 
-            console.log(this.details_data);
             this.$root.$emit('draw_new_details', (this.details_data) );
+
+            // =========== chart details ==============
+
+            this.set_and_show_hourly_data();
 
         });
     },
     // ---------------------------------------
-  }
 
+/*********************
+                       arr_hr corner  first_sch_dist  at_ent_dist  flown_dist
+0   2020_01_10_03     ne          2580.2       2550.9      2567.3
+1   2020_01_10_03     nw           147.8        147.8       174.9
+2   2020_01_10_03     se          1567.8       1521.4      1562.0
+3   2020_01_10_03     sw           707.0        678.6       678.7
+4   2020_01_10_04     ne          2321.1       2322.5      2329.6
+*********************/
+
+    // use GLOBALS this.chart_data and this.hour_val to construct
+    //  new this.hourly_data and call chart func
+
+    set_and_show_hourly_data() {
+
+        let use_this_hr = "2020_01_10_" +  String(this.hour_val).padStart(2,'0');
+        console.log("hr=" + use_this_hr);
+
+        this.hourly_data = [ ];
+        for (let k = 0; k < this.chart_data.length; k++ ){
+            if (this.chart_data[k].arr_hr == use_this_hr) {
+                this.hourly_data.push( this.chart_data[k] );
+            }
+        }
+
+        let chart_args = { cdata: this.hourly_data, slider_vals : this.slider_vals };
+        this.$root.$emit('draw_new_chart', (chart_args) );
+    }
+  }
 }
 </script>
