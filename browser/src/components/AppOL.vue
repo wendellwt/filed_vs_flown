@@ -228,9 +228,6 @@ export default {
 
       let all_flights  = map_args.mdata;  // this is the FC, should it be just the Features[] ???
       let hour_to_disp = map_args.hour;
-      hour_to_disp = "2020-01-10T" +  String(hour_to_disp).padStart(2,'0');  // do here or by caller?
-
-      // console.log(hour_to_disp)
 
        let flts_to_disp = [ ]
        for (let k = 0; k < all_flights.features.length; k++) {

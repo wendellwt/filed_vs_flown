@@ -18,26 +18,6 @@
         </b-field>
   </div>
 
-        <!-- ========== departure =========
-        <div class="panel-block">
-          <div class="columns">
-            <div class="column is-three-quarters">
-              <b-dropdown :triggers="['hover']" aria-role="list"
-                    v-model="dep_selected" >
-              <button class="button is-light is-small" slot="trigger">
-                    <span>Departure</span>
-                    <    TODO: find this icon     >
-                    <b-icon icon="menu-down"></b-icon>
-              </button>
-              <b-dropdown-item  v-for="apt in airportlist"
-                          v-bind:value="apt"
-                          :key="apt">{{ apt }}</b-dropdown-item>
-              </b-dropdown>
-            </div>
-            <div class="column">{{dep_selected}}</div>
-          </div>
-        </div>
-        -->
         <!-- ========== arrival ========= -->
         <div class="panel-block">
           <div class="columns">
@@ -76,50 +56,10 @@
             <div class="column">{{center_selected}}</div>
           </div>
        </div>
-        <!-- ========== begin window time =========
-        <div class="panel-block">
-          <b-field label="Begin and end times">
-              <b-timepicker
-                rounded
-                placeholder="Click to select..."
-                icon="clock"
-                editable
-                :enable-seconds="enableSeconds"
-                :hour-format="hourFormat"
-                :incrementMinutes="minutesGranularity"
-                :locale="locale">
-              </b-timepicker>
-              <b-timepicker
-                rounded
-                placeholder="Click to select..."
-                icon="clock"
-                editable
-                :enable-seconds="enableSeconds"
-                :hour-format="hourFormat"
-                :incrementMinutes="minutesGranularity"
-                :locale="locale">
-              </b-timepicker>
-          </b-field>
-       </div>
-        -->
 
         <!-- ========== brought over from AppUI ========= -->
 
         <div class="panel-block">
-
-          <!-- UNUSED in this version
-          <b-button type="is-success"
-                    size="is-small"
-                    rounded
-                    v-on:click="GoFvF()"
-                    >get fvf</b-button>
-
-          <b-button type="is-success"
-                    size="is-small"
-                    rounded
-                    v-on:click="GoSummary()"
-                    >get summary</b-button>
-          -->
 
           <b-button type='is-info'
                     size="is-small"
@@ -129,15 +69,6 @@
                     >GET DATA</b-button>
         </div>
 
-        <!-- ========== go ========= just testing???
-        <div class="panel-block">
-          <b-button @click="clickMe"
-                    type="is-success"
-                    class="is-primary
-                    is-light
-                    is-small">Retrieve</b-button>
-       </div>
-        -->
   <p class="panel-heading">
     Analyze Dataset
   </p>
@@ -174,19 +105,9 @@ export default {
 
   data () {
       return {
-        enableSeconds : false,
-        hourFormat : "24",
-        locale : "en-US",
-        minutesGranularity: 15,
-
         our_min_date: new Date("2020-01-01"),  // the only ones we've run so far
         our_max_date: new Date("2020-01-31"),  // the only ones we've run so far
 
-        hourFormat_d: "24",
-        incrementMinuts_d: 15,
-        date_selected: new Date(),
-        time_selected: new Date(),
-        dep_selected: "any",
         arr_selected: "DEN",
         center_selected: "ZDV",
         // back when 'range' was included: dates: [],
@@ -196,7 +117,12 @@ export default {
         centerlist: [ "ZDV", "ZFW", "ZLA", 'ZKC', 'ZME' ],
 
         slider_vals : [0,70],
-        hour_val : 5,
+
+        hour_val   : 5,
+        y_m_d_val  : "2020_01_10",
+        y_m_dt_val : "2020-01-10T05",     // portion of ISO time string to match
+        y_m_da_val : "2020_01_10_05",     // arrival time rounded to this
+        y_m_dd_val : "2020-01-10 05:00",  // display on Chart component
 
         details_data : [],
         chart_data   : [],
@@ -207,11 +133,11 @@ export default {
    }
   },
     watch: {
+
+        // slider vals changed; tell Chart component, but don't need to recalc hourly list
         slider_vals: function(vals) {
 
             this.slider_vals  = vals ; // redundant???
-
-            //console.log("slider is now:" + vals);
 
             if (this.hourly_data.length > 0 ) {
                 let chart_args = { cdata: this.hourly_data, slider_vals : this.slider_vals };
@@ -220,82 +146,42 @@ export default {
                 console.log("nothing to chart");
             }
         },
+
+        // hour selector changed, CALC NEW chart and map data
         hour_val: function(hval) {
 
             this.hour_val  = hval ; // redundant???
+            // almost like the other, but '-' and 'T' instead of '_' and ' '
 
-            //console.log("hour is now:" + hval);
+            this.y_m_d_val =  this.sel_date.getUTCFullYear() + '_' +
+                       String(this.sel_date.getUTCMonth()+1).padStart(2,'0') + '_' +
+                       String(this.sel_date.getUTCDate()   ).padStart(2,'0');
 
-            this.set_and_show_hourly_data();
+            this.y_m_da_val =  this.y_m_d_val + '_' + String(this.hour_val).padStart(2,'0');
+            this.y_m_dd_val =  this.y_m_d_val + ' ' + String(this.hour_val).padStart(2,'0') + ":00";
 
-            let map_args = { mdata: this.map_data, hour : this.hour_val };
+            this.y_m_dt_val =  this.sel_date.getUTCFullYear() + '-' +
+                        String(this.sel_date.getUTCMonth()+1).padStart(2,'0') + '-' +
+                        String(this.sel_date.getUTCDate()   ).padStart(2,'0') + 'T' +
+                        String(this.hour_val).padStart(2,'0');
+
+            // ---- tell Map component
+
+            let map_args = { mdata: this.map_data, hour : this.y_m_dt_val };
             this.$root.$emit('draw_all_fc', (map_args) );
+
+            // ---- tell Chart component
+
+            this.set_and_show_hourly_data() // ???????
         }
     },
     methods: {
-      // -----------------------------------------------
-      clickMe() {
-          this.$buefy.notification.open('Clicked!!')
-      },
-      // -----------------------------------------------
-    GoFvF() {
-        let force_reload = Math.floor(Math.random() * 99999);
 
-        // apt is bogus
-        let the_query = "get_fvf?apt=IAD&rand=" + force_reload;
-
-        console.log("emit fvf url");
-        console.log(the_query);
-        this.$root.$emit('fvfurl', (the_query) );
-    },
-    // ---------------------------------------
-    GoSummary() {
-
-        let udate = "&date="+ this.sel_date.getUTCFullYear() + '_' +
-                       String(this.sel_date.getUTCMonth()+1).padStart(2,'0')  + '_' +
-                              this.sel_date.getUTCDate() ;
-
-        //don't I wish: let udate = "&date=" + this.sel_date.strftime("%Y_%m_%d");
-
-console.log("udate=" + udate);
-
-        let force_reload = "&rand=" + Math.floor(Math.random() * 99999);
-
-        let the_query = "get_summary?apt=DEN&ctr=ZDV" + udate + force_reload;
-
-        console.log("fetch:" + the_query);
-        //console.log(the_query);
-        // this.$root.$emit('summaryurl', (the_query) );
-
-       fetch(the_query)
-        .then(response => response.json())
-        .then(data => {
-
-            //this.everything_data = data;
-            console.log("HELP: this is not valid any more: this.everything_data");
-
-            // first, send data over to Table page for tabular/text
-            console.log("emit draw_new_table");
-            this.$root.$emit('draw_new_table', (data) );
-            // nope: this.$root.$emit('draw_new_table', (data, this.sel_date) );
-
-            // second, send data over to Charts page for bar charts
-            console.log("emit draw_new_chart");
-            let chart_args = { cdata: this.hourly_data, slider_vals : this.slider_vals };
-            this.$root.$emit('draw_new_chart', (chart_args) );
-        });
-
-    },
-    // --------------------------------------------
-    // ----------- everything processing  ---------
-    // --------------------------------------------
-    GoEverything() {
-
-        // =========== query url ==============
+      form_fetch_args() {
 
         let udate =        this.sel_date.getUTCFullYear() + '_' +
                     String(this.sel_date.getUTCMonth()+1).padStart(2,'0')  + '_' +
-                           this.sel_date.getUTCDate() ;
+                    String(this.sel_date.getUTCDate()   ).padStart(2,'0');
 
         //don't I wish: let udate = "&date=" + this.sel_date.strftime("%Y_%m_%d");
 
@@ -311,10 +197,51 @@ console.log("udate=" + udate);
 
 console.log("fetch:" + the_query);
 
-    // =========== fetch / response ==============
+        return(the_query);
+    },
 
-    document.body.style.cursor='wait';
-    this.go_button_loading = true;
+    // =========== fetch respose ==============
+
+    process_fetch_response(data) {
+
+        this.map_data     = data.map_data;
+        this.chart_data   = data.chart_data;
+        this.details_data = data.details_data;
+
+        // =========== chart details ==============
+
+        this.set_and_show_hourly_data();
+
+        // =========== OL FeatureCollection ==============
+
+        // almost like the other, but '-' and 'T' instead of '_' and ' '
+        let y_m_dt =  this.sel_date.getUTCFullYear() + '-' +
+              String(this.sel_date.getUTCMonth()+1).padStart(2,'0') + '-' +
+              String(this.sel_date.getUTCDate()   ).padStart(2,'0');
+
+        let map_this_hr = y_m_dt + 'T' + String(this.hour_val).padStart(2,'0');
+
+        // ---- tell Map component
+
+        let map_args = { mdata: this.map_data, hour : this.y_m_dt_val };
+        this.$root.$emit('draw_all_fc', (map_args) );
+
+        // =========== table details ==============
+
+        this.$root.$emit('draw_new_details', (this.details_data) );
+    },
+
+    // -----------------------------------------------
+    // ----------- everything processing  ---------
+    // --------------------------------------------
+    GoEverything() {
+
+        let the_query = this.form_fetch_args()
+
+        // =========== fetch / response ==============
+
+        document.body.style.cursor='wait';
+        this.go_button_loading = true;
 
     fetch(the_query, { headers: { 'Content-Type': 'application/json' }})
         .then(response => response.json())
@@ -322,22 +249,7 @@ console.log("fetch:" + the_query);
             document.body.style.cursor='default';
             this.go_button_loading = false;
 
-            this.map_data     = data.map_data;
-            this.chart_data   = data.chart_data;
-            this.details_data = data.details_data;
-
-            // =========== OL FeatureCollection ==============
-
-            let map_args = { mdata: this.map_data, hour : this.hour_val };
-            this.$root.$emit('draw_all_fc', (map_args) );
-
-            // =========== table details ==============
-
-            this.$root.$emit('draw_new_details', (this.details_data) );
-
-            // =========== chart details ==============
-
-            this.set_and_show_hourly_data();
+            this.process_fetch_response(data);
 
         })
        .catch((error) => {
@@ -363,22 +275,20 @@ console.log("fetch:" + the_query);
 
     set_and_show_hourly_data() {
 
-        let hr_0pad  = String(this.hour_val).padStart(2,'0');
+        // console.log("hr-a=" + this.y_m_da_val);
 
-        let use_this_hr  = "2020_01_10_" +  hr_0pad;
-        let disp_this_hr = "2020_01_10 " +  hr_0pad + ":00";
-        //console.log("hr=" + use_this_hr);
-
+        // form new hourly dataset
         this.hourly_data = [ ];
         for (let k = 0; k < this.chart_data.length; k++ ){
-            if (this.chart_data[k].arr_hr == use_this_hr) {
+            if (this.chart_data[k].arr_hr == this.y_m_da_val) {
                 this.hourly_data.push( this.chart_data[k] );
             }
         }
 
         let chart_args = { cdata       : this.hourly_data,
                            slider_vals : this.slider_vals,
-                           title_date  : disp_this_hr     };
+                           title_date  : this.y_m_dd_val   };
+
         this.$root.$emit('draw_new_chart', (chart_args) );
     }
   }
