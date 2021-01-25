@@ -206,6 +206,8 @@ def form_chart_data(evry_df):
     chart_df = pd.merge(sch_cnr_sum_df, ate_cnr_sum_df, on=["arr_hr", "corner"])
     chart_df = pd.merge(chart_df,       flw_cnr_sum_df, on=["arr_hr", "corner"])
 
+    chart_df.reset_index(inplace=True)
+
     return(chart_df)
 
 # ######################################################################## #
@@ -224,7 +226,8 @@ def form_details(every_df):
 # ########################################################################### #
 
 #pfile = "/home/data/wturner/peverything_small.p"
-pfile = "/tmp/peverything_small.p"
+#pfile = "/tmp/peverything_small.p"
+pfile = "/tmp/peverything.p"
 
 def get_everything(lgr, y_m_d, airport, center):
 
@@ -233,18 +236,17 @@ def get_everything(lgr, y_m_d, airport, center):
 
     # <<<<<<<<<<<<<<<<<< TESTING
     #everything_df = get_everything_from_postgis(lgr, y_m_d, airport, center)
+    #pickle.dump(everything_df, open( pfile,"wb" ) )
     everything_df = pickle.load( open( pfile, "rb" ) )
 
-    # BAD IN app.py: (maybe)
     #args_pickle = False # <<<<<<<<<<<<<<<<<<<< FIXME
     #if args_pickle:
     #    everything_df = pickle.load( open( pfile, "rb" ) )
     #else:
     #    everything_df = get_everything_from_postgis(lgr, y_m_d, airport, center)
     #    pickle.dump(everything_df, open( "peverything_df.p","wb" ) )
-
     #everything_df = everything_df[:6] # <<<<<<<<<< TESTING
-    #pickle.dump(everything_df, open( pfile,"wb" ) )
+
     # <<<<<<<<<<<<<<<<<< TESTING
 
     # ---- 2. form GeoJson of all paths
@@ -260,7 +262,8 @@ def get_everything(lgr, y_m_d, airport, center):
 
     chart_df = form_chart_data(everything_df)
 
-    #print(type(chart_df))
+    #pprint(chart_df)
+    #sys.exit(1)
 
     # ---- 4. trim geogs for details table
 
@@ -271,7 +274,6 @@ def get_everything(lgr, y_m_d, airport, center):
     # ---- 5. assemble into one massive json
 
     chart_jn = json.loads(chart_df.to_json(date_format='iso', orient="records"))
-    #print(type(chart_jn))
 
     details_jn = json.loads(details_df.to_json(date_format='iso', orient="records"))
     #print(type(details_jn))
@@ -336,5 +338,5 @@ if __name__ == "__main__":
 
     everything_dict = get_everything(lgr, y_m_d, args.airport, args.center)
 
-    print(json.dumps(everything_dict))
+    print(json.dumps(everything_dict['chart_data']))
 
