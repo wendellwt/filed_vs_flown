@@ -106,11 +106,10 @@ export default {
   data () {
       return {
         our_min_date: new Date("2020-01-01"),  // the only ones we've run so far
-        our_max_date: new Date("2020-01-31"),  // the only ones we've run so far
+        our_max_date: new Date("2020-12-31"),  // the only ones we've run so far
 
         arr_selected: "DEN",
         center_selected: "ZDV",
-        // back when 'range' was included: dates: [],
         sel_date: new Date('January 10, 2020 09:00:00'),  // start???
 
         airportlist: [ "DEN", "DFW" ],  // the only ones we've run so far
@@ -118,17 +117,17 @@ export default {
 
         slider_vals : [0,70],
 
-        hour_val   : 5,
-        y_m_d_val  : "2020_01_10",
+        hour_val   : 5,                   // from ui chooser
+        y_m_d_val  : "2020_01_10",        // intermediate/temp value
         y_m_dt_val : "2020-01-10T05",     // portion of ISO time string to match
         y_m_da_val : "2020_01_10_05",     // arrival time rounded to this
         y_m_dd_val : "2020-01-10 05:00",  // display on Chart component
 
-        details_data : [],
-        chart_data   : [],
-        map_data     : [],
-        hourly_data  : [],
+        details_data : [],  // fetched data from everything.py
+        chart_data   : [],  // fetched data from everything.py
+        map_data     : [],  // fetched data from everything.py
 
+        hourly_data  : [],  // set of chart_data for selected hour
         go_button_loading : false,
    }
   },
@@ -185,8 +184,6 @@ export default {
 
         //don't I wish: let udate = "&date=" + this.sel_date.strftime("%Y_%m_%d");
 
-console.log("udate=" + udate);
-
         let force_reload = Math.floor(Math.random() * 99999);
 
         let the_query = "get_everything" +
@@ -195,7 +192,7 @@ console.log("udate=" + udate);
                         "&date=" + udate +
                         "&rand=" + force_reload;
 
-console.log("fetch:" + the_query);
+        console.log("fetch:" + the_query);
 
         return(the_query);
     },
@@ -213,13 +210,6 @@ console.log("fetch:" + the_query);
         this.set_and_show_hourly_data();
 
         // =========== OL FeatureCollection ==============
-
-        // almost like the other, but '-' and 'T' instead of '_' and ' '
-        let y_m_dt =  this.sel_date.getUTCFullYear() + '-' +
-              String(this.sel_date.getUTCMonth()+1).padStart(2,'0') + '-' +
-              String(this.sel_date.getUTCDate()   ).padStart(2,'0');
-
-        let map_this_hr = y_m_dt + 'T' + String(this.hour_val).padStart(2,'0');
 
         // ---- tell Map component
 
