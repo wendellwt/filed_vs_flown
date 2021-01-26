@@ -35,7 +35,7 @@
 
 <script>
 
-import AppOL   from './AppOL.vue';
+import OL       from './OL.vue';
 import DataPos from "./DataPos.vue";
 import Charts  from "./Charts.vue";
 import Details from "./Details.vue";
@@ -44,7 +44,7 @@ import Details from "./Details.vue";
 export default {
   name: 'Tabs',
     components: {
-      'app-ol'   : AppOL,
+      'app-ol'   : OL,
       'data-pos' : DataPos,
       // 'mytable'  : Table,    // duh! 'table' is bad choice for a local html component!
       'mydetails': Details,
