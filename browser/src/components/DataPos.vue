@@ -6,12 +6,13 @@
 
 <ul id="example-1" class="scrolling" >
 
-  <li  class="datalist"
+    <!-- create a datablock within the li for each aircraft -->
+    <li  class="datalist"
        v-for="item in datablocks"
        :key="item.flt_ndx"
-       @click="datablocklist(item)" >
-          {{ item.acid }} &nbsp; &nbsp;
-          {{ item.corner }} &nbsp; &nbsp;
+       @click="datablockclicked(item)" >
+          {{ item.acid    }} &nbsp; &nbsp;
+          {{ item.corner  }} &nbsp; &nbsp;
           {{ item.dep_apt }} &nbsp; &nbsp;
           <br/>
           <div class="dbsmall">
@@ -19,11 +20,10 @@
               {{ item.actype  }} &nbsp; &nbsp;
               {{ item.adist   }} &nbsp; &nbsp;
               {{ item.fdist   }} &nbsp; &nbsp;
-              ({{ item.pct     }}%)
+              ({{ item.pct    }}%)
           </div>
-  </li>
-
-</ul>
+    </li>
+  </ul>
 
   </div>
 </template>
@@ -59,24 +59,23 @@ export default {
 
   methods: {
 
- // =========================
- // https://firstclassjs.com/remove-duplicate-objects-from-javascript-array-how-to-performance-comparison/
- removeDuplicates: function(array, key) {
+  // =========================
+  // https://firstclassjs.com/remove-duplicate-objects-from-javascript-array-how-to-performance-comparison/
+  removeDuplicates: function(array, key) {
     return array.filter((obj, index, self) =>
         index === self.findIndex((el) => (
             el[key] === obj[key]
         ))
     )
-},
-// =========================
+ },
+ // =========================
 
-      datablocklist: function(item) {
-          //console.log("datablocklist");
-          //console.log(item);
-          // console.log(item.key); // undefined
-          console.log("highlightthis-emit:" + item.flt_ndx + ":" + item.acid + "_" + item.actype);
-          this.$root.$emit('highlightthis', (item.flt_ndx) );
-      }
+  datablockclicked: function(item) {
+
+        console.log("highlightthis-emit:" + item.flt_ndx + ":" + item.acid + "_" + item.actype);
+
+        this.$root.$emit('highlightthis', (item.flt_ndx) );
+    }
   }
 }
 

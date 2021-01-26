@@ -15,6 +15,7 @@
              :rotation.sync="rotation"></vl-view>
 
       <!-- ========== OpenStreetMap base layer ================== -->
+
       <vl-layer-tile id="osm">
         <vl-source-osm></vl-source-osm>
       </vl-layer-tile>
@@ -23,7 +24,7 @@
 
       <vl-layer-vector >
         <vl-source-vector :features.sync="everythingFeatures" />
-        <vl-style-func    :factory="everyFormatFactory"></vl-style-func>
+        <vl-style-func    :factory="everythStyleFactory"></vl-style-func>
       </vl-layer-vector>
 
       <!-- ========== popup ========= -->
@@ -53,17 +54,14 @@ import ScaleLine  from 'ol/control/ScaleLine'
 
 import Stroke     from 'ol/style/Stroke'
 import Style      from 'ol/style/Style'
-// import Text       from 'ol/style/Text'
-// import Fill       from 'ol/style/Fill'
-// import Circle     from 'ol/style/Circle'
 
 import { Vector as VectorLayer } from 'ol/layer'
 
 // ==========================================================
 
 // -------------- linestrings
+
 const unk_style   =new Style({ stroke: new Stroke({ color: 'grey',   width: 2.0 }) })
-// st plainStyle  =new Style({ stroke: new Stroke({ color: 'purple', width: 3.0 }) })
 
 // -------------- SAME colors as in Charts.vue
 const wt_map_colors = [
@@ -90,7 +88,7 @@ const methods = {
 
    // ------------ everything paths have color in them
 
-   everyFormatFactory() {
+   everythStyleFactory() {
       return (feature) => {
         if (feature.get('ptype')) {
           if (feature.get('ptype')=='flw') { return src_f_style; }
@@ -102,6 +100,8 @@ const methods = {
      }
    },
 
+  // pick out important fields from GeoJson properties
+  // and populate object to send to DataPos
    populate_datalist(features_list) {
 
        let dlist = [];
@@ -111,9 +111,6 @@ const methods = {
                (features_list[k].geometry.type == "MultiLineString")) {
 
               if (features_list[k].id < 900000) {
-                  //HELP: let elem = { track:  features_list[k].properties.flight_index,
-                  // pick out important fields from GeoJson properties
-                  // and populate object to send to DataPos
                   let elem = { acid:     features_list[k].properties.acid,
                                flt_ndx:  features_list[k].properties.flt_ndx,
                                corner:   features_list[k].properties.corner,
@@ -132,6 +129,17 @@ const methods = {
        }
 
        // ---------------------------------
+       /******************** sort by pct ***********/
+       const sortedlist = dlist.sort(function(a, b) {
+           if (a.pct < b.pct) {
+                return -1; //nameA comes first
+           }
+           if (a.pct > b.pct) {
+                return 1; // nameB comes first
+           }
+           return 0;  // names must be equal
+       });
+       /******************** sort by acid
        const sortedlist = dlist.sort(function(a, b) {
            if (a.acid < b.acid) {
                 return -1; //nameA comes first
@@ -141,8 +149,9 @@ const methods = {
            }
            return 0;  // names must be equal
        });
-       // ---------------------------------
+       ********************/
 
+       // and send to DataPos list component
        this.$root.$emit('dlist', (sortedlist) );
    }
 }
@@ -165,10 +174,8 @@ export default {
 
         everythingFeatures: [],
 
-        highLightMe: 15,  // track id of item to highlight
-
-        // NEW:
-        highlightedFeat: 0
+        highLightMe     : 15,  // flight_index of item to highlight
+        highlightedFeat : 0    // the current (old) item that may need to be turned off
       }
     },
 
@@ -224,21 +231,21 @@ export default {
 
     // ================================
 
+    // called from Panel because new dataset received or hour changed
+
     this.$root.$on('draw_all_fc', (map_args) => {
 
       let all_flights  = map_args.mdata;  // this is the FC, should it be just the Features[] ???
       let hour_to_disp = map_args.hour;
 
-       let flts_to_disp = [ ]
-       for (let k = 0; k < all_flights.features.length; k++) {
+      let flts_to_disp = [ ]
+      for (let k = 0; k < all_flights.features.length; k++) {
 
-           //console.log(all_flights.features[k].geometry.type);
+          // Q: should this just check for existance of an 'arr_time' property???
 
-           // Q: should this just check for existance of an 'arr_time' property???
-
-           // if it is a (Multi) LineString (i.e. flight), then check arr time
-           if ( (all_flights.features[k].geometry.type == "LineString") ||
-                (all_flights.features[k].geometry.type == "MultiLineString")) {
+          // if it is a (Multi) LineString (i.e. flight), then check arr time
+          if ( (all_flights.features[k].geometry.type == "LineString") ||
+               (all_flights.features[k].geometry.type == "MultiLineString")) {
 
                if (all_flights.features[k].properties.arr_time.substr(0,13) == hour_to_disp) {
                   // TODO: COMBINE this with DataPos generation!!!
@@ -250,8 +257,7 @@ export default {
               // and always draw everything else
               flts_to_disp.push(all_flights.features[k]);
            }
-       }
-
+      }
       this.everythingFeatures = flts_to_disp;
 
       this.populate_datalist(flts_to_disp);

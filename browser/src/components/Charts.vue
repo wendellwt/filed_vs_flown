@@ -18,8 +18,6 @@ import * as d3 from 'd3';
 var wt_groups = [ "ne", "se", "sw", "nw" ];
 
 // List of subgroups = header of the csv files
-//var subgroups = data.columns.slice(1)
-//old: let wt_subgroups = [ "sched_dist_zdv", "flown_dist_zdv" ];  // <<<< FIXME
 var wt_subgroups = [ "first_sch_dist", "at_ent_dist", 'flown_dist' ];
 
 // let y_max = 70000;    // <<<<<<<<<<<<<<<<<<<<<<<<
@@ -28,7 +26,6 @@ var wt_chart_colors = [ // I think these look nice:
             '#996600'    // brown
            ,'#3399ff'    // blue
            ,'green'
-         //,'#339933'    // green-ish
           ];
 
 // ======================== common to maps and charts
@@ -37,8 +34,7 @@ export default {
   name: 'Charts',
     data() {
       return {
-        jdata:   [ ],  // remnants of original example
-        the_date: new Date()
+        the_date: new Date()  // in header/title
       }
     },
 
@@ -67,27 +63,24 @@ export default {
 
   // set the dimensions and margins of the graph
   let margin = {top: 10, right: 30, bottom: 20, left: 50},
-      width  = 460 - margin.left - margin.right,
+      width  = 460 - margin.left - margin.right,    // WIDTH is fixed!!!
       height = 200 - margin.top  - margin.bottom;   // HEIGHT is fixed!!!
 
-  // append the svg object to the body of the page
-    // wt: .append("svg")
-    // wt made no difference: .insert("svg")
+  // "svg" is apparently the name of the component _and_ the type
 
-  // BAD: d3.select("#my_dataviz").remove();  // does this work???
-
-  // Q: is "svg" just the name of the component???
+  // ---- remove previous sub-components, if any
   d3.select("#my_dataviz").selectAll("svg").remove();
 
+  // ---- define the main dif of the chart
   let svg = d3.select("#my_dataviz")
     .append("svg")
-      .attr("width", width + margin.left + margin.right)
-      .attr("height", height + margin.top + margin.bottom)
+      .attr("width",  width  + margin.left + margin.right)
+      .attr("height", height + margin.top  + margin.bottom)
     .append("g")
       .attr("transform",
             "translate(" + margin.left + "," + margin.top + ")");
 
-  // Add X axis
+  // ---- Add X axis
   let x = d3.scaleBand()
       .domain(wt_groups)
       .range([0, width])
@@ -96,27 +89,25 @@ export default {
     .attr("transform", "translate(0," + height + ")")
     .call(d3.axisBottom(x).tickSizeOuter(0));
 
-  // Add Y axis
+  // ---- Add Y axis
   let y = d3.scaleLinear()
     .domain([y_min, y_max])
     .range([ height, 0 ]);
   svg.append("g")
     .call(d3.axisLeft(y));
 
-// ++++++++++++ addition for grouping
-  // Another scale for subgroup position?
+  // ---- another scale for subgroup position(?)
   var xSubgroup = d3.scaleBand()
     .domain(wt_subgroups)
     .range([0, x.bandwidth()])
     .padding([0.05])
-// ++++++++++++
 
-  // color palette = one color per subgroup
+  // ---- color palette = one color per subgroup
   let color = d3.scaleOrdinal()
     .domain(wt_subgroups)
     .range(wt_chart_colors)
 
-  // Show the bars
+  // ---- Show the bars
   svg.append("g")
     .selectAll("g")
     .data(ndata)
@@ -132,10 +123,9 @@ export default {
       .attr("height", function(d) { return height - y(d.value); })
       .attr("fill", function(d) { return color(d.key); });
 
-    } // displayGData
+    } // displayGData function
   } // methods
 } // export
 
 </script>
-
 

@@ -6,14 +6,14 @@
   </p>
   <div class="panel-block">
       <!-- FIXME:  put label left of entry ===================== -->
-            <b-field label="Select date">
+      <b-field label="Date">
           <b-datepicker
             placeholder="Click to select..."
              v-model="sel_date"
              :min-date="our_min_date"
              :max-date="our_max_date"
+             maxlength=11
             >
-            <!-- removed for now (too hard): range -->
           </b-datepicker>
         </b-field>
   </div>
