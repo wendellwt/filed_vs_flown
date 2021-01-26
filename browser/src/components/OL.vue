@@ -131,11 +131,13 @@ const methods = {
        // ---------------------------------
        /******************** sort by pct ***********/
        const sortedlist = dlist.sort(function(a, b) {
-           if (a.pct < b.pct) {
-                return -1; //nameA comes first
+           let a_pct = parseFloat(a.pct);
+           let b_pct = parseFloat(b.pct);
+           if (a_pct < b_pct) {
+                return -1; //a comes first
            }
-           if (a.pct > b.pct) {
-                return 1; // nameB comes first
+           if (a_pct > b_pct) {
+                return 1; // b comes first
            }
            return 0;  // names must be equal
        });
