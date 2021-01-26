@@ -48,10 +48,16 @@
                 <b-icon icon="menu-down"></b-icon>
               </button>
 
-              <b-dropdown-item  v-for="ctr in centerlist"
+              <!-- b-dropdown-item  v-for="ctr in centerlist"
                           v-bind:value="ctr"
                           :key="ctr">{{ ctr }}</b-dropdown-item>
+              </b-dropdown -->
+
+              <b-dropdown-item  v-for="ctr in tierlist"
+                          v-bind:value="ctr[0]"
+                          :key="ctr[0]">{{ ctr[1] }}</b-dropdown-item>
               </b-dropdown>
+
             </div>
             <div class="column">{{center_selected}}</div>
           </div>
@@ -114,6 +120,22 @@ export default {
 
         airportlist: [ "DEN", "DFW" ],  // the only ones we've run so far
         centerlist: [ "ZDV", "ZFW", "ZLA", 'ZKC', 'ZME' ],
+
+        tierlist: [ ["ZDV",  "ZDV (parent)"  ],
+
+                    ["ZKC",  "ZKC (1st tier)" ],
+                    ["ZMP",  "ZMP (1st tier)" ],
+                    ["ZLC",  "ZLC (1st tier)" ],
+                    ["ZLA",  "ZLA (1st tier)" ],
+                    ["ZAB",  "ZAB (1st tier)" ],
+
+                    ["ZFW",  "ZFW (2nd tier)" ],
+                    ["ZME",  "ZME (2nd tier)" ],
+                    ["ZID",  "ZID (2nd tier)" ],
+                    ["ZAU",  "ZAU (2nd tier)" ],
+                    ["ZSE",  "ZSE (2nd tier)" ],
+                    ["ZOA",  "ZOA (2nd tier)" ],
+                    ["ZHU",  "ZHU (2nd tier)" ] ],
 
         slider_vals : [0,70],
 
