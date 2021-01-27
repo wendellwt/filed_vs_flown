@@ -284,6 +284,8 @@ pfile = "/tmp/peverything.p"
 
 def get_everything(lgr, y_m_d, airport, center, use_pickle="false"):
 
+    lgr.info("get_every: use_pickle=" + use_pickle)
+
     # ---- 1. get all data from PostGIS (intersection distances and paths)
 
     if use_pickle == "false":
