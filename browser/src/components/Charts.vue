@@ -1,6 +1,6 @@
 <template>
   <div>
-      <h3>Corner Chart {{the_date}}</h3>
+      <h3>Grouped Corner Chart {{the_date}}</h3>
 
     <!-- Create a div where the graph will take place -->
     <div id="my_dataviz"></div>
