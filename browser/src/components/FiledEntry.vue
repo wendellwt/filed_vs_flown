@@ -1,6 +1,8 @@
 <template>
   <div>
       <h3>filed &amp; at_entry Corner Chart {{the_date}}</h3>
+      <p class="chsmall">bars are sum of flown distances by hour and corner</p>
+      <p class="chsmall">dot is sum of the at-entry schedule by hour</p>
 
     <!-- Create a div where the graph will take place -->
     <!-- div name is NOT local to this component; it is global for the web page! -->
@@ -13,6 +15,12 @@
 
 import * as d3 from 'd3';
 
+var chart_width = 560;
+var chart_height = 400;
+
+var legend_x = 400;
+var legend_y = 20;
+
 // ======================== common to maps and charts
 
 // List of groups = species here = value of the first column called group
@@ -23,11 +31,11 @@ var wt_subgroups = [ "ne", "se", "sw", "nw"];
 
 // let y_max = 70000;    // <<<<<<<<<<<<<<<<<<<<<<<<
 
-var wt_chart_colors = [ // I think these look nice:
-            '#996600'    // brown
-           ,'#3399ff'    // blue
-           ,'green'
-           ,'orange'
+var wt_chart_colors = [ // https://tools.aspm.faa.gov/confluence/display/prod/Tableau+Dashboard+Style+Guide
+     '#002664'   // RGB (0, 38, 100)
+    ,'#007934'   // RGB (0, 121, 52)
+    ,'#AB8422'   // RGB (171, 132, 34)
+    ,'#5E6A71'   // RGB (94, 106, 113)
           ];
 
 // ======================== common to maps and charts
@@ -82,8 +90,8 @@ export default {
   // set the dimensions and margins of the graph
             // bottom margin of 80 leaves room for x-axis label rotated
   let margin = {top: 10, right: 30, bottom: 80, left: 50},
-      width  = 560 - margin.left - margin.right,    // WIDTH is fixed!!!
-      height = 400 - margin.top  - margin.bottom;   // HEIGHT is fixed!!!
+      width  = chart_width  - margin.left - margin.right,
+      height = chart_height - margin.top  - margin.bottom;
 
   // "svg" is apparently the name of the component _and_ the type
 
@@ -158,9 +166,45 @@ export default {
         .attr("cy", function(d) { return y(d.at_ent_dist) })
         .attr("r", 5)
 
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//  https://www.d3-graph-gallery.com/graph/custom_legend.html
+var size = 20;
+
+// Add one dot in the legend for each name.
+svg.selectAll("mydots")
+  .data(wt_subgroups)
+  .enter()
+  .append("rect")
+    .attr("x", legend_x)
+    .attr("y", function(d,i){ return legend_y + i*(size+5)}) // 100 is where the first dot appears. 25 is the distance between dots
+    .attr("width", size)
+    .attr("height", size)
+    .style("fill", function(d){ return color(d)})
+
+// Add one dot in the legend for each name.
+svg.selectAll("mylabels")
+  .data(wt_subgroups)
+  .enter()
+  .append("text")
+    .attr("x", legend_x + size*1.2)
+    .attr("y", function(d,i){ return legend_y + i*(size+5) + (size/2)}) // 100 is where the first dot appears. 25 is the distance between dots
+    //.style("fill", function(d){ return color(d)})
+    //.text(function(d){ return wt_subgroups[d]})
+    .text(function(d){ return String(d)})
+    .attr("text-anchor", "left")
+    .style("alignment-baseline", "middle")
+
+
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     } // displayGData function
   } // methods
 } // export
 
 </script>
 
+<style lang="scss">
+p.chsmall {
+  font-size: 80%;
+}
+
+</style>

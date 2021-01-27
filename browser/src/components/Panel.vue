@@ -79,6 +79,11 @@
                     rounded
                     v-on:click="CallAFunction()"
                     >debug me</b-button -->
+
+                &nbsp; &nbsp; &nbsp;
+            <b-checkbox type="is-info"
+                        size="is-small"
+                        v-model="use_pickle">debug </b-checkbox>
         </div>
 
   <p class="panel-heading">
@@ -86,7 +91,7 @@
   </p>
         <!-- ========== hour slider ========= -->
         <div class="panel-block">
-          <b-field label="Hour selector">
+          <b-field label="Hour of map">
               <b-slider size="is-medium" :min="0" :max="23"
                             type="is-info"
                             v-model="hour_val"
@@ -96,7 +101,7 @@
        </div>
         <!-- ========== max/min slider ========= -->
         <div class="panel-block">
-          <b-field label="max/min selector">
+          <b-field label="min/max chary y-axis">
               <b-slider size="is-medium" :min="0" :max="70"
                             type="is-info"
                             v-model="slider_vals"
@@ -159,6 +164,7 @@ export default {
 
         hourly_data  : [],  // set of chart_data for selected hour
         go_button_loading : false,
+        use_pickle : false
    }
   },
     watch: {
@@ -227,7 +233,8 @@ export default {
                         "?apt="  + this.arr_selected +
                         "&ctr="  + this.center_selected +
                         "&date=" + udate +
-                        "&rand=" + force_reload;
+                        "&rand=" + force_reload +
+                        "&pckl=" + this.use_pickle;
 
         console.log("fetch:" + the_query);
 
