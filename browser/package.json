@@ -12,6 +12,8 @@
     "@mdi/js": "^5.2.45",
     "axios": "^0.19.2",
     "buefy": "^0.9.4",
+    "d3": "^6.5.0",
+    "markdown-it-vue": "^1.1.6",
     "vue": "^2.6.6",
     "vue-material": "^1.0.0-beta-13",
     "vue-material-design-icons": "^4.6.0",
