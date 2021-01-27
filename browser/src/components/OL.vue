@@ -1,5 +1,5 @@
 <template>
-  <div style="background-color: orange; height: 600px">
+  <div style="background-color: orange; height: 400px">
 
     <!-- ========== map & view ========= -->
     <vl-map  :load-tiles-while-animating="true"
@@ -272,6 +272,6 @@ export default {
 
 <style lang="scss">
 .map {
-    height: 600px;
+    height: 300px;
 }
 

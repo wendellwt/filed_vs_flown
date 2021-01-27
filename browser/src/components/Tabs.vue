@@ -14,13 +14,14 @@
                 <data-pos></data-pos>
               </div>
             </div>
+         <FiledEntry />
          </b-tab-item>
 
          <!-- ============= bar chart tab ============== -->
          <b-tab-item label="Charts"> <Charts /> </b-tab-item>
 
          <!-- ============= filed & at_entry chart tab ============== -->
-         <b-tab-item label="Filed vs At Entry"> <FiledEntry /> </b-tab-item>
+         <!-- b-tab-item label="Filed vs At Entry"> <FiledEntry /> </b-tab-item -->
 
          <!-- ============= stacked chart tab ============== -->
          <b-tab-item label="Stacked"> <Stacked /> </b-tab-item>

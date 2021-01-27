@@ -16,9 +16,9 @@
 import * as d3 from 'd3';
 
 var chart_width = 560;
-var chart_height = 400;
+var chart_height = 300;
 
-var legend_x = 400;
+var legend_x = 450;
 var legend_y = 20;
 
 // ======================== common to maps and charts
