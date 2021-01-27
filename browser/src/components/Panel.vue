@@ -74,11 +74,11 @@
                     v-on:click="GoEverything()"
                     >GET DATA</b-button>
 
-          <b-button type='is-info'
+          <!-- b-button type='is-info'
                     size="is-small"
                     rounded
                     v-on:click="CallAFunction()"
-                    >debug me</b-button>
+                    >debug me</b-button -->
         </div>
 
   <p class="panel-heading">
@@ -154,6 +154,8 @@ export default {
         details_data : [],  // fetched data from everything.py
         chart_data   : [],  // fetched data from everything.py
         map_data     : [],  // fetched data from everything.py
+        fe_data      : [],  // fetched data from everything.py
+        ate_data     : [],  // fetched data from everything.py
 
         hourly_data  : [],  // set of chart_data for selected hour
         go_button_loading : false,
@@ -336,33 +338,20 @@ console.log("CallAFunction");
     },
 
     set_and_show_flown_and_entry() {
-
         console.log("set_and_show_flown_and_entry");
 
-        /****************  form filed and at_entry dataset
-        this.fe_data = [ { 'hour' :  0, 'ne': 13, 'se': 10, 'sw': 9, 'nw': 3 },
-                         { 'hour' :  1, 'ne': 15, 'se': 10, 'sw': 9, 'nw': 7 },
-                         { 'hour' :  2, 'ne': 16, 'se': 12, 'sw': 8, 'nw': 6 },
-                         { 'hour' :  3, 'ne': 17, 'se': 13, 'sw': 7, 'nw': 5 },
-                         { 'hour' : 22, 'ne': 18, 'se': 16, 'sw': 6, 'nw': 4 },
-                         { 'hour' : 23, 'ne': 19, 'se': 11, 'sw': 5, 'nw': 3 } ];
-
-        this.ate_data = [ { 'hour' :  0, 'dist': 23 },
-                          { 'hour' :  1, 'dist': 35 },
-                          { 'hour' :  2, 'dist': 26 },
-                          { 'hour' :  3, 'dist': 37 },
-                          { 'hour' : 22, 'dist': 28 },
-                          { 'hour' : 23, 'dist': 23 } ];
-**************/
-
-
-        let chart_args = { cdata       : this.fe_data,
-                           atedata     : this.ate_data,
-                           slider_vals : this.slider_vals,
-                           title_date  : this.y_m_dd_val   };
-
+        if (this.fe_data.length > 0 ) {
+            let chart_args = { cdata       : this.fe_data,
+                               atedata     : this.ate_data,
+                               slider_vals : this.slider_vals,
+                               title_date  : this.y_m_dd_val   };
 console.log("emit fe:");
-        this.$root.$emit('draw_fe_chart', (chart_args) );
+            this.$root.$emit('draw_fe_chart', (chart_args) );
+
+        } else {
+            console.log("nothing to chart");
+        }
+
     }
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   }

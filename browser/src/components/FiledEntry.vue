@@ -16,27 +16,7 @@ import * as d3 from 'd3';
 // ======================== common to maps and charts
 
 // List of groups = species here = value of the first column called group
-var wt_groups = [
-"2020_01_10_03",
-"2020_01_10_04",
-"2020_01_10_05",
-"2020_01_10_06",
-"2020_01_10_07",
-"2020_01_10_11",
-"2020_01_10_13",
-"2020_01_10_14",
-"2020_01_10_15",
-"2020_01_10_16",
-"2020_01_10_17",
-"2020_01_10_18",
-"2020_01_10_19",
-"2020_01_10_20",
-"2020_01_10_21",
-"2020_01_10_22",
-"2020_01_10_23",
-"2020_01_11_00",
-"2020_01_11_01",
-"2020_01_11_02" ];
+var use_this_as_key = "arr_hr";  // TODO: use this somehow
 
 // List of subgroups = header of the csv files
 var wt_subgroups = [ "ne", "se", "sw", "nw"];
@@ -69,12 +49,19 @@ export default {
           let ymax      = chart_args.slider_vals[1] * 1000;
           this.the_date = chart_args.title_date
 
+          let wt_groups = [ ];
+          for (let k = 0; k < ndata.length; k++ ) {
+                  wt_groups.push(ndata[k].arr_hr);
+          }
+
 console.log("fe data currently:");
 console.log(ndata);
 console.log("ate data currently:");
 console.log(ate_data);
+console.log("wt_groups:");
+console.log(wt_groups);
 
-          this.displayGData(ndata, ate_data, ymin, ymax);
+          this.displayGData(ndata, ate_data, wt_groups, ymin, ymax);
       })
   },
 
@@ -84,7 +71,7 @@ console.log(ate_data);
     /**************** Charts ***************/
 
     methods: {
-        displayGData : function(ndata, ate_data, y_min, y_max) {
+        displayGData : function(ndata, ate_data, wt_groups, y_min, y_max) {
 
     // =========================== my edits
     // =========================== my edits - end
@@ -92,8 +79,8 @@ console.log(ate_data);
   // set the dimensions and margins of the graph
             // bottom margin of 80 leaves room for x-axis label rotated
   let margin = {top: 10, right: 30, bottom: 80, left: 50},
-      width  = 460 - margin.left - margin.right,    // WIDTH is fixed!!!
-      height = 500 - margin.top  - margin.bottom;   // HEIGHT is fixed!!!
+      width  = 560 - margin.left - margin.right,    // WIDTH is fixed!!!
+      height = 400 - margin.top  - margin.bottom;   // HEIGHT is fixed!!!
 
   // "svg" is apparently the name of the component _and_ the type
 
