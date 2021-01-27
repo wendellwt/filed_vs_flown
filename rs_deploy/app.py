@@ -127,8 +127,13 @@ def do_everything():
     airport = request.args['apt']
     center = request.args['ctr']
     y_m_d = request.args['date']
+    use_pickle = False
+    try:
+        use_pickle = request.args['pckle']
+    except:
+        pass
 
-    every_js = everything.get_everything(lgr, y_m_d, airport, center)
+    every_js = everything.get_everything(lgr, y_m_d, airport, center, use_pickle)
 
     lgr.info("get_everything - out")
     lgr.info("+++++")

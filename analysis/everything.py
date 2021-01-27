@@ -282,16 +282,17 @@ def form_details(every_df):
 #pfile = "/tmp/peverything_small.p"
 pfile = "/tmp/peverything.p"
 
-def get_everything(lgr, y_m_d, airport, center):
-
+def get_everything(lgr, y_m_d, airport, center, use_pickle="false"):
 
     # ---- 1. get all data from PostGIS (intersection distances and paths)
 
-    everything_df = get_everything_from_postgis(lgr, y_m_d, airport, center)
-
+    if use_pickle == "false":
+        everything_df = get_everything_from_postgis(lgr, y_m_d, airport, center)
+        #pickle.dump(everything_df, open( pfile,"wb" ) )
+    else:
+        everything_df = pickle.load( open( pfile, "rb" ) )
     # <<<<<<<<<<<<<<<<<< TESTING
-    #pickle.dump(everything_df, open( pfile,"wb" ) )
-    #everything_df = pickle.load( open( pfile, "rb" ) )
+
 
     #args_pickle = False # <<<<<<<<<<<<<<<<<<<< FIXME
     #if args_pickle:
