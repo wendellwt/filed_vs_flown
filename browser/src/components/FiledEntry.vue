@@ -54,12 +54,12 @@ export default {
                   wt_groups.push(ndata[k].arr_hr);
           }
 
-console.log("fe data currently:");
-console.log(ndata);
-console.log("ate data currently:");
-console.log(ate_data);
-console.log("wt_groups:");
-console.log(wt_groups);
+// console.log("fe data currently:");
+// console.log(ndata);
+// console.log("ate data currently:");
+// console.log(ate_data);
+// console.log("wt_groups:");
+// console.log(wt_groups);
 
           this.displayGData(ndata, ate_data, wt_groups, ymin, ymax);
       })
@@ -68,6 +68,9 @@ console.log(wt_groups);
     /**************** Charts ***************/
     /* FINALLY, an example d3 chart that works!!!:     */
     /* https://www.d3-graph-gallery.com/graph/barplot_stacked_basicWide.html */
+    // and now for something completely different:  The Larch.
+    // clickable legend, mouseover values:
+    // http://bl.ocks.org/KatiRG/5f168b5c884b1f9c36a5
     /**************** Charts ***************/
 
     methods: {
@@ -87,7 +90,7 @@ console.log(wt_groups);
   // ---- remove previous sub-components, if any
   d3.select("#my_dataviz_fe").selectAll("svg").remove();
 
-  // ---- define the main dif of the chart
+  // ---- define the main div of the chart
   let svg = d3.select("#my_dataviz_fe")
     .append("svg")
       .attr("width",  width  + margin.left + margin.right)
@@ -119,15 +122,7 @@ console.log(wt_groups);
   svg.append("g")
     .call(d3.axisLeft(y));
 
-  /*********** this way for grouped
-  // ---- another scale for subgroup position(?)
-  var xSubgroup = d3.scaleBand()
-    .domain(wt_subgroups)
-    .range([0, x.bandwidth()])
-    .padding([0.05])
-  ***********/
-  /*********** this way for stacked */
-  //stack the data? --> stack per subgroup
+  // ---- stack the data? --> stack per subgroup
   var stackedData = d3.stack().keys(wt_subgroups)(ndata)
 
   // ---- color palette = one color per subgroup
@@ -135,8 +130,7 @@ console.log(wt_groups);
     .domain(wt_subgroups)
     .range(wt_chart_colors)
 
-  /*********** this way for stacked */
-  // Show the bars
+  // ---- show the _stacked_ bars
   svg.append("g")
     .selectAll("g")
     // Enter in the stack data = loop key per key = group per group
