@@ -32,6 +32,9 @@
          <!-- ============= details tab ============== -->
          <b-tab-item label="Details"><mydetails /></b-tab-item>
 
+         <!-- ============= about tab ============== -->
+         <b-tab-item label="About"><About /></b-tab-item>
+
         </b-tabs>
     </section>
 </template>
@@ -44,6 +47,7 @@ import Charts     from "./Charts.vue";
 import Stacked    from "./Stacked.vue";
 import FiledEntry from "./FiledEntry.vue";
 import Details    from "./Details.vue";
+import About      from "./About.vue";
 //import Table   from "./Table.vue";
 
 export default {
@@ -55,7 +59,8 @@ export default {
       'mydetails': Details,
       Charts,
       Stacked,
-      FiledEntry
+      FiledEntry,
+      About
   },
   props: {
     msg: String
