@@ -2,7 +2,7 @@
   <div>
       <h3>filed &amp; at_entry Corner Chart {{the_date}}</h3>
       <p class="chsmall">bars are sum of flown distances by hour and corner</p>
-      <p class="chsmall">dot is sum of the at-entry schedule by hour</p>
+      <p class="chsmall">red dot is sum of the at-entry schedule by hour</p>
 
     <!-- Create a div where the graph will take place -->
     <!-- div name is NOT local to this component; it is global for the web page! -->
