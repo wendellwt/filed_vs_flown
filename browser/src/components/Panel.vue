@@ -339,10 +339,10 @@ console.log("CallAFunction");
         this.set_and_show_flown_and_entry();
     },
 
-    find_index_of_hour(hr_array, hour) {
-        for (let k = 0; k < hr_array.length; k++ ) {
-        }
-    },
+    //find_index_of_hour(hr_array, hour) {
+    //    for (let k = 0; k < hr_array.length; k++ ) {
+    //    }
+    //},
 
     set_and_show_flown_and_entry() {
         // console.log("set_and_show_flown_and_entry");
