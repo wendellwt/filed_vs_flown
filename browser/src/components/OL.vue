@@ -55,7 +55,7 @@ import ScaleLine  from 'ol/control/ScaleLine'
 import Stroke     from 'ol/style/Stroke'
 import Style      from 'ol/style/Style'
 
-import { Vector as VectorLayer } from 'ol/layer'
+// import { Vector as VectorLayer } from 'ol/layer'
 
 // ==========================================================
 

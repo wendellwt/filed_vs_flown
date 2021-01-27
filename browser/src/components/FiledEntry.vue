@@ -18,13 +18,13 @@ import * as d3 from 'd3';
 var chart_width = 560;
 var chart_height = 300;
 
-var legend_x = 450;
+var legend_x = 400;
 var legend_y = 20;
 
 // ======================== common to maps and charts
 
 // List of groups = species here = value of the first column called group
-var use_this_as_key = "arr_hr";  // TODO: use this somehow
+// unused: var use_this_as_key = "arr_hr";  // TODO: use this somehow
 
 // List of subgroups = header of the csv files
 var wt_subgroups = [ "ne", "se", "sw", "nw"];
