@@ -73,6 +73,12 @@
                     rounded
                     v-on:click="GoEverything()"
                     >GET DATA</b-button>
+
+          <b-button type='is-info'
+                    size="is-small"
+                    rounded
+                    v-on:click="CallAFunction()"
+                    >debug me</b-button>
         </div>
 
   <p class="panel-heading">
@@ -166,6 +172,9 @@ export default {
             } else {
                 console.log("nothing to chart");
             }
+
+            // =========== caroline chart ==============
+            this.set_and_show_flown_and_entry();
         },
 
         // hour selector changed, CALC NEW chart and map data
@@ -194,6 +203,10 @@ export default {
             // ---- tell Chart component
 
             this.set_and_show_hourly_data() // ???????
+
+            // =========== caroline chart ==============
+
+            this.set_and_show_flown_and_entry();
         }
     },
     methods: {
@@ -226,6 +239,8 @@ export default {
         this.map_data     = data.map_data;
         this.chart_data   = data.chart_data;
         this.details_data = data.details_data;
+        this.fe_data      = data.flw_chart_data;
+        this.ate_data     = data.ate_chart_data;
 
         // =========== chart details ==============
 
@@ -241,6 +256,10 @@ export default {
         // =========== table details ==============
 
         this.$root.$emit('draw_new_details', (this.details_data) );
+
+        // =========== caroline chart ==============
+
+        this.set_and_show_flown_and_entry();
     },
 
     // -----------------------------------------------
@@ -272,6 +291,7 @@ export default {
        });
     },
     // ---------------------------------------
+    // --------------------------------------------
 
 /*********************
                        arr_hr corner  first_sch_dist  at_ent_dist  flown_dist
@@ -302,7 +322,49 @@ export default {
                            title_date  : this.y_m_dd_val   };
 
         this.$root.$emit('draw_new_chart', (chart_args) );
+    },
+
+    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    CallAFunction() {
+console.log("CallAFunction");
+        this.set_and_show_flown_and_entry();
+    },
+
+    find_index_of_hour(hr_array, hour) {
+        for (let k = 0; k < hr_array.length; k++ ) {
+        }
+    },
+
+    set_and_show_flown_and_entry() {
+
+        console.log("set_and_show_flown_and_entry");
+
+        /****************  form filed and at_entry dataset
+        this.fe_data = [ { 'hour' :  0, 'ne': 13, 'se': 10, 'sw': 9, 'nw': 3 },
+                         { 'hour' :  1, 'ne': 15, 'se': 10, 'sw': 9, 'nw': 7 },
+                         { 'hour' :  2, 'ne': 16, 'se': 12, 'sw': 8, 'nw': 6 },
+                         { 'hour' :  3, 'ne': 17, 'se': 13, 'sw': 7, 'nw': 5 },
+                         { 'hour' : 22, 'ne': 18, 'se': 16, 'sw': 6, 'nw': 4 },
+                         { 'hour' : 23, 'ne': 19, 'se': 11, 'sw': 5, 'nw': 3 } ];
+
+        this.ate_data = [ { 'hour' :  0, 'dist': 23 },
+                          { 'hour' :  1, 'dist': 35 },
+                          { 'hour' :  2, 'dist': 26 },
+                          { 'hour' :  3, 'dist': 37 },
+                          { 'hour' : 22, 'dist': 28 },
+                          { 'hour' : 23, 'dist': 23 } ];
+**************/
+
+
+        let chart_args = { cdata       : this.fe_data,
+                           atedata     : this.ate_data,
+                           slider_vals : this.slider_vals,
+                           title_date  : this.y_m_dd_val   };
+
+console.log("emit fe:");
+        this.$root.$emit('draw_fe_chart', (chart_args) );
     }
+        // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   }
 }
 </script>

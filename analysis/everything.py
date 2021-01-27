@@ -241,6 +241,27 @@ def form_chart_data(evry_df):
 
     return(chart_df)
 
+# @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+# >>>>> data for the chart Caroline wants
+#  done in Python because I don't want to do it in js
+
+def form_flown_at_entry_data(evry_df):
+
+    flw_cnr_sum_df = evry_df.groupby(["arr_hr", "corner"]) [["flown_dist"    ]].sum()
+
+    flw_cnr_sum_df.reset_index(inplace=True)
+
+    flw_pivot_df = flw_cnr_sum_df.pivot(index='arr_hr', columns='corner', values='flown_dist')
+
+    flw_pivot_df.fillna(0, inplace=True)
+    flw_pivot_df.reset_index(inplace=True)
+
+    ate_sum_df = evry_df.groupby(["arr_hr",] ) [["at_ent_dist"   ]].sum()
+
+    ate_sum_df.reset_index(inplace=True)
+
+    return(flw_pivot_df, ate_sum_df)
+
 # ######################################################################## #
 #                       form data for details table tab                    #
 # ######################################################################## #
@@ -266,11 +287,11 @@ def get_everything(lgr, y_m_d, airport, center):
 
     # ---- 1. get all data from PostGIS (intersection distances and paths)
 
-    everything_df = get_everything_from_postgis(lgr, y_m_d, airport, center)
+    #everything_df = get_everything_from_postgis(lgr, y_m_d, airport, center)
 
     # <<<<<<<<<<<<<<<<<< TESTING
     #pickle.dump(everything_df, open( pfile,"wb" ) )
-    #everything_df = pickle.load( open( pfile, "rb" ) )
+    everything_df = pickle.load( open( pfile, "rb" ) )
 
     #args_pickle = False # <<<<<<<<<<<<<<<<<<<< FIXME
     #if args_pickle:
@@ -285,12 +306,12 @@ def get_everything(lgr, y_m_d, airport, center):
 
     # ---------------
 
-    lgr.info("calling get_center")
-    lgr.info("center:" + center)
-    lgr.info("airport:" + airport)
+    #lgr.info("calling get_center")
+    #lgr.info("center:" + center)
+    #lgr.info("airport:" + airport)
     center_feat = get_center_polygon(lgr, center, airport)
-    lgr.info("return get_center")
-    lgr.info(center_feat)
+    #lgr.info("return get_center")
+    #lgr.info(center_feat)
 
     # ---------------
 
@@ -298,8 +319,8 @@ def get_everything(lgr, y_m_d, airport, center):
 
     fc_gj = form_feature_collection(everything_df, center_feat)
 
-    lgr.info("fc_gj")
-    lgr.info(fc_gj)
+    #lgr.info("fc_gj")
+    #lgr.info(fc_gj)
 
     everything_df['arr_hr'] = everything_df['arr_time'].map(
                                      lambda t: t.strftime("%Y_%m_%d_%H"))
@@ -308,8 +329,10 @@ def get_everything(lgr, y_m_d, airport, center):
 
     chart_df = form_chart_data(everything_df)
 
-    #pprint(chart_df)
-    #sys.exit(1)
+    flw_cnr_df, ate_sum_df = form_flown_at_entry_data(everything_df)
+
+    lgr.info(flw_cnr_df)
+    lgr.info(ate_sum_df)
 
     # ---- 4. trim geogs for details table
 
@@ -319,14 +342,18 @@ def get_everything(lgr, y_m_d, airport, center):
 
     # ---- 5. assemble into one massive json
 
-    chart_jn = json.loads(chart_df.to_json(date_format='iso', orient="records"))
+    chart_jn   = json.loads(chart_df.to_json(  date_format='iso', orient="records"))
+    flw_cnr_jn = json.loads(flw_cnr_df.to_json(date_format='iso', orient="records"))
+    ate_sum_jn = json.loads(ate_sum_df.to_json(date_format='iso', orient="records"))
 
     details_jn = json.loads(details_df.to_json(date_format='iso', orient="records"))
     #print(type(details_jn))
 
-    every_dict = { 'map_data'     : fc_gj,
-                   'chart_data'   : chart_jn,
-                   'details_data' : details_jn }
+    every_dict = { 'map_data'       : fc_gj,
+                   'chart_data'     : chart_jn,
+                   'flw_chart_data' : flw_cnr_jn,
+                   'ate_chart_data' : ate_sum_jn,
+                   'details_data'   : details_jn }
 
     return(every_dict)
 
@@ -384,5 +411,5 @@ if __name__ == "__main__":
 
     everything_dict = get_everything(lgr, y_m_d, args.airport, args.center)
 
-    print(json.dumps(everything_dict['map_data']))
-
+    print(json.dumps(everything_dict['flw_chart_data']))
+                   #'flw_chart_data' : flw_cnr_jn,

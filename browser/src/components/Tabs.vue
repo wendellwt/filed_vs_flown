@@ -9,7 +9,6 @@
             <div class="columns">
               <div class="column">
                 <app-ol></app-ol>
-                <Charts />
               </div>
               <div class="column is-one-quarter">
                 <data-pos></data-pos>
@@ -18,7 +17,13 @@
          </b-tab-item>
 
          <!-- ============= bar chart tab ============== -->
-         <!---b-tab-item label="Charts"> <Charts /> </b-tab-item -->
+         <b-tab-item label="Charts"> <Charts /> </b-tab-item>
+
+         <!-- ============= filed & at_entry chart tab ============== -->
+         <b-tab-item label="Filed vs At Entry"> <FiledEntry /> </b-tab-item>
+
+         <!-- ============= stacked chart tab ============== -->
+         <b-tab-item label="Stacked"> <Stacked /> </b-tab-item>
 
          <!-- ============= table tab ==============
          <b-tab-item label="Table"><mytable /></b-tab-item> -->
@@ -32,10 +37,12 @@
 
 <script>
 
-import OL       from './OL.vue';
-import DataPos from "./DataPos.vue";
-import Charts  from "./Charts.vue";
-import Details from "./Details.vue";
+import OL         from './OL.vue';
+import DataPos    from "./DataPos.vue";
+import Charts     from "./Charts.vue";
+import Stacked    from "./Stacked.vue";
+import FiledEntry from "./FiledEntry.vue";
+import Details    from "./Details.vue";
 //import Table   from "./Table.vue";
 
 export default {
@@ -45,7 +52,9 @@ export default {
       'data-pos' : DataPos,
       // 'mytable'  : Table,    // duh! 'table' is bad choice for a local html component!
       'mydetails': Details,
-      Charts
+      Charts,
+      Stacked,
+      FiledEntry
   },
   props: {
     msg: String
