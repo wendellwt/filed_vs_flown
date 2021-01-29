@@ -101,7 +101,7 @@
        </div>
         <!-- ========== max/min slider ========= -->
         <div class="panel-block">
-          <b-field label="min/max chary y-axis">
+          <b-field label="min/max chart y-axis">
               <b-slider size="is-medium" :min="0" :max="70"
                             type="is-info"
                             v-model="slider_vals"
@@ -130,7 +130,7 @@ export default {
         sel_date: new Date('January 10, 2020 09:00:00'),  // start???
 
         airportlist: [ "DEN", "DFW" ],  // the only ones we've run so far
-        centerlist: [ "ZDV", "ZFW", "ZLA", 'ZKC', 'ZME' ],
+        // centerlist: [ "ZDV", "ZFW", "ZLA", 'ZKC', 'ZME' ],
 
         tierlist: [ ["ZDV",  "ZDV (parent)"  ],
 
@@ -153,7 +153,7 @@ export default {
         hour_val   : 5,                   // from ui chooser
         y_m_d_val  : "2020_01_10",        // intermediate/temp value
         y_m_dt_val : "2020-01-10T05",     // portion of ISO time string to match
-        y_m_da_val : "2020_01_10_05",     // arrival time rounded to this
+        y_m_da_val : "2020_01_10_05",     // arrival time is rounded to this
         y_m_dd_val : "2020-01-10 05:00",  // display on Chart component
 
         details_data : [],  // fetched data from everything.py
