@@ -9,12 +9,6 @@
               @mounted="onMapMounted"
            >
 
-    <!-- ========== legend ??? ========= -->
-
-    <div class="legend">
-        Hello from the legend
-    </div>
-
     <vl-view ref="view"
              :zoom.sync="zoom"
              :center.sync="center"
@@ -48,6 +42,13 @@
       <!-- ========== end layers ========= -->
     </vl-map>
 
+    <!-- ========== legend ========= -->
+    <!-- pretty LAME, but works... -->
+    <div class="legend">
+flown: <input type="text" class="flown"/>
+sched: <input type="text" class="at_entry"/>
+    </div>
+
   </div>
 </template>
 
@@ -64,6 +65,8 @@ import Style      from 'ol/style/Style'
 import { Vector as VectorLayer } from 'ol/layer'
 
 // ==========================================================
+
+const HELPME_OFFSET = 1000000; // flight_ndx offset to at_ent flight_ndx
 
 // -------------- linestrings
 
@@ -116,7 +119,7 @@ const methods = {
            if ((features_list[k].geometry.type == "LineString")  ||
                (features_list[k].geometry.type == "MultiLineString")) {
 
-              if (features_list[k].id < 900000) {
+              if (features_list[k].id < HELPME_OFFSET) {
                   let elem = { acid:     features_list[k].properties.acid,
                                flt_ndx:  features_list[k].properties.flt_ndx,
                                corner:   features_list[k].properties.corner,
@@ -229,7 +232,7 @@ export default {
 
         // ========== hightlight path -- AT_ENTRY version
 
-      high_me = the_target + 1000000; // flight_ndx offset to at_ent path
+      high_me = the_target + HELPME_OFFSET; // flight_ndx offset to at_ent path
       // ---- turn off the previous one:
       if (this.highlightedFeat_sch != 0) {
         // ------------------------------
@@ -303,12 +306,10 @@ export default {
     height: 300px;
 }
 
-.layers {
-  position: relative;
-  top: 10px;
-  left: 50px;
-  background-color: transparent;
-  z-index: 99;
+.legend {
+    font-size: small;
 }
+.flown    { background-color: green;   width: 20px; height: 16px; }
+.at_entry { background-color: #3399ff; width: 20px; height: 16px; }
 
 </style>
