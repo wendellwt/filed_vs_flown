@@ -2,9 +2,11 @@
     <section>
         <b-tabs position="is-centered" class="block">
 
-            <!-- ============= map tab ============== -->
+         <!-- ============= map tab ============== -->
 
-            <b-tab-item label="Map">
+         <b-tab-item label="Map">
+
+         <FiledEntry />
 
             <div class="columns">
               <div class="column">
@@ -14,7 +16,6 @@
                 <data-pos></data-pos>
               </div>
             </div>
-         <FiledEntry />
          </b-tab-item>
 
          <!-- ============= bar chart tab ============== -->
