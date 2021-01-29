@@ -120,17 +120,20 @@ const methods = {
                (features_list[k].geometry.type == "MultiLineString")) {
 
               if (features_list[k].id < HELPME_OFFSET) {
-                  let elem = { acid:     features_list[k].properties.acid,
-                               flt_ndx:  features_list[k].properties.flt_ndx,
-                               corner:   features_list[k].properties.corner,
-                               dep_apt:  features_list[k].properties.dep_apt,
-                               actype:   features_list[k].properties.actype,
-                               arr_time: features_list[k].properties.arr_time,
+                  let elem = {
+                      acid:     features_list[k].properties.acid,
+                      flt_ndx:  features_list[k].properties.flt_ndx,
+                      corner:   features_list[k].properties.corner,
+                      dep_apt:  features_list[k].properties.dep_apt,
+                      actype:   features_list[k].properties.actype,
+                      arr_time: features_list[k].properties.arr_time,
 
-                               sdist:    features_list[k].properties.sdist,
-                               adist:    features_list[k].properties.adist,
-                               fdist:    features_list[k].properties.fdist,
-                               pct:      features_list[k].properties.pct,
+                      sdist:    features_list[k].properties.sdist,
+                      adist:    features_list[k].properties.adist,
+                      fdist:    features_list[k].properties.fdist,
+                      diff:     (parseFloat(features_list[k].properties.adist) -
+                                 parseFloat(features_list[k].properties.fdist)
+                                ).toFixed(1)
                               };
                   dlist.push(elem);
               }
@@ -138,14 +141,15 @@ const methods = {
        }
 
        // ---------------------------------
-       /******************** sort by pct ***********/
+       /******************** sort by diff ***********/
+       // but need floats, not strings!
        const sortedlist = dlist.sort(function(a, b) {
-           let a_pct = parseFloat(a.pct);
-           let b_pct = parseFloat(b.pct);
-           if (a_pct < b_pct) {
+           let a_diff = parseFloat(a.diff);
+           let b_diff = parseFloat(b.diff);
+           if (a_diff < b_diff) {
                 return -1; //a comes first
            }
-           if (a_pct > b_pct) {
+           if (a_diff > b_diff) {
                 return 1; // b comes first
            }
            return 0;  // names must be equal

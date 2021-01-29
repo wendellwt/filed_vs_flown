@@ -20,7 +20,7 @@
               {{ item.actype  }} &nbsp; &nbsp;
               {{ item.adist   }} &nbsp; &nbsp;
               {{ item.fdist   }} &nbsp; &nbsp;
-              ({{ item.pct    }}%)
+              ({{ item.diff   }})
           </div>
     </li>
   </ul>

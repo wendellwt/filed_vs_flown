@@ -23,7 +23,7 @@ var chart_height = 300;
 
 // position of legend
 var legend_x = 300;
-var legend_y =  10;
+var legend_y =   5;
 var leg_size =  15;
 
 // List of subgroups = header of the csv files
