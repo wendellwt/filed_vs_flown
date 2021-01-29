@@ -9,6 +9,12 @@
               @mounted="onMapMounted"
            >
 
+    <!-- ========== legend ??? ========= -->
+
+    <div class="legend">
+        Hello from the legend
+    </div>
+
     <vl-view ref="view"
              :zoom.sync="zoom"
              :center.sync="center"
@@ -55,7 +61,7 @@ import ScaleLine  from 'ol/control/ScaleLine'
 import Stroke     from 'ol/style/Stroke'
 import Style      from 'ol/style/Style'
 
-// import { Vector as VectorLayer } from 'ol/layer'
+import { Vector as VectorLayer } from 'ol/layer'
 
 // ==========================================================
 
@@ -191,19 +197,12 @@ export default {
       //console.log("highLightMe:"+the_target);
       this.highLightMe = the_target;
 
-      /*************************** OLD, but need something that works:
-
-      // ==========  Q: does asdexStyleFuncFac replace this???
-
       // turn off the previous one:
       if (this.highlightedFeat != 0) {
         // ------------------------------
-        // can't be const because of feature acid:
-        let targetStyle = new Style({
-          image: image_circle,
-          text: new Text({ text: String(this.highlightedFeat.get('acid')), }),
-        });
-          this.highlightedFeat.setStyle(targetStyle);
+        // need to set back to PROPER color, which is always flown, right?
+        this.highlightedFeat.setStyle(src_f_style);
+        this.highlightedFeat = 0;
       }
 
       // find the vector layer that has a Feature with this id
@@ -219,16 +218,15 @@ export default {
 
           this.highlightedFeat = a_layer[0].getSource().getFeatureById(the_target);
 
-              /// ------ need Style, not Circle!
+              /// ------ need Style
         let targetHigh = new Style({
-          image: image_h_circle,
-          text: new Text({ text: String(this.highlightedFeat.get('acid')), }),
+          stroke: new Stroke({ color: 'red', width: 4.0 })
+          //text: new Text({ text: String(this.highlightedFeat.get('acid')), }),
         })
               /// ------
 
           this.highlightedFeat.setStyle(targetHigh);
       }
-        ***************************/
     })
 
     // ================================
@@ -275,3 +273,12 @@ export default {
     height: 300px;
 }
 
+.layers {
+  position: relative;
+  top: 10px;
+  left: 50px;
+  background-color: transparent;
+  z-index: 99;
+}
+
+</style>
