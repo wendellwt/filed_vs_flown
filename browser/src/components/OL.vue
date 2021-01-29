@@ -75,9 +75,9 @@ const wt_map_colors = [
            ,'#3399ff'    // (at entry) blue
            ,'green' ];   // (flown)
 
-const src_s_style =new Style({ stroke: new Stroke({ color: wt_map_colors[0], width: 2.0 }) })
-const src_a_style =new Style({ stroke: new Stroke({ color: wt_map_colors[1], width: 2.0 }) })
-const src_f_style =new Style({ stroke: new Stroke({ color: wt_map_colors[2], width: 2.0 }) })
+const src_s_style = new Style({ stroke: new Stroke({ color: wt_map_colors[0], width: 2.0 }) })
+const src_a_style = new Style({ stroke: new Stroke({ color: wt_map_colors[1], width: 2.0 }) })
+const src_f_style = new Style({ stroke: new Stroke({ color: wt_map_colors[2], width: 2.0 }) })
 
 // ==================================================================================
 
@@ -182,8 +182,8 @@ export default {
 
         everythingFeatures: [],
 
-        highLightMe     : 15,  // flight_index of item to highlight
-        highlightedFeat : 0    // the current (old) item that may need to be turned off
+        highlightedFeat_flw : 0,   // the current (old) item that may need to be turned off
+        highlightedFeat_sch : 0    // the current (old) item that may need to be turned off
       }
     },
 
@@ -194,38 +194,68 @@ export default {
     // -------------------------
     this.$root.$on('highlightthis', (the_target) => {
 
-      //console.log("highLightMe:"+the_target);
-      this.highLightMe = the_target;
-
-      // turn off the previous one:
-      if (this.highlightedFeat != 0) {
+        let high_me = the_target;
+        // ========== hightlight path -- FLOWN version
+      // ---- turn off the previous one:
+      if (this.highlightedFeat_flw != 0) {
         // ------------------------------
         // need to set back to PROPER color, which is always flown, right?
-        this.highlightedFeat.setStyle(src_f_style);
-        this.highlightedFeat = 0;
+        this.highlightedFeat_flw.setStyle(src_f_style);
+        this.highlightedFeat_flw = 0;
       }
 
-      // find the vector layer that has a Feature with this id
+      // ---- find the vector layer that has a Feature with this id
       const a_layer = this.$refs.map.getLayers().filter(layer => {
         return layer instanceof VectorLayer &&
-                   layer.getSource().getFeatureById(the_target)
+                   layer.getSource().getFeatureById(high_me)
       })
 
-      // --------- this statement causes aSFF to fire with valid arguments
+      // ---- this statement causes aSFF(?) to fire with valid arguments
       if (a_layer[0] === undefined) {
-          console.log("could not find the_target=" + the_target)
+          console.log("could not find high_me=" + high_me)
           } else {
 
-          this.highlightedFeat = a_layer[0].getSource().getFeatureById(the_target);
+          this.highlightedFeat_flw = a_layer[0].getSource().getFeatureById(high_me);
 
-              /// ------ need Style
-        let targetHigh = new Style({
-          stroke: new Stroke({ color: 'red', width: 4.0 })
-          //text: new Text({ text: String(this.highlightedFeat.get('acid')), }),
-        })
-              /// ------
+          // ---- need Style
+          // ---- need Style >> MAKE this a const if no acid!
+          let targetHigh_flw = new Style({
+              stroke: new Stroke({ color: 'red', width: 4.0 })
+              //text: new Text({ text: String(this.highlightedFeat_flw.get('acid')), }),
+           })
 
-          this.highlightedFeat.setStyle(targetHigh);
+          this.highlightedFeat_flw.setStyle(targetHigh_flw);
+      }
+
+        // ========== hightlight path -- AT_ENTRY version
+
+      high_me = the_target + 1000000; // flight_ndx offset to at_ent path
+      // ---- turn off the previous one:
+      if (this.highlightedFeat_sch != 0) {
+        // ------------------------------
+        // need to set back to PROPER color, which is always flown, right?
+        this.highlightedFeat_sch.setStyle(src_s_style);  // <<< DIFF
+        this.highlightedFeat_sch = 0;
+      }
+
+      // ---- find the vector layer that has a Feature with this id
+      let b_layer = this.$refs.map.getLayers().filter(layer => {
+        return layer instanceof VectorLayer &&
+                   layer.getSource().getFeatureById(high_me)
+      })
+      // ---- this statement causes aSFF(?) to fire with valid arguments
+      if (b_layer[0] === undefined) {
+          console.log("could not find high_me=" + high_me)
+          } else {
+
+          this.highlightedFeat_sch = b_layer[0].getSource().getFeatureById(high_me);
+
+              // ---- need Style >> MAKE this a const if no acid!
+          let targetHigh_sch = new Style({
+              stroke: new Stroke({ color: '#990033', width: 4.0 }) // << diff
+           })
+
+          this.highlightedFeat_sch.setStyle(targetHigh_sch);
       }
     })
 
