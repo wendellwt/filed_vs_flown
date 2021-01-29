@@ -6,39 +6,38 @@
 
     <!-- Create a div where the graph will take place -->
     <!-- div name is NOT local to this component; it is global for the web page! -->
-    <div id="my_dataviz_fe"></div>
+    <div id="my_dataviz_fe" class="chart_fe"></div>
 
   </div>
 </template>
 
 <script>
 
-import * as d3 from 'd3';
-
-var chart_width = 560;
-var chart_height = 300;
-
-var legend_x = 400;
-var legend_y = 20;
-
 // ======================== common to maps and charts
 
-// List of groups = species here = value of the first column called group
-// unused: var use_this_as_key = "arr_hr";  // TODO: use this somehow
+import * as d3 from 'd3';
+
+// overall chart size
+var chart_width  = 560;
+var chart_height = 300;
+
+// position of legend
+var legend_x = 300;
+var legend_y =  10;
+var leg_size =  15;
 
 // List of subgroups = header of the csv files
 var wt_subgroups = [ "ne", "se", "sw", "nw"];
 
-// let y_max = 70000;    // <<<<<<<<<<<<<<<<<<<<<<<<
-
-var wt_chart_colors = [ // https://tools.aspm.faa.gov/confluence/display/prod/Tableau+Dashboard+Style+Guide
+// https://tools.aspm.faa.gov/confluence/display/prod/Tableau+Dashboard+Style+Guide
+var wt_chart_colors = [
      '#002664'   // RGB (0, 38, 100)
     ,'#007934'   // RGB (0, 121, 52)
     ,'#AB8422'   // RGB (171, 132, 34)
     ,'#5E6A71'   // RGB (94, 106, 113)
           ];
 
-// ======================== common to maps and charts
+// ========================
 
 export default {
   name: 'Charts',
@@ -168,34 +167,30 @@ export default {
 
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //  https://www.d3-graph-gallery.com/graph/custom_legend.html
-var size = 20;
 
-// Add one dot in the legend for each name.
-svg.selectAll("mydots")
+// Add one square in the legend area for each color
+svg.selectAll("leg_dots")
   .data(wt_subgroups)
   .enter()
   .append("rect")
-    .attr("x", legend_x)
-    .attr("y", function(d,i){ return legend_y + i*(size+5)}) // 100 is where the first dot appears. 25 is the distance between dots
-    .attr("width", size)
-    .attr("height", size)
+    .attr("x", function(d,j){ return legend_x + j*(leg_size+25)})
+    .attr("y", legend_y)
+    .attr("width", leg_size)
+    .attr("height", leg_size)
     .style("fill", function(d){ return color(d)})
 
-// Add one dot in the legend for each name.
-svg.selectAll("mylabels")
+// Add one text element in the legend area for each subgroup
+svg.selectAll("leg_text")
   .data(wt_subgroups)
   .enter()
   .append("text")
-    .attr("x", legend_x + size*1.2)
-    .attr("y", function(d,i){ return legend_y + i*(size+5) + (size/2)}) // 100 is where the first dot appears. 25 is the distance between dots
-    //.style("fill", function(d){ return color(d)})
-    //.text(function(d){ return wt_subgroups[d]})
+    .attr("x", function(d,j){ return legend_x + j*(leg_size+25) + (leg_size+3)})
+    .attr("y", legend_y + leg_size*0.8)
     .text(function(d){ return String(d)})
     .attr("text-anchor", "left")
     .style("alignment-baseline", "middle")
-
-
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
     } // displayGData function
   } // methods
 } // export
@@ -203,6 +198,15 @@ svg.selectAll("mylabels")
 </script>
 
 <style lang="scss">
+
+/* need to specify at page load so it won't be empty/ small */
+/* numbers are same as in script */
+div.chart_fe {
+  width:  560px;
+  height: 300px;
+  background-color: #f8f8f8;
+}
+
 p.chsmall {
   font-size: 80%;
 }
