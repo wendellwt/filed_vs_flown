@@ -74,11 +74,11 @@
                     v-on:click="GoEverything()"
                     >GET DATA</b-button>
 
-          <!-- b-button type='is-info'
+          <b-button type='is-info'
                     size="is-small"
                     rounded
                     v-on:click="CallAFunction()"
-                    >debug me</b-button -->
+                    >debug me</b-button>
 
                 &nbsp; &nbsp; &nbsp;
             <b-checkbox type="is-info"
@@ -115,6 +115,10 @@
 </template>
 
 <script>
+
+// a file captured from ./everything.py over on rserver:
+import sample_json_data from "./output_everything.json";
+
 
 export default {
   name: 'panel',
@@ -276,6 +280,10 @@ export default {
     // --------------------------------------------
     GoEverything() {
 
+        if (this.use_pickle==true) {
+          this.process_fetch_response(sample_json_data);
+          return;
+        }
         let the_query = this.form_fetch_args()
 
         // =========== fetch / response ==============
@@ -335,14 +343,40 @@ export default {
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     CallAFunction() {
-console.log("CallAFunction");
-        this.set_and_show_flown_and_entry();
-    },
+console.log("CallAFunction - circular");
 
-    //find_index_of_hour(hr_array, hour) {
-    //    for (let k = 0; k < hr_array.length; k++ ) {
-    //    }
-    //},
+        let circ_data = [
+            { 'arr_hr' :  0, 'dist' : 10 },
+            { 'arr_hr' :  1, 'dist' : 40 },
+            { 'arr_hr' :  2, 'dist' : 30 },
+            { 'arr_hr' :  3, 'dist' : 50 },
+            { 'arr_hr' :  4, 'dist' : 40 },
+            { 'arr_hr' :  5, 'dist' : 10 },
+            { 'arr_hr' :  6, 'dist' : 30 },
+            { 'arr_hr' :  7, 'dist' : 20 },
+            { 'arr_hr' :  8, 'dist' : 30 },
+            { 'arr_hr' :  9, 'dist' : 20 },
+            { 'arr_hr' : 10, 'dist' : 40 },
+            { 'arr_hr' : 11, 'dist' : 20 },
+            { 'arr_hr' : 12, 'dist' : 10 },
+            { 'arr_hr' : 13, 'dist' : 20 },
+            { 'arr_hr' : 14, 'dist' : 30 },
+            { 'arr_hr' : 15, 'dist' : 50 },
+            { 'arr_hr' : 16, 'dist' : 40 },
+            { 'arr_hr' : 17, 'dist' : 30 },
+            { 'arr_hr' : 18, 'dist' : 10 },
+            { 'arr_hr' : 19, 'dist' : 20 },
+            { 'arr_hr' : 20, 'dist' : 10 },
+            { 'arr_hr' : 21, 'dist' : 30 },
+            { 'arr_hr' : 22, 'dist' : 20 },
+            { 'arr_hr' : 23, 'dist' : 10 } ];
+
+            let chart_args = { cdata       : circ_data,
+                               slider_vals : this.slider_vals,
+                               title_date  : this.y_m_dd_val   };
+console.log("emit circ:");
+            this.$root.$emit('draw_circ_chart', (chart_args) );
+    },
 
     set_and_show_flown_and_entry() {
         // console.log("set_and_show_flown_and_entry");
