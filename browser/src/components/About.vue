@@ -81,7 +81,11 @@ Data Position (right) Panel.
 Data elements include: acid, corner post, departure airport, flight index, ac type,
 length (distance) of the scheduled path at ARTCC entry,
 length (distance) of the flown path,
-and flown distance percentage of schedule distance.
+and difference of flown distance and schedule distance.
+
+Note: if you click on a Data Position block, the associated tracks
+will be highlighted (flown in red, at_entry schedule in dark red).
+
 
 ### Charts
 
