@@ -21,12 +21,12 @@ vue.config.js:
 	echo "faa config"
 
 deploy:
-	@echo "now do this:"
-	@echo "   cd ../rs_deploy; ./deploy_me.sh ; cd ../browser"
+	@echo "now do this (NOTE: TEST):"
+	@echo "   cd ../rs_deploy; ./deploy_me.sh test ; cd ../browser"
 	@echo "and visit the connect page (allows login):"
-	@echo "   http://172.26.21.40:3939/connect/#/apps/194"
+	@echo "   http://172.26.21.40:3939/connect/#/apps/196"
 	@echo "or the external page (no login):"
-	@echo "   http://172.26.21.40:3939/content/194/"
+	@echo "   http://172.26.21.40:3939/content/196/"
 
 endif
 
