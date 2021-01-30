@@ -27,6 +27,9 @@
          <!-- ============= stacked chart tab ============== -->
          <b-tab-item label="Stacked"> <Stacked /> </b-tab-item>
 
+         <!-- ============= circular chart tab ============== -->
+         <b-tab-item label="Circular"> <Circular /> </b-tab-item>
+
          <!-- ============= table tab ==============
          <b-tab-item label="Table"><mytable /></b-tab-item> -->
 
@@ -49,6 +52,7 @@ import Stacked    from "./Stacked.vue";
 import FiledEntry from "./FiledEntry.vue";
 import Details    from "./Details.vue";
 import About      from "./About.vue";
+import Circular   from "./Circular.vue";
 //import Table   from "./Table.vue";
 
 export default {
@@ -61,6 +65,7 @@ export default {
       Charts,
       Stacked,
       FiledEntry,
+      Circular,
       About
   },
   props: {
