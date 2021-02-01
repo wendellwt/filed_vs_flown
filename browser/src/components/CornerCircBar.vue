@@ -1,8 +1,9 @@
 <template>
 
-    <vl-overlay :id="'ovrly_'+corner_data.ident" :position="corner_data.coords">
+    <vl-overlay :id="'ovrly_'+corner_data.ident" :position="corner_data.coords"
+                positioning='center-center' >
         <div :id="'svg_div_'+corner_data.ident" 
-              style="width: 200px; height: 200px;  background-color:#80808080">
+              style="width: 150px; height: 150px;  background-color:#80808040">
           {{corner_data.ident}}
         </div>
     </vl-overlay>
@@ -13,8 +14,8 @@
 
 import * as d3 from 'd3'
 // overall chart size
-var chart_width  = 200;
-var chart_height = 200;
+var chart_width  = 150;
+var chart_height = 150;
 
 // ==========================================================
 
@@ -25,7 +26,7 @@ export default {
   },
     data () {
       return {
-        debug_color: this.corner_data.colr
+        foo : 1
       }
     },
     /********************************************************** */
@@ -34,7 +35,7 @@ export default {
 
   // set the dimensions and margins of the graph
             // bottom margin of 80 leaves room for x-axis label rotated
-  let margin = {top: 10, right: 10, bottom: 10, left: 10},
+  let margin = {top: 0, right: 0, bottom: 0, left: 0},
       width  = chart_width  - margin.left - margin.right,
       height = chart_height - margin.top  - margin.bottom;
 
@@ -53,7 +54,7 @@ console.log("do something with this:"+y_max);
       .attr("width",  width  + margin.left + margin.right)
       .attr("height", height + margin.top  + margin.bottom)
     .append("g")
-    .attr("transform", "translate(" + width / 2 + "," + ( height/2 )+ ")");
+    .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
             // Add 100 on Y translation, cause upper bars are longer
 
       //.attr("transform",
@@ -61,7 +62,7 @@ console.log("do something with this:"+y_max);
 
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-var   innerRadius = 30;
+var   innerRadius = 20;
 var   outerRadius = Math.min(width, height) / 2;
             // the outerRadius goes from the middle of the SVG area to the border
 

@@ -6,7 +6,7 @@
 
          <b-tab-item label="Map">
 
-         <FiledEntry />
+         <!-- FiledEntry / -->
 
             <div class="columns">
               <div class="column">
@@ -49,7 +49,7 @@ import OL         from './OL.vue';
 import DataPos    from "./DataPos.vue";
 import Charts     from "./Charts.vue";
 import Stacked    from "./Stacked.vue";
-import FiledEntry from "./FiledEntry.vue";
+//import FiledEntry from "./FiledEntry.vue";
 import Details    from "./Details.vue";
 import About      from "./About.vue";
 import Circular   from "./Circular.vue";
@@ -64,7 +64,7 @@ export default {
       'mydetails': Details,
       Charts,
       Stacked,
-      FiledEntry,
+      //FiledEntry,
       Circular,
       About
   },
