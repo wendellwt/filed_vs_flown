@@ -177,7 +177,7 @@ def form_feature_collection(evry_df, center_feat):
                                  { "acid"     : row['acid'],
                                    "flt_ndx"  : row['flight_index'],
                                   #csv: "arr_time" : row['arr_time'].isoformat(),
-                                   "arr_time" : row['arr_time'],
+                                   "arr_time" : row['arr_time'].replace(' ','T'),
                                    "corner"   : row['corner'],
                                    "dep_apt"  : row['dep_apt'],
                                    "actype"   : row['ac_type'],
@@ -196,7 +196,7 @@ def form_feature_collection(evry_df, center_feat):
                                "acid"     : row['acid'],
                                "flt_ndx"  : row['flight_index'],
                                #csv: "arr_time" : row['arr_time'].isoformat(),
-                               "arr_time" : row['arr_time'],
+                               "arr_time" : row['arr_time'].replace(' ','T'),
                                "ptype"    : "ate",
                                "dist"     : row['at_ent_dist'],
                                      })
@@ -209,7 +209,7 @@ def form_feature_collection(evry_df, center_feat):
                                "acid"     : row['acid'],
                                "flt_ndx"  : row['flight_index'],
                                #csv: "arr_time" : row['arr_time'].isoformat(),
-                               "arr_time" : row['arr_time'],
+                               "arr_time" : row['arr_time'].replace(' ','T'),
                                # "ptype"    : "sch",
                                "ptype"    : "dep",   # NEW
                                "dist"     : row['at_dep_dist'],
@@ -322,14 +322,21 @@ pfile = "/tmp/peverything.p"
 #        everything_df = pickle.load( open( pfile, "rb" ) )
 #    # <<<<<<<<<<<<<<<<<< TESTING
 
-def csv_to_geojson(lgr, y_m_d, airport, center, use_pickle="false"):
+rs_connect_dir = "/home/data/wturner/caroline/"
 
-    csv_fn = "files/fvf_" + y_m_d + "_" + args.center.lower() + ".csv"
+def csv_to_geojson(lgr, y_m_d, airport, center):
+
+    lgr.info("csv_to_geojson")
+
+    csv_fn = rs_connect_dir + "fvf_" + y_m_d + "_" + center.lower() + ".csv"
+
+    lgr.info("bbb")
+    lgr.info("reading csv file:" + csv_fn)
 
     everything_df = pd.read_csv(csv_fn)
 
-    print(everything_df)
-    print(everything_df.columns)
+    #print(everything_df)
+    lgr.info(everything_df.columns)
 
     # ---------------
 
@@ -402,8 +409,8 @@ def write_to_csv(evry_df):
     csv_df['ops_day'] = csv_df['arr_time'].apply(lambda dt:
           (dt - datetime.timedelta(hours=8)).replace(hour=0,minute=0,second=0))
 
-    print(csv_df)
-    print(csv_df.columns)
+    #print(csv_df)
+    #print(csv_df.columns)
 
     csv_fn = "files/fvf_" + y_m_d + "_" + args.center.lower() + ".csv"
 
@@ -463,13 +470,20 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--pickle', action='store_const', const=True,
                 help="use pickle instead of oracle", default=False )
 
+    parser.add_argument('-g', '--geojson', action='store_const', const=True,
+                help="use /h/d/w/c instead of postgis", default=False )
+
     args = parser.parse_args()
 
     # ======================================================================
 
     y_m_d    = args.date.strftime("%Y_%m_%d")
 
-    # everything_dict = csv_to_geojson(lgr, y_m_d, args.airport, args.center)
+    if args.geojson:
+        everything_dict = csv_to_geojson(lgr, y_m_d, args.airport, args.center)
+        print(json.dumps(everything_dict['flw_chart_data']))
+                   #'flw_chart_data' : flw_cnr_jn,
+        sys.exit(1)
 
     # geoson testing -- query from PostGIS:
     # everything_dict = get_everything(lgr, y_m_d, args.airport, args.center)
