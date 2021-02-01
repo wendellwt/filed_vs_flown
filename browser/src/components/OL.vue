@@ -182,7 +182,7 @@ const methods = {
        ********************/
 
        // and send to DataPos list component
-       //csv: this.$root.$emit('dlist', (sortedlist) );
+       this.$root.$emit('dlist', (sortedlist) );
    },
    // ==========================================================
 
