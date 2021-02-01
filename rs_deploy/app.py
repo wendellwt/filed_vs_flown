@@ -127,16 +127,19 @@ def do_everything():
     airport = request.args['apt']
     center = request.args['ctr']
     y_m_d = request.args['date']
-    use_pickle = "false"
-    try:
-        use_pickle = request.args['pckl']
-        lgr.info("use_pickle:" + use_pickle)
-    except:
-        lgr.info("use_pickle-except!")
-        pass
-    lgr.info("use_pickle-val:" + use_pickle)
 
-    every_js = everything.get_everything(lgr, y_m_d, airport, center, use_pickle)
+    # don't need this now with csv reader
+    # use_pickle = "false"
+    #try:
+    #    use_pickle = request.args['pckl']
+    #    lgr.info("use_pickle:" + use_pickle)
+    #except:
+    #    lgr.info("use_pickle-except!")
+    #    pass
+    #lgr.info("use_pickle-val:" + use_pickle)
+
+    #old: every_js = everything.get_everything(lgr, y_m_d, airport, center, use_pickle)
+    every_js = everything.csv_to_geojson(lgr, y_m_d, airport, center)
 
     lgr.info("get_everything - out")
     #lgr.info("+++++")
