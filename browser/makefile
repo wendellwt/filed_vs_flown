@@ -1,5 +1,5 @@
 
-all:	vue.config.js dev deploy
+all:	vue.config.js prod deploy
 
 # ------------------------------------------------
 ifeq ($(shell hostname),ASDI-DB)
