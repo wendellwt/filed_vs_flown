@@ -117,7 +117,7 @@
 <script>
 
 // a file captured from ./everything.py over on rserver:
-import sample_json_data from "./output_everything.json";
+// not for flask: import sample_json_data from "./output_everything.json";
 
 export default {
   name: 'panel',
@@ -215,11 +215,11 @@ export default {
 
             // ---- tell Chart component
 
-            this.set_and_show_hourly_data() // ???????
+            //csv: this.set_and_show_hourly_data() // ???????
 
             // =========== caroline chart ==============
 
-            this.set_and_show_flown_and_entry();
+            //csv: this.set_and_show_flown_and_entry();
         }
     },
     methods: {
@@ -258,7 +258,7 @@ export default {
 
         // =========== chart details ==============
 
-        this.set_and_show_hourly_data();
+        //csv: this.set_and_show_hourly_data();
 
         // =========== OL FeatureCollection ==============
 
@@ -273,7 +273,7 @@ export default {
 
         // =========== caroline chart ==============
 
-        this.set_and_show_flown_and_entry();
+        //csv: this.set_and_show_flown_and_entry();
     },
 
     // -----------------------------------------------
@@ -282,7 +282,8 @@ export default {
     GoEverything() {
 
         if (this.use_pickle==true) {
-          this.process_fetch_response(sample_json_data);
+          console.log("NOT doing anything here.")
+          // not for flask: this.process_fetch_response(sample_json_data);
           return;
         }
         let the_query = this.form_fetch_args()

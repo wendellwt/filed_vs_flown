@@ -41,10 +41,10 @@
     </vl-overlay>
 
            <!-- ========== svg container layers ========= -->
-      <CornerCircBar v-for="corner in corners"
+      <!--csv: CornerCircBar v-for="corner in corners"
                      v-bind:key="corner.ident"
                      v-bind:corner_data="corner" >
-      </CornerCircBar>
+      </CornerCircBar -->
 
       <!-- ========== end layers ========= -->
     </vl-map>
@@ -76,7 +76,7 @@ import Style      from 'ol/style/Style'
 
 import { Vector as VectorLayer } from 'ol/layer'
 
-import CornerCircBar from './CornerCircBar'
+//csv: import CornerCircBar from './CornerCircBar'
 
 
 // ==========================================================
@@ -182,7 +182,7 @@ const methods = {
        ********************/
 
        // and send to DataPos list component
-       this.$root.$emit('dlist', (sortedlist) );
+       //csv: this.$root.$emit('dlist', (sortedlist) );
    },
    // ==========================================================
 
@@ -202,7 +202,7 @@ var KDEN = [-104.6731667, 39.8616667];
 export default {
     methods,
     components: {
-      CornerCircBar
+      //csv: CornerCircBar
     },
     data () {
       return {
@@ -313,10 +313,11 @@ export default {
           // Q: should this just check for existance of an 'arr_time' property???
 
           // if it is a (Multi) LineString (i.e. flight), then check arr time
+          // i.e., don't do the artcc polygon!
           if ( (all_flights.features[k].geometry.type == "LineString") ||
                (all_flights.features[k].geometry.type == "MultiLineString")) {
-
                if (all_flights.features[k].properties.arr_time.substr(0,13) == hour_to_disp) {
+
                   // TODO: COMBINE this with DataPos generation!!!
                   // (maybe not so bad; DataPos list is constructed from this list)
                   flts_to_disp.push(all_flights.features[k]);
@@ -356,7 +357,7 @@ svg {
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;            
+  height: 100%;
   position: absolute;
 }
 </style>
