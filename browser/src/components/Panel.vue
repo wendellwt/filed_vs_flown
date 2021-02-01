@@ -77,7 +77,7 @@
           <b-button type='is-info'
                     size="is-small"
                     rounded
-                    v-on:click="CallAFunction()"
+                    v-on:click="CallAFunction_draw_circle()"
                     >debug me</b-button>
 
                 &nbsp; &nbsp; &nbsp;
@@ -118,7 +118,6 @@
 
 // a file captured from ./everything.py over on rserver:
 import sample_json_data from "./output_everything.json";
-
 
 export default {
   name: 'panel',
@@ -187,6 +186,8 @@ export default {
 
             // =========== caroline chart ==============
             this.set_and_show_flown_and_entry();
+
+           this.CallAFunction_draw_circle();
         },
 
         // hour selector changed, CALC NEW chart and map data
@@ -342,7 +343,7 @@ export default {
     },
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    CallAFunction() {
+    CallAFunction_draw_circle() {
 console.log("CallAFunction - circular");
 
         let circ_data = [

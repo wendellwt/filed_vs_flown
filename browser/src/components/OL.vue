@@ -7,6 +7,7 @@
              data-projection="EPSG:4326"
              ref="map"
               @mounted="onMapMounted"
+              class="svg_parent"
            >
 
     <vl-view ref="view"
@@ -39,12 +40,11 @@
       </div>
     </vl-overlay>
 
-      <!-- ========== skull layer ========= -->
-
-    <!-- vl-layer-vector ref="skull_featuresLayer">
-      <vl-source-vector :features="skull_features"></vl-source-vector>
-      <vl-style-func :factory="skull_styleFuncFactory"></vl-style-func>
-    </vl-layer-vector -->
+           <!-- ========== svg container layers ========= -->
+      <CornerCircBar v-for="corner in corners"
+                     v-bind:key="corner.ident"
+                     v-bind:corner_data="corner" >
+      </CornerCircBar>
 
       <!-- ========== end layers ========= -->
     </vl-map>
@@ -54,32 +54,12 @@
     <div class="legend">
 flown: <input type="text" class="flown"/>
 sched: <input type="text" class="at_entry"/>
+<b-button type="is-warning is-light"
+                    size="is-small"
+                    rounded
+                    v-on:click="do_some_d3()"
+                    >do_some_d3</b-button>
     </div>
-
-    <!-- ========== svg layer ========= -->
-    <!-- https://jsfiddle.net/ghettovoice/m3j0zydr/ -->
-
-  <!-- svg id="skull" version="1.1"  xmlns="http://www.w3.org/2000/svg" x="0px" y="0px"
-     width="100px" height="100px" viewBox="0 0 100 100" enable-background="new 0 0 100 100" xml:space="preserve">
-<g>
-     <path d="M87.255,72.316c-2.248-2.246-5.832-2.318-8.118-0.208l-9-9c2.459-3.77,3.894-8.27,3.894-13.107s-1.435-9.337-3.894-13.107
-          l8.949-8.949c2.287,2.111,5.87,2.042,8.118-0.207c2.306-2.3,2.329-6.017,0.054-8.293c-1.371-1.371-3.264-1.9-5.058-1.603
-          c0.33-1.82-0.196-3.755-1.592-5.151c-2.274-2.275-5.985-2.252-8.291,0.055c-2.246,2.248-2.318,5.832-0.208,8.118l-9.001,9.001
-          c-3.77-2.459-8.27-3.893-13.107-3.893c-4.837,0-9.336,1.434-13.107,3.893l-8.95-8.95c2.11-2.286,2.04-5.869-0.206-8.118
-          c-2.305-2.304-6.018-2.328-8.293-0.054c-1.372,1.372-1.901,3.266-1.604,5.059c-1.82-0.33-3.756,0.197-5.152,1.591
-          c-2.275,2.275-2.248,5.986,0.055,8.291c2.249,2.25,5.834,2.319,8.121,0.209l9,9c-2.46,3.77-3.894,8.27-3.894,13.107
-          s1.434,9.337,3.894,13.107l-8.95,8.95c-2.286-2.11-5.869-2.04-8.118,0.206c-2.304,2.305-2.327,6.018-0.054,8.293
-          c1.372,1.372,3.266,1.901,5.059,1.604c-0.33,1.82,0.197,3.756,1.591,5.152c2.275,2.275,5.986,2.248,8.291-0.055
-          c2.249-2.249,2.319-5.834,0.209-8.121l8.726-8.726v5.946c3.645,2.985,8.303,4.779,13.382,4.779c5.079,0,9.738-1.794,13.383-4.779
-          V70.41l8.674,8.674c-2.111,2.287-2.043,5.871,0.206,8.119c2.301,2.306,6.018,2.329,8.293,0.054c1.371-1.371,1.9-3.265,1.603-5.058
-          c1.82,0.331,3.755-0.196,5.151-1.591C89.585,78.333,89.562,74.623,87.255,72.316z M43.445,58.989c-2.539,0-4.596-2.056-4.596-4.592
-          s2.057-4.597,4.596-4.597c2.535,0,4.591,2.061,4.591,4.597S45.979,58.989,43.445,58.989z M56.556,59.056
-          c-2.536,0-4.592-2.056-4.592-4.592c0-2.541,2.056-4.592,4.592-4.592c2.539,0,4.595,2.051,4.595,4.592
-          C61.151,57,59.095,59.056,56.556,59.056z"/>
-</g>
-</svg -->
-
-    <!-- ========== svg layer ========= -->
 
   </div>
 </template>
@@ -96,11 +76,8 @@ import Style      from 'ol/style/Style'
 
 import { Vector as VectorLayer } from 'ol/layer'
 
-//soon: import * as d3 from 'd3';
+import CornerCircBar from './CornerCircBar'
 
-// this was helpful: https://stackoverflow.com/questions/50020722/initialize-svg-js-in-vuejs-component
-// $ npm install svg.js
-// nope: import SVG from 'svg.js'
 
 // ==========================================================
 
@@ -119,52 +96,6 @@ const wt_map_colors = [
 const src_s_style = new Style({ stroke: new Stroke({ color: wt_map_colors[0], width: 2.0 }) })
 const src_a_style = new Style({ stroke: new Stroke({ color: wt_map_colors[1], width: 2.0 }) })
 const src_f_style = new Style({ stroke: new Stroke({ color: wt_map_colors[2], width: 2.0 }) })
-
-// ==================================================================================
-let skull_features_list = [
-     {
-      "type": "Feature",
-      "id": 1,
-      "properties": {
-        "color": "red",
-      },
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -30.761718749999996,
-          58.90464570302001
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "id": 2,
-      "properties": {
-        "color": "green",
-      },
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          36.73828124999999,
-          44.59046718130883
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "id": 3,
-      "properties": {
-        "color": "purple",
-      },
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          -23.37890625,
-          32.10118973232094
-        ]
-      }
-    }
-]
 
 // ==================================================================================
 
@@ -254,48 +185,11 @@ const methods = {
        this.$root.$emit('dlist', (sortedlist) );
    },
    // ==========================================================
-   /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    skull_styleFuncFactory () {
 
-      console.log("create style func - skull")
-      // get raw svg using http://svgjs.com/
-      // vladimir's:
-      let svg = SVG('skull')
-console.log("skull.1");
-      // mine: let svg = d3.select("#my_map_skull")
-
-      return feature => {
-console.log("skull.a");
-        let featureSvg = svg.clone()
-        featureSvg.attr('width', 100 + 'px')
-        featureSvg.attr('height', 100 + 'px')
-        // set color from feature data
-        let path = featureSvg.select('path')
-        path.fill(feature.get('color'))
-console.log("skull.b");
-
-        let img = new Image()
-        img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(featureSvg.svg())
-        featureSvg.remove()
-console.log("skull.c");
-//console.log(src)
-        // apply color by some rule: here we use proprty from feature
-        let icon = new ol.style.Icon({
-          img: img,
-          imgSize: [100, 100],
-          size: [100, 100],
-        })
-console.log("skull.d");
-
-        return [
-          new ol.style.Style({
-            image: icon,
-          })
-        ]
-      }
-    },
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
-
+   do_some_d3() {
+     let corner_data = 1;
+     this.$root.$emit('draw_this_corner', (corner_data));
+   }
    // ==========================================================
 }
 
@@ -307,6 +201,9 @@ var KDEN = [-104.6731667, 39.8616667];
 
 export default {
     methods,
+    components: {
+      CornerCircBar
+    },
     data () {
       return {
         zoom: 5,
@@ -319,8 +216,13 @@ export default {
 
         highlightedFeat_flw : 0,   // the current (old) item that may need to be turned off
         highlightedFeat_sch : 0,   // the current (old) item that may need to be turned off
+        corners: [
+          { dir: "ne", ident: 'LANDR', coords: [-104.002963888889, 40.3575722222222], colr: 'green'  },
+          { dir: "se", ident: 'DANDD', coords: [-103.939133333333, 39.3970944444444], colr: 'blue'   },
+          { dir: "sw", ident: 'LARKS', coords: [-105.305161111111, 39.2573972222222], colr: 'orange' },
+          { dir: "nw", ident: 'RAMMS', coords: [-105.238811111111, 40.49355],         colr: 'magenta'},
+        ]
 
-        skull_features: skull_features_list
       }
     },
 
@@ -439,6 +341,9 @@ export default {
 .map {
     height: 300px;
 }
+.svg_parent {
+  position: relative;
+}
 
 .legend {
     font-size: small;
@@ -446,4 +351,12 @@ export default {
 .flown    { background-color: green;   width: 20px; height: 16px; }
 .at_entry { background-color: #3399ff; width: 20px; height: 16px; }
 
+svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;            
+  position: absolute;
+}
 </style>

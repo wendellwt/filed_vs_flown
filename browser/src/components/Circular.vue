@@ -49,7 +49,7 @@ export default {
       this.$root.$on('draw_circ_chart', (chart_args) => {
 
           let cdata     = chart_args.cdata;
-          let ymax      = chart_args.slider_vals[1] * 1000;
+          let ymax      = chart_args.slider_vals[1];
           this.the_date = chart_args.title_date
 
           let wt_groups = [ ];
@@ -109,7 +109,7 @@ var   outerRadius = Math.min(width, height) / 2;
   // Y scale
   var y = d3.scaleRadial()
       .range([innerRadius, outerRadius])   // Domain will be define later.
-      .domain([0, 70]); // Domain of Y is from 0 to the max seen in the data
+      .domain([0, y_max]); // Domain of Y is from 0 to the max seen in the data
 
   // Add bars
   svg.append("g")
