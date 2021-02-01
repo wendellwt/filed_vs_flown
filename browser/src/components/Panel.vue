@@ -219,7 +219,7 @@ export default {
 
             // =========== caroline chart ==============
 
-            //csv: this.set_and_show_flown_and_entry();
+            this.set_and_show_flown_and_entry();
         }
     },
     methods: {
@@ -273,7 +273,7 @@ export default {
 
         // =========== caroline chart ==============
 
-        //csv: this.set_and_show_flown_and_entry();
+        this.set_and_show_flown_and_entry();
     },
 
     // -----------------------------------------------
@@ -380,15 +380,16 @@ console.log("emit circ:");
             this.$root.$emit('draw_circ_chart', (chart_args) );
     },
 
+        /*********************************************************************/
     set_and_show_flown_and_entry() {
-        // console.log("set_and_show_flown_and_entry");
+console.log("set_and_show_flown_and_entry");
 
         if (this.fe_data.length > 0 ) {
             let chart_args = { cdata       : this.fe_data,
                                atedata     : this.ate_data,
                                slider_vals : this.slider_vals,
                                title_date  : this.y_m_dd_val   };
-// console.log("emit fe:");
+console.log("emit fe:");
             this.$root.$emit('draw_fe_chart', (chart_args) );
 
         } else {

@@ -17,9 +17,10 @@
 
 import * as d3 from 'd3';
 
-// overall chart size
+// overall chart size -- HELP this MUST match the css in <style>
 var chart_width  = 560;
-var chart_height = 300;
+var chart_height = 450;
+var margin = {top: 90, right: 30, bottom: 80, left: 50};
 
 // position of legend
 var legend_x = 300;
@@ -88,9 +89,8 @@ export default {
 
   // set the dimensions and margins of the graph
             // bottom margin of 80 leaves room for x-axis label rotated
-  let margin = {top: 10, right: 30, bottom: 80, left: 50},
-      width  = chart_width  - margin.left - margin.right,
-      height = chart_height - margin.top  - margin.bottom;
+  let width  = chart_width  - margin.left - margin.right;
+  let height = chart_height - margin.top  - margin.bottom;
 
   // "svg" is apparently the name of the component _and_ the type
 
@@ -203,7 +203,7 @@ svg.selectAll("leg_text")
 /* numbers are same as in script */
 div.chart_fe {
   width:  560px;
-  height: 300px;
+  height: 450px;
   background-color: #f8f8f8;
 }
 
