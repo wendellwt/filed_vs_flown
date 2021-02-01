@@ -8,6 +8,7 @@
     <!-- div name is NOT local to this component; it is global for the web page! -->
     <div id="my_dataviz_fe" class="chart_fe"></div>
 
+    <div id="tooltip" class="tooltip"></div>
   </div>
 </template>
 
@@ -15,7 +16,6 @@
 
 // ======================== common to maps and charts
 
-import * as d3 from 'd3';
 
 // overall chart size -- HELP this MUST match the css in <style>
 var chart_width  = 560;
@@ -37,6 +37,28 @@ var wt_chart_colors = [
     ,'#AB8422'   // RGB (171, 132, 34)
     ,'#5E6A71'   // RGB (94, 106, 113)
           ];
+
+// ========================
+
+import * as d3 from 'd3';
+
+    /***********
+// https://stackoverflow.com/questions/53715028/d3-js-in-vue-component-how-to-hook-mouse-events-to-elements
+import { select, selectAll, event, customEvent } from 'd3-selection'
+
+WRONG:
+export const d3.event() = function{ return event };
+
+  select,
+  selectAll,
+  //tree,
+  //hierarchy,
+  //zoom,
+  // event,
+  get event() { return event; },
+  customEvent
+}
+    ***********/
 
 // ========================
 
@@ -80,6 +102,10 @@ export default {
     // clickable legend, mouseover values:
     // http://bl.ocks.org/KatiRG/5f168b5c884b1f9c36a5
     /**************** Charts ***************/
+
+    //  editing:
+    // By convention, selection methods that return the current selection use four
+    // spaces of indent, while methods that return a new selection use only two.
 
     methods: {
         displayGData : function(ndata, ate_data, wt_groups, y_min, y_max) {
@@ -153,6 +179,81 @@ export default {
         .attr("height", function(d) { return y(d[0]) - y(d[1]); })
         .attr("width",x.bandwidth())
 
+        // https://bl.ocks.org/d3noob/a22c42db65eb00d4e369
+       .on("mouseover", function(event,d) {
+
+           let disp_val = (parseFloat(d[1])-parseFloat(d[0])).toFixed(1)+"nm";
+
+           let tooltip = d3.select("#tooltip");
+
+           // HELP: wtf are the x and y offsets????
+           tooltip.html(disp_val)
+                 .style("opacity", .9)
+                 .style("left", (event.clientX-250) + "px")
+                 .style("top",  (event.clientY-50)  + "px");
+
+                // console.log("left:"+event.clientX + "px");
+                // console.log("top:"+event.clientY + "px");
+                // HELP: .style("left", `${d3.event.pageX}px`)
+                // HELP: .style("top",  `${d3.event.pageY}px`);
+                // help: .style("left", (d3.event.pageX) + "px")
+                // help: .style("top", (d3.event.pageY - 28) + "px");
+
+                  })
+       .on("mouseout", function(d) {
+           let tooltip = d3.select("#tooltip");
+           tooltip.style("opacity", 0);
+       });
+
+            /***********************
+    .on("mouseenter", function(d) {
+      // https://github.com/d3/d3-format/blob/master/README.md#format
+      const format = d3.format(",");
+
+      d3
+        .select(this)
+        .attr("fill", "rgba(0, 0, 0, .5)")
+        .attr("stroke", "rgba(255, 255, 255, .5)");
+
+      tooltip
+        .append("div")
+        .text("9999")
+        .attr("class", "tt-region");
+
+      //tooltip
+      //  .append("div")
+      //  .text(d.data.key)
+      //  .attr("class", "tt-country");
+
+      //tooltip
+      //  .append("div")
+      //  .text(format(d.value))
+      //  .attr("class", "tt-population");
+
+      //help: const tooltipElement = tooltip.node().getBoundingClientRect();
+      //help: const tooltipElement = tooltip.getBoundingClientRect();
+      //help: const { height: elementHeight } = tooltipElement;
+
+      tooltip
+        .style("opacity", 1)
+        // https://github.com/d3/d3-selection/blob/master/README.md#event
+        //HELP: .style("left", `${d3.event.pageX}px`)
+        //HELP: .style("top", `${d3.event.pageY - elementHeight}px`);
+    })
+    .on("mouseout", function() {
+      d3
+        .select(this)
+        .attr("fill", "rgba(0, 0, 0, .1)")
+        .attr("stroke", "rgba(255, 255, 255, .25)");
+
+      tooltip
+        .style("opacity", 0)
+        .selectAll("div")
+        .remove();
+    });
+    ****************/
+
+
     // from: https://www.d3-graph-gallery.com/graph/area_lineDot.html
     // Add the dots
     svg.selectAll("myCircles")
@@ -191,7 +292,7 @@ svg.selectAll("leg_text")
     .style("alignment-baseline", "middle")
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    } // displayGData function
+    }   // displayGData function
   } // methods
 } // export
 
@@ -209,6 +310,36 @@ div.chart_fe {
 
 p.chsmall {
   font-size: 80%;
+}
+
+div.tooltip {
+    position: absolute;
+    text-align: center;
+    width: 80px;
+    height: 28px;
+    padding: 2px;
+    font: 12px sans-serif;
+    background: lightsteelblue;
+    border: 2px;
+    border-radius: 8px;
+    pointer-events: none;
+}
+
+.tooltipTRACEY {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s ease-in-out;
+    max-width: 500px;
+    border-radius: 4px;
+    background: #fff;
+    box-shadow: 0 1px 5px rgba(51,51,51,0.5);
+    padding: 1rem;
+}
+
+.tt-country {
+    font-size: 1.1rem;
+    font-weight: 900;
 }
 
 </style>
