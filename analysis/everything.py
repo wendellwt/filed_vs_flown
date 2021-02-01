@@ -32,7 +32,7 @@ pg_csr = pg_conn.cursor( )
 
 def get_everything_from_postgis(lgr, y_m_d, airport, center):
 
-    # artcc / poly to crop (intersection) with
+    # ==== artcc / poly to crop (intersection) with
 
     sql_with_c = """ WITH C AS
 (SELECT ST_Difference(
@@ -40,29 +40,27 @@ def get_everything_from_postgis(lgr, y_m_d, airport, center):
     (SELECT ST_Transform(ST_Buffer(ST_Transform(position::geometry,26754),42*6076),4326) FROM airports WHERE ident='%s')
 ) as boundary), """  % (center, airport)
 
-    # query_for_first_scheduled (intersection) dist, (intersection) path
-    # and metadata of flight
+    # ==== at departure
 
-    # jan28: CHANGED: from sched path to last filed before departure
-
-    sql_as_lf = """ LF AS (
+    sql_last_b4_dep_part1 = """ LF AS (
 SELECT * FROM (
   SELECT *, RANK() OVER (PARTITION BY acid ORDER BY orig_time DESC) rn
   FROM sched_fvf_%s S
   WHERE arr_apt='%s'
   AND   source_type IN ('S', 'F')   -- is this correct?
+  AND   orig_time < dep_time        -- new monday morning
   ) foo
 WHERE rn = 1
 ),
 """ % (y_m_d, airport)
 
-    # jan28: ADDED: arr_apt, dep_time
+    # side note: here is where we get other metadata about flight
 
-    sql_as_sch = """
+    sql_last_b4_dep_part2 = """
 SCH AS (SELECT  LF.acid, LF.flight_index,
                 LF.dep_time, LF.arr_time, LF.dep_apt, LF.arr_apt, LF.ac_type,
-                   path_int_len(LF.sched_path, C.boundary) as first_sch_dist,
-  ST_AsGeoJSON( ST_Intersection(LF.sched_path, C.boundary)) as first_sch_geog
+                   path_int_len(LF.sched_path, C.boundary)  as at_dep_dist,
+  ST_AsGeoJSON( ST_Intersection(LF.sched_path, C.boundary)) as at_dep_geog
 FROM LF, C
 WHERE arr_apt='%s'
 ),
@@ -112,22 +110,23 @@ SELECT *
 FROM SCH, ATENT
 WHERE SCH.flight_index = ATENT.flight_index_a"""
 
-    sql = sql_with_c + sql_as_lf + sql_as_sch + sql_as_e + sql_as_n + sql_as_a + sql_t
+    sql = sql_with_c + sql_last_b4_dep_part1 + sql_last_b4_dep_part2 + \
+          sql_as_e + sql_as_n + sql_as_a + sql_t
 
-    lgr.info("reading postg")
-    #lgr.info("++++++++++++++++++++++++++++")
-    #lgr.info(sql)
-    #lgr.info("++++++++++++++++++++++++++++")
-    #lgr.debug(sql)   ##<<<< USE this in flask <<<<<<<<<<<<<<<<<<<<
+    # lgr.info("reading postg")
+    # lgr.info("++++++++++++++++++++++++++++")
+    # lgr.info(sql)
+    # lgr.info("++++++++++++++++++++++++++++")
+    # lgr.debug(sql)   ##<<<< USE this in flask <<<<<<<<<<<<<<<<<<<<
 
     evry_df = pd.read_sql(sql, con=pg_conn)
 
-    # lgr.debug("postg read completed") <<< flask
+    lgr.debug("postg read completed") # <<< flask
 
-    #print("postg read completed") # <<< flask
-    #print(evry_df)
-    #print(evry_df.columns)
-    #sys.exit(1)
+    # print("postg read completed") # <<< flask
+    # print(evry_df)
+    # print(evry_df.columns)
+    # sys.exit(1)
 
     return(evry_df)
 
@@ -177,12 +176,13 @@ def form_feature_collection(evry_df, center_feat):
                            properties =
                                  { "acid"     : row['acid'],
                                    "flt_ndx"  : row['flight_index'],
-                                   "arr_time" : row['arr_time'].isoformat(),
+                                  #csv: "arr_time" : row['arr_time'].isoformat(),
+                                   "arr_time" : row['arr_time'],
                                    "corner"   : row['corner'],
                                    "dep_apt"  : row['dep_apt'],
                                    "actype"   : row['ac_type'],
                                    "ptype"    : "flw",
-                                   "sdist"    : row['first_sch_dist'],
+                                   "sdist"    : row['at_dep_dist'],
                                    "adist"    : row['at_ent_dist'],
                                    "fdist"    : row['flown_dist'],
                                    "pct"      : pct
@@ -195,23 +195,26 @@ def form_feature_collection(evry_df, center_feat):
                            properties = {
                                "acid"     : row['acid'],
                                "flt_ndx"  : row['flight_index'],
-                               "arr_time" : row['arr_time'].isoformat(),
+                               #csv: "arr_time" : row['arr_time'].isoformat(),
+                               "arr_time" : row['arr_time'],
                                "ptype"    : "ate",
                                "dist"     : row['at_ent_dist'],
                                      })
         features.append(ate_feat)
 
         # thurs: don't want this; should remove from sql also!
-        #sch_feat = Feature(geometry   = json.loads(row['first_sch_geog']),
-        #                   id         = row['flight_index'] + HELPME_OFFSET*2,
-        #                   properties = {
-        #                       "acid"     : row['acid'],
-        #                       "flt_ndx"  : row['flight_index'],
-        #                       "arr_time" : row['arr_time'].isoformat(),
-        #                       "ptype"    : "sch",
-        #                       "dist"     : row['first_sch_dist'],
-        #                              })
-        #features.append(sch_feat)
+        at_dep_feat = Feature(geometry   = json.loads(row['at_dep_geog']),
+                           id            = row['flight_index'] + HELPME_OFFSET*2,
+                           properties    = {
+                               "acid"     : row['acid'],
+                               "flt_ndx"  : row['flight_index'],
+                               #csv: "arr_time" : row['arr_time'].isoformat(),
+                               "arr_time" : row['arr_time'],
+                               # "ptype"    : "sch",
+                               "ptype"    : "dep",   # NEW
+                               "dist"     : row['at_dep_dist'],
+                                      })
+        features.append(at_dep_feat)
 
     feature_collection = FeatureCollection(features)
     return(feature_collection)
@@ -253,9 +256,9 @@ def get_center_polygon(lgr, center, airport):
 
 def form_chart_data(evry_df):
 
-    sch_cnr_sum_df = evry_df.groupby(["arr_hr", "corner"]) [["first_sch_dist"]].sum()
-    ate_cnr_sum_df = evry_df.groupby(["arr_hr", "corner"]) [["at_ent_dist"   ]].sum()
-    flw_cnr_sum_df = evry_df.groupby(["arr_hr", "corner"]) [["flown_dist"    ]].sum()
+    sch_cnr_sum_df = evry_df.groupby(["arr_hr", "corner"]) [["at_dep_dist"]].sum()
+    ate_cnr_sum_df = evry_df.groupby(["arr_hr", "corner"]) [["at_ent_dist"]].sum()
+    flw_cnr_sum_df = evry_df.groupby(["arr_hr", "corner"]) [["flown_dist" ]].sum()
 
     chart_df = pd.merge(sch_cnr_sum_df, ate_cnr_sum_df, on=["arr_hr", "corner"])
     chart_df = pd.merge(chart_df,       flw_cnr_sum_df, on=["arr_hr", "corner"])
@@ -292,8 +295,9 @@ def form_flown_at_entry_data(evry_df):
 def form_details(every_df):
 
     #details_df = every_df.drop([ 'orig_time', 'flight_index_a',
-    details_df = every_df.drop([ 'flight_index_a',
-                  'first_sch_geog', 'at_ent_geog', 'flown_geog'], axis=1)
+    #jdetails_df = every_df.drop([ 'flight_index_a',
+    details_df = every_df.drop([
+                  'at_dep_geog', 'at_ent_geog', 'flown_geog'], axis=1)
 
     return(details_df)
 
@@ -305,30 +309,27 @@ def form_details(every_df):
 #pfile = "/tmp/peverything_small.p"
 pfile = "/tmp/peverything.p"
 
-def get_everything(lgr, y_m_d, airport, center, use_pickle="false"):
+#def get_everything_OLD(lgr, y_m_d, airport, center, use_pickle="false"):
+#
+#    lgr.info("get_every: use_pickle=" + use_pickle)
+#
+#    # ---- 1. get all data from PostGIS (intersection distances and paths)
+#
+#    if use_pickle == "false":
+#        everything_df = get_everything_from_postgis(lgr, y_m_d, airport, center)
+#        #pickle.dump(everything_df, open( pfile,"wb" ) )
+#    else:
+#        everything_df = pickle.load( open( pfile, "rb" ) )
+#    # <<<<<<<<<<<<<<<<<< TESTING
 
-    lgr.info("get_every: use_pickle=" + use_pickle)
+def csv_to_geojson(lgr, y_m_d, airport, center, use_pickle="false"):
 
-    # ---- 1. get all data from PostGIS (intersection distances and paths)
+    csv_fn = "files/fvf_" + y_m_d + "_" + args.center.lower() + ".csv"
 
-    if use_pickle == "false":
-        everything_df = get_everything_from_postgis(lgr, y_m_d, airport, center)
-        #pickle.dump(everything_df, open( pfile,"wb" ) )
-    else:
-        everything_df = pickle.load( open( pfile, "rb" ) )
-    # <<<<<<<<<<<<<<<<<< TESTING
+    everything_df = pd.read_csv(csv_fn)
 
-
-    #args_pickle = False # <<<<<<<<<<<<<<<<<<<< FIXME
-    #if args_pickle:
-    #    everything_df = pickle.load( open( pfile, "rb" ) )
-    #else:
-    #    everything_df = get_everything_from_postgis(lgr, y_m_d, airport, center)
-    #    pickle.dump(everything_df, open( "peverything_df.p","wb" ) )
-
-    #everything_df = everything_df[:6] # <<<<<<<<<< TESTING
-
-    # <<<<<<<<<<<<<<<<<< TESTING
+    print(everything_df)
+    print(everything_df.columns)
 
     # ---------------
 
@@ -348,8 +349,9 @@ def get_everything(lgr, y_m_d, airport, center, use_pickle="false"):
     #lgr.info("fc_gj")
     #lgr.info(fc_gj)
 
+    # is already in the csv data:
     everything_df['arr_hr'] = everything_df['arr_time'].map(
-                                     lambda t: t.strftime("%Y_%m_%d_%H"))
+        lambda t: t[:13].replace('-','_').replace(' ','_'))
 
     # ---- 3. get corner data for charts
 
@@ -387,26 +389,30 @@ def get_everything(lgr, y_m_d, airport, center, use_pickle="false"):
 #                      write csv data to postgresql                        #
 # ######################################################################## #
 
-def write_to_postgresql(evry_df):
+def write_to_csv(evry_df):
 
-    csv_df = evry_df.drop([ 'first_sch_geog', 'flight_index_a',
-                            'first_sch_dist',   # not needed in this run
-                           'at_ent_geog', 'flown_geog'], axis=1)
+    csv_df = evry_df.drop([ 'flight_index_a', ], axis=1)
+
+    #csv_df = evry_df.drop([ 'first_sch_geog', 'flight_index_a',
+    #                        'first_sch_dist',   # not needed in this run
+    #                       'at_ent_geog', 'flown_geog'], axis=1)
 
     csv_df['center'] = args.center   # all rows in this run get this artcc
 
     csv_df['ops_day'] = csv_df['arr_time'].apply(lambda dt:
           (dt - datetime.timedelta(hours=8)).replace(hour=0,minute=0,second=0))
 
-    #print(csv_df)
-    #print(csv_df.columns)
+    print(csv_df)
+    print(csv_df.columns)
 
-    csv_fn = "fvf_" + y_m_d + "_" + args.center.lower() + ".csv"
+    csv_fn = "files/fvf_" + y_m_d + "_" + args.center.lower() + ".csv"
 
     csv_df.to_csv(csv_fn, index=False,
           columns= ( 'acid', 'flight_index', 'corner', 'center', 'ops_day',
                      'dep_time', 'arr_time', 'dep_apt', 'arr_apt',
-                     'ac_type', 'at_ent_dist', 'flown_dist' ) )
+                     'ac_type', 'at_dep_dist', 'at_ent_dist', 'flown_dist',
+                     'at_dep_geog', 'at_ent_geog', 'flown_geog'
+                    ) )
 
     print("finished:", csv_fn)
 
@@ -463,12 +469,15 @@ if __name__ == "__main__":
 
     y_m_d    = args.date.strftime("%Y_%m_%d")
 
-    # geoson testing:
+    # everything_dict = csv_to_geojson(lgr, y_m_d, args.airport, args.center)
+
+    # geoson testing -- query from PostGIS:
     # everything_dict = get_everything(lgr, y_m_d, args.airport, args.center)
-    # print(json.dumps(everything_dict['flw_chart_data']))
-                   #'flw_chart_data' : flw_cnr_jn,
+    #print(json.dumps(everything_dict['flw_chart_data']))
+    #               #'flw_chart_data' : flw_cnr_jn,
+    #sys.exit(1)
 
     # Caroline csv output:
     everything_df = get_everything_from_postgis(lgr, y_m_d, args.airport, args.center)
-    write_to_postgresql(everything_df)
+    write_to_csv(everything_df)
 
