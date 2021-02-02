@@ -15,6 +15,8 @@ import pickle
 
 from shapely.wkt import dumps  #, loads
 
+import foracle
+
 #==========================================================
 # note: d.b. access credentials are in dot files or var panel in Connect
 
@@ -256,12 +258,12 @@ def get_center_polygon(lgr, center, airport):
 
 def form_chart_data(evry_df):
 
-    sch_cnr_sum_df = evry_df.groupby(["arr_hr", "corner"]) [["at_dep_dist"]].sum()
-    ate_cnr_sum_df = evry_df.groupby(["arr_hr", "corner"]) [["at_ent_dist"]].sum()
-    flw_cnr_sum_df = evry_df.groupby(["arr_hr", "corner"]) [["flown_dist" ]].sum()
+    sch_cnr_sum_df = evry_df.groupby(["arr_qh", "corner"]) [["at_dep_dist"]].sum()
+    ate_cnr_sum_df = evry_df.groupby(["arr_qh", "corner"]) [["at_ent_dist"]].sum()
+    flw_cnr_sum_df = evry_df.groupby(["arr_qh", "corner"]) [["flown_dist" ]].sum()
 
-    chart_df = pd.merge(sch_cnr_sum_df, ate_cnr_sum_df, on=["arr_hr", "corner"])
-    chart_df = pd.merge(chart_df,       flw_cnr_sum_df, on=["arr_hr", "corner"])
+    chart_df = pd.merge(sch_cnr_sum_df, ate_cnr_sum_df, on=["arr_qh", "corner"])
+    chart_df = pd.merge(chart_df,       flw_cnr_sum_df, on=["arr_qh", "corner"])
 
     chart_df.reset_index(inplace=True)
 
@@ -273,16 +275,16 @@ def form_chart_data(evry_df):
 
 def form_flown_at_entry_data(evry_df):
 
-    flw_cnr_sum_df = evry_df.groupby(["arr_hr", "corner"]) [["flown_dist"    ]].sum()
+    flw_cnr_sum_df = evry_df.groupby(["arr_qh", "corner"]) [["flown_dist"    ]].sum()
 
     flw_cnr_sum_df.reset_index(inplace=True)
 
-    flw_pivot_df = flw_cnr_sum_df.pivot(index='arr_hr', columns='corner', values='flown_dist')
+    flw_pivot_df = flw_cnr_sum_df.pivot(index='arr_qh', columns='corner', values='flown_dist')
 
     flw_pivot_df.fillna(0, inplace=True)
     flw_pivot_df.reset_index(inplace=True)
 
-    ate_sum_df = evry_df.groupby(["arr_hr",] ) [["at_ent_dist"   ]].sum()
+    ate_sum_df = evry_df.groupby(["arr_qh",] ) [["at_ent_dist"   ]].sum()
 
     ate_sum_df.reset_index(inplace=True)
 
@@ -333,10 +335,10 @@ def csv_to_geojson(lgr, y_m_d, airport, center):
     lgr.info("bbb")
     lgr.info("reading csv file:" + csv_fn)
 
-    everything_df = pd.read_csv(csv_fn)
+    evryth_df = pd.read_csv(csv_fn)
 
-    #print(everything_df)
-    lgr.info(everything_df.columns)
+    #print(evryth_df)
+    lgr.info(evryth_df.columns)
 
     # ---------------
 
@@ -351,27 +353,39 @@ def csv_to_geojson(lgr, y_m_d, airport, center):
 
     # ---- 2. form GeoJson of all paths
 
-    fc_gj = form_feature_collection(everything_df, center_feat)
+    fc_gj = form_feature_collection(evryth_df, center_feat)
 
     #lgr.info("fc_gj")
     #lgr.info(fc_gj)
 
+    # fvf app uses this to catgeorize hourly slider
     # is already in the csv data:
-    everything_df['arr_hr'] = everything_df['arr_time'].map(
+    evryth_df['arr_hr'] = evryth_df['arr_time'].map(
         lambda t: t[:13].replace('-','_').replace(' ','_'))
+
+    # get the quarter-hour bin for each flight
+    # first, make a datetime object out of it
+    evryth_df['arr_time_dt'] = evryth_df['arr_time'].apply(lambda dt:
+                              datetime.datetime.fromisoformat(dt))
+
+    # second, get the quarter-hour landing time
+    evryth_df['arr_qh'] = evryth_df['arr_time_dt'].apply(lambda dt:
+         datetime.datetime(dt.year, dt.month, dt.day, dt.hour,15*(dt.minute // 15)))
+
+    evryth_df = evryth_df.drop([ 'arr_time_dt', ], axis=1)
 
     # ---- 3. get corner data for charts
 
-    chart_df = form_chart_data(everything_df)
+    chart_df = form_chart_data(evryth_df)
 
-    flw_cnr_df, ate_sum_df = form_flown_at_entry_data(everything_df)
+    flw_cnr_df, ate_sum_df = form_flown_at_entry_data(evryth_df)
 
     lgr.info(flw_cnr_df)
     lgr.info(ate_sum_df)
 
     # ---- 4. trim geogs for details table
 
-    details_df = form_details(everything_df)
+    details_df = form_details(evryth_df)
 
     # print(details_df)
 
@@ -400,6 +414,7 @@ def write_to_csv(evry_df):
 
     csv_df = evry_df.drop([ 'flight_index_a', ], axis=1)
 
+
     #csv_df = evry_df.drop([ 'first_sch_geog', 'flight_index_a',
     #                        'first_sch_dist',   # not needed in this run
     #                       'at_ent_geog', 'flown_geog'], axis=1)
@@ -409,19 +424,57 @@ def write_to_csv(evry_df):
     csv_df['ops_day'] = csv_df['arr_time'].apply(lambda dt:
           (dt - datetime.timedelta(hours=8)).replace(hour=0,minute=0,second=0))
 
-    #print(csv_df)
-    #print(csv_df.columns)
-
     csv_fn = "files/fvf_" + y_m_d + "_" + args.center.lower() + ".csv"
 
     csv_df.to_csv(csv_fn, index=False,
-          columns= ( 'acid', 'flight_index', 'corner', 'center', 'ops_day',
-                     'dep_time', 'arr_time', 'dep_apt', 'arr_apt',
-                     'ac_type', 'at_dep_dist', 'at_ent_dist', 'flown_dist',
+          columns= ( 'acid', 'flight_index', 'corner', 'center',
+                     'dep_apt',  'arr_apt',  'ac_type',
+                     'at_dep_dist', 'at_ent_dist', 'flown_dist',
+                     'dep_time', 'arr_time', 'ops_day',
                      'at_dep_geog', 'at_ent_geog', 'flown_geog'
                     ) )
 
     print("finished:", csv_fn)
+
+
+# ######################################################################## #
+#                              standalone main                             #
+# ######################################################################## #
+
+import pytz
+
+def insert_oracle(every_df, artcc_tier, verbose=False):
+
+    tmp_df = every_df.drop([ 'ac_type',
+                  'flight_index', 'flight_index_a',
+                  'at_dep_geog', 'at_ent_geog', 'flown_geog'], axis=1)
+
+    # determie ops day corresponding to arrival time (utc)
+
+    tmp_df['ops_day'] = tmp_df['arr_time'].apply(lambda dt:
+          (dt - datetime.timedelta(hours=8))
+                 .replace(hour=0,minute=0,second=0)
+                 .replace(tzinfo=pytz.UTC))
+
+    tmp_df['artcc_level'] = artcc_tier
+
+    ora_df = tmp_df.rename({
+           'acid'        : "ACID",
+           'dep_apt'     : "ORIG",
+           'arr_apt'     : "DEST",
+           'ops_day'     : "OPSDAY",
+           'corner'      : "CORNERPOST",
+           'dep_time'    : "DEPT_TIME",
+           'arr_time'    : "ARR_TIME",
+           'at_dep_dist' : "LAST_FILED_DIST",
+           'at_ent_dist' : "BEFORE_ENTRY_DIST",
+           'flown_dist'  : "FLOWN_DIST",
+           'artcc_level' : "ARTCC_LEVEL"  }
+                           , axis=1)
+
+    if verbose: print(ora_df)
+
+    foracle.write_to_flight_level(ora_df, verbose)
 
 
 # ######################################################################## #
@@ -473,11 +526,35 @@ if __name__ == "__main__":
     parser.add_argument('-g', '--geojson', action='store_const', const=True,
                 help="use /h/d/w/c instead of postgis", default=False )
 
+    parser.add_argument('-o', '--oracle', action='store_const', const=True,
+                help="insert into oracle", default=False )
+
+    parser.add_argument('-t', '--tier', type=str,
+                help="artcc tier level", default="parent" )
+
     args = parser.parse_args()
 
     # ======================================================================
 
     y_m_d    = args.date.strftime("%Y_%m_%d")
+
+    if args.oracle:
+        if args.verbose: print("querying postgis")
+        # <<<<<<<<<<<<<<<<<< TESTING
+        if args.pickle == False:
+            everything_df = get_everything_from_postgis(lgr, y_m_d,
+                                       args.airport, args.center)
+            pickle.dump(everything_df, open( "pora.pkl","wb" ) )
+        else:
+            everything_df = pickle.load( open( "pora.pkl", "rb" ) )
+        # <<<<<<<<<<<<<<<<<< TESTING
+
+        insert_oracle(everything_df, args.tier, args.verbose)
+
+    else:
+        print("anything other than '-o' is pointless")
+
+    sys.exit(1)
 
     if args.geojson:
         everything_dict = csv_to_geojson(lgr, y_m_d, args.airport, args.center)
