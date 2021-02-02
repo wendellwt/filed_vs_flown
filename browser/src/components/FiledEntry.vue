@@ -75,23 +75,27 @@ export default {
 
           let ndata     = chart_args.cdata;
           let ate_data  = chart_args.atedata;
-          let ymin      = chart_args.slider_vals[0] * 1000;
-          let ymax      = chart_args.slider_vals[1] * 1000;
+          let ymin      = chart_args.slider_vals[0] * 100;
+          let ymax      = chart_args.slider_vals[1] * 100;
           this.the_date = chart_args.title_date
 
           let wt_groups = [ ];
+          let xLabels = [ ];
           for (let k = 0; k < ndata.length; k++ ) {
-                  wt_groups.push(ndata[k].arr_hr);
+                  wt_groups.push(ndata[k].arr_qh);
+                  xLabels  .push(ndata[k].arr_qh.substr(8,8));
           }
 
-// console.log("fe data currently:");
-// console.log(ndata);
-// console.log("ate data currently:");
-// console.log(ate_data);
-// console.log("wt_groups:");
-// console.log(wt_groups);
+console.log("fe data currently:");
+console.log(ndata);
+console.log("ate data currently:");
+console.log(ate_data);
+console.log("wt_groups:");
+console.log(wt_groups);
+console.log("xLabels:");
+console.log(xLabels);
 
-          this.displayGData(ndata, ate_data, wt_groups, ymin, ymax);
+          this.displayGData(ndata, ate_data, wt_groups, ymin, ymax, xLabels);
       })
   },
 
@@ -108,7 +112,13 @@ export default {
     // spaces of indent, while methods that return a new selection use only two.
 
     methods: {
-        displayGData : function(ndata, ate_data, wt_groups, y_min, y_max) {
+
+        nice_x_label: function(d) {
+console.log("nxl");
+            return x(d.data.arr_qh);
+        },
+
+        displayGData : function(ndata, ate_data, wt_groups, y_min, y_max, xLabels) {
 
     // =========================== my edits
     // =========================== my edits - end
@@ -138,9 +148,13 @@ export default {
       .range([0, width])
       .padding([0.2])
 
+      // https://ghenshaw-work.medium.com/customizing-axes-in-d3-js-99d58863738b
   svg.append("g")
     .attr("transform", "translate(0," + height + ")")
-    .call(d3.axisBottom(x).tickSizeOuter(0))
+    .call(d3.axisBottom(x) // x-axis generator
+                .tickSizeOuter(0)
+                .tickFormat((d,i) => i % 4 == 0 ? xLabels[i] : "" )
+                )
       .selectAll("text")
         .style("text-anchor", "end")
         .attr("dx", "-.8em")
@@ -174,7 +188,10 @@ export default {
       // enter a second time = loop subgroup per subgroup to add all rectangles
       .data(function(d) { return d; })
       .enter().append("rect")
-        .attr("x", function(d) { return x(d.data.arr_hr); })   // was: group
+        // HELP: .attr("x", function(d) { this.nice_x_label(d) })
+        .attr("x", function(d) {
+                                   return x(d.data.arr_qh);
+                                })   // was: group, was arr_hr
         .attr("y", function(d) { return y(d[1]); })
         .attr("height", function(d) { return y(d[0]) - y(d[1]); })
         .attr("width",x.bandwidth())
@@ -262,9 +279,9 @@ export default {
       .append("circle")
         .attr("fill", "red")
         .attr("stroke", "none")
-        .attr("cx", function(d) { return x(d.arr_hr)+10 }) // +10 is my own fudge offset
+        .attr("cx", function(d) { return x(d.arr_qh)+2 }) // +10 is my own fudge offset
         .attr("cy", function(d) { return y(d.at_ent_dist) })
-        .attr("r", 5)
+        .attr("r", 2)
 
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //  https://www.d3-graph-gallery.com/graph/custom_legend.html
