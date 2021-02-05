@@ -8,7 +8,7 @@ import psycopg2
 import geopandas as gpd
 
 # ours
-import adaptation
+#import adaptation
 import elapsed
 
 from sqlalchemy import create_engine
@@ -66,9 +66,52 @@ def get_gjson_of_ctr(ctr, apt=None, args_verbose=False):
 
 # ==========================================================================
 
-def get_corners(apt):
+# note: caller prob. needs to do a wkb.loads() on the result
 
-    corners = str(tuple(adaptation.corners[apt].values()))
+def get_shape_of_ctr(ctr, args_verbose=False):
+    """ return shape of center bounary."""
+
+    sql = "select boundary from centers where name = '%s'" % ctr
+
+    if args_verbose: print(sql)
+
+    pg_csr.execute(sql)
+    ret = pg_csr.fetchall()
+
+    return(ret)
+
+# ==========================================================================
+
+# >>> used adaptation.py, which is now a toml file
+
+#def get_corners(apt):
+#
+#    corners = str(tuple(adaptation.corners[apt].values()))
+#
+#    sql = """select ident, position
+#FROM points
+#WHERE ident IN """ + corners + ";"
+#
+#    corner_gf = gpd.GeoDataFrame.from_postgis(sql, pg_conn,
+#                                              geom_col='position' )
+#    return(corner_gf)
+
+# ==========================================================================
+
+def get_corner_pos(ident):
+
+    sql = "select ST_AsText(position) FROM points WHERE ident = '" + ident + "';"
+
+    pg_csr.execute(sql)
+    ret = pg_csr.fetchone()
+
+    return(ret[0])
+
+# ==========================================================================
+
+def get_corners_by_list(corner_list):
+
+    corners = str(tuple(corner_list))
 
     sql = """select ident, position
 FROM points
@@ -76,7 +119,6 @@ WHERE ident IN """ + corners + ";"
 
     corner_gf = gpd.GeoDataFrame.from_postgis(sql, pg_conn,
                                               geom_col='position' )
-
     return(corner_gf)
 
 # ==========================================================================

@@ -1,0 +1,37 @@
+
+# Filed.vs.Flown adaptation file
+
+[DEN]
+    ne = "LANDR"
+    se = "DANDD"
+    sw = "LARKS"
+    nw = "RAMMS"
+
+    parent = "ZDV"
+    1st = [ "ZLA", "ZLC", "ZMP", "ZKC", "ZAB",]
+    2nd = [ "ZOA", "ZSE", "ZAU", "ZID", "ZME", "ZFW",]
+
+    tracon = "shapefiles/d01_tracon.shp"
+
+[ATL]
+    # my guess by looking at chart:
+    ne = "MACEY"
+    se = "SINCA"
+    sw = "SMAWG"
+    nw = "RMG"
+
+    parent = "ZTL"
+    1st = [ "ZHU", "ZME", "ZID", "ZDC", "ZJX",]
+    2nd = [ "ZAB", "ZKC", "ZAU", "ZOB", "ZNY", "ZMA" ]
+
+[DFW]
+    # my guess by looking at chart and from what I remember from my TBFM days:
+    ne = "BYP"    # Bonham vor
+    se = "CQY"    # Cedar Creek vor
+    sw = "JEN"    # Glen Rose vor
+    nw = "UKW"    # Bowie vor
+
+    parent = "ZFW"
+    1st = [ "ZAB", "ZKC", "ZME", "ZHU",]
+    2nd = [ "ZLA, "ZDV", "ZMP", "ZAU", "ZID", "ZTL", "ZJX" ]
+

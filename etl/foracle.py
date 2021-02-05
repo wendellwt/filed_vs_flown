@@ -19,6 +19,23 @@ password = os.environ.get('EXTR1_PASS')
 ex_dsn_tns = cxo.makedsn(host, port, service_name=service)
 ex_conn    = cxo.connect(username, password, ex_dsn_tns)
 
+# ######################  oracle + sqlalchemy  #########################
+
+from sqlalchemy import types, create_engine
+
+host     = os.environ.get('FLVL_IP')
+port     = os.environ.get('FLVL_PORT')
+service  = os.environ.get('FLVL_SERVICE')
+username = os.environ.get('FLVL_USER')
+password = os.environ.get('FLVL_PASS')
+
+credentials = 'oracle+cx_oracle://' + \
+               username + ':' + password + '@' + host + ':' + port + \
+              '/?service_name=' + service
+
+sq_conn = create_engine(credentials,
+                     max_identifier_length=30)
+
 # ########################################################################## #
 
 wwt_5 = ('ATL', 'DCA', 'DEN', 'SEA', 'STL')
@@ -262,4 +279,20 @@ def get_all_tz_using_temp(ops_date, fids, args_verbose):
     et.end("read tz from oracle")
 
     return(ora_df)
+
+# =========================================================================
+
+def write_to_flight_level(fvf_df, verbose=False):
+
+    tbl_name = "flight_level"   # note: lower case, otherwise:
+    # sql.py:1336: UserWarning: The provided table name 'FLIGHT_LEVEL' is not
+    # found exactly as such in the database
+
+    if verbose: print("calling: to_sql()")
+
+    fvf_df.to_sql(tbl_name, sq_conn, if_exists='append', index=False)
+
+    print("done:", len(fvf_df))
+
+    # print(conn.table_names())
 
