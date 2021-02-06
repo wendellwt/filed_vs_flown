@@ -33,5 +33,5 @@
 
     parent = "ZFW"
     1st = [ "ZAB", "ZKC", "ZME", "ZHU",]
-    2nd = [ "ZLA, "ZDV", "ZMP", "ZAU", "ZID", "ZTL", "ZJX" ]
+    2nd = [ "ZLA", "ZDV", "ZMP", "ZAU", "ZID", "ZTL", "ZJX" ]
 
