@@ -275,7 +275,7 @@ def help_gc_length_one_segment(ls_path):
 
 def get_at_entry_sch_paths(all_scheds_df, flw_pts_df, center_shp):
 
-    ae = elapsed.Elapsed()
+    #ae = elapsed.Elapsed()
 
     # ---- first, get all TZ within the artcc:
 
@@ -297,7 +297,7 @@ def get_at_entry_sch_paths(all_scheds_df, flw_pts_df, center_shp):
 
     at_entry_df = scheds_outside_df.sort_values("ORIG_TIME").groupby("FID", as_index=False).first()
 
-    ae.end("at_entry df")
+    #ae.end("at_entry df")
 
     return(at_entry_df)
 
@@ -604,7 +604,7 @@ for ctr, tier in artccs:
 
     print(">>>> ", ctr, tier)
 
-    ectr = elapsed.Elapsed()
+    #ectr = elapsed.Elapsed()
 
     # ==== f. get ARTCC polygon of interest
 
@@ -660,7 +660,7 @@ for ctr, tier in artccs:
 
     output_postgis(center_df, ctr, center_minus_tracon_shp)
 
-    ectr.end("end of:" + ctr)
+    #ectr.end("end of:" + ctr)
 
 print("finished.")
 
