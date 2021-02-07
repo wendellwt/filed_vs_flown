@@ -14,24 +14,32 @@
     tracon = "d01_den_tracon.shp"
 
 [ATL]
-    # my guess by looking at chart:
-    ne = "MACEY"
-    se = "SINCA"
-    sw = "SMAWG"
-    nw = "RMG"
+    ne = "OZZZI"  # ONDRE WHINZ
+    se = "SINCA"  # JJEDI SITTH WRGNZ
+    sw = "HOBTT"  # GNDLF LGC
+    nw = "RMG"    # CHPPR GLAVN
 
     parent = "ZTL"
     1sttier = [ "ZHU", "ZME", "ZID", "ZDC", "ZJX",]
     2ndtier = [ "ZAB", "ZKC", "ZAU", "ZOB", "ZNY", "ZMA" ]
 
+    tracon = "a80_atl_tracon.shp"
+
 [DFW]
+    ne = "SASIE"   # BRDJE FINGR
+    se = "ORVLL"   # BEREE
+    sw = "BOOVE"   # KNEAD
+    nw = "GREGS"   # VKTRY
+
     # my guess by looking at chart and from what I remember from my TBFM days:
-    ne = "BYP"    # Bonham vor
-    se = "CQY"    # Cedar Creek vor
-    sw = "JEN"    # Glen Rose vor
-    nw = "UKW"    # Bowie vor
+    #ne = "BYP"    # Bonham vor
+    #se = "CQY"    # Cedar Creek vor
+    #sw = "JEN"    # Glen Rose vor
+    #nw = "UKW"    # Bowie vor
 
     parent = "ZFW"
     1sttier = [ "ZAB", "ZKC", "ZME", "ZHU",]
     2ndtier = [ "ZLA", "ZDV", "ZMP", "ZAU", "ZID", "ZTL", "ZJX" ]
+
+    tracon = "d10_dfw_tracon.shp"
 
