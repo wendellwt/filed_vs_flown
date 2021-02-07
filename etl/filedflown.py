@@ -502,7 +502,7 @@ def help_output_corner(trim_df, cnr, ctr, artcc_shp):
     with open(fn, "w") as fd:
         fd.write( json.dumps(paths_gj) )
 
-    print("fn=", fn)
+    #print("fn=", fn)
 
 # ====================================================================
 
@@ -602,7 +602,7 @@ cn.end("find all corners")
 
 for ctr, tier in artccs:
 
-    print(">>>> ", ctr, tier)
+    print("==== ", ctr, tier)
 
     #ectr = elapsed.Elapsed()
 
