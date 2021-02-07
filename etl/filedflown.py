@@ -568,7 +568,7 @@ def output_postgis(ctr_df, ctr_name, center_minus_tracon_shp):
     ctr_df['artcc'] = ctr_name
 
     tbl = "fvf_" + y_m
-    print(tbl)
+    #print(tbl)
 
     fpostg.write_ff_to_postgis(tbl, ctr_df)
 
