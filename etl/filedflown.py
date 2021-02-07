@@ -49,7 +49,8 @@ parser.add_argument('-s', '--skip_oracle', action='store_const', const=True,
 
 args = parser.parse_args()
 
-y_m = args.date.strftime("%Y_%m")
+y_m   = args.date.strftime("%Y_%m")
+y_m_d = args.date.strftime("%Y_%m_%d")
 
 # =========================================================================
 
@@ -76,8 +77,8 @@ corners = {
 # ---- make list of artcc's
 
 artccs = [ (adapt[args.airport]['parent'], 'parent'),         ] + \
-         [ (c, '1sttier') for c in adapt[args.airport]['1st'] ] + \
-         [ (c, '2ndtier') for c in adapt[args.airport]['2nd'] ]
+         [ (c, '1sttier') for c in adapt[args.airport]['1sttier'] ] + \
+         [ (c, '2ndtier') for c in adapt[args.airport]['2ndtier'] ]
 
 # ####################################################################### #
 #                 schedule path processing routines                       #
@@ -401,29 +402,21 @@ def get_flown_data(just_fids):
 
     # ---- c.3) make a (real) GeoDF of the flown path/track
 
-    print("cc")
-
     flown_pts_df = gpd.GeoDataFrame(
         tz_df, geometry=gpd.points_from_xy(tz_df.LON, tz_df.LAT))
-
-    print("dd")
 
     flown_pts_df.drop(['LAT', 'LON'], axis=1, inplace=True)
     flown_pts_df.rename( {'geometry' : 'position'}, axis=1, inplace=True)
 
     # Q: do we need to sort by POSIT_TIME ???
     # this is a Series
-    print("ee")
 
     posit_time_df = flown_pts_df.sort_values(by='POSIT_TIME')
-
-    print("ff")
 
     flown_ls_sr = posit_time_df.groupby(['FID'])['position']        \
                               .apply(lambda p:
                   LineString(p.tolist()) if len(p.tolist()) > 2 else LineString())
 
-    print("gg")
     flown_ls_df = pd.DataFrame( {'FID'        : flown_ls_sr.index,
                                  'flown_path' : flown_ls_sr.values} )
 
@@ -483,8 +476,9 @@ def output_json_to_file(center_df, ctr, artcc_shp):
 
 def help_output_corner(trim_df, cnr, ctr, artcc_shp):
 
-
     ne_df = trim_df.loc[trim_df['corner']==cnr]
+
+    # HELP >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ne_15z_df = ne_df.loc[ne_df['ARR_TIME'] >= datetime.datetime(2020,3,2,15,0,0)]
 
     # ==== method 1. write GeoDataFrame to disk (meaning paths only)
@@ -503,7 +497,7 @@ def help_output_corner(trim_df, cnr, ctr, artcc_shp):
 
     paths_gj = form_feature_collection(ne_15z_df, artcc_shp)
 
-    fn = "fc_" + cnr + '_' + ctr + ".gjsn"
+    fn = "files/fc_" + cnr + '_' + ctr + '_' + y_m_d + ".gjsn"
 
     with open(fn, "w") as fd:
         fd.write( json.dumps(paths_gj) )
@@ -573,24 +567,10 @@ def output_postgis(ctr_df, ctr_name, center_minus_tracon_shp):
 
     ctr_df['artcc'] = ctr_name
 
-    #print("ctr_df")
-    #print(ctr_df)
-    #print(ctr_df.columns)
-
-    # Index(['FID', 'ACID', 'DEP_TIME', 'ARR_TIME', 'DEPT_APRT', 'ARR_APRT',
-    #  'b4_dep_path', 'b4_dep_dist', 'b4_ent_path', 'b4_ent_dist', 'corner',
-    #  'flw_path', 'flw_dist'],
-
-    #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
     tbl = "fvf_" + y_m
     print(tbl)
 
     fpostg.write_ff_to_postgis(tbl, ctr_df)
-
-    sys.exit(1)
-
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 # ####################################################################### #
 #                                  main                                   #
@@ -622,7 +602,7 @@ cn.end("find all corners")
 
 for ctr, tier in artccs:
 
-    print(">>>>>>>>>>>>>>>>> ", ctr, tier)
+    print(">>>> ", ctr, tier)
 
     ectr = elapsed.Elapsed()
 
@@ -673,9 +653,10 @@ for ctr, tier in artccs:
     center_df = merge_everything( last_b4_dep_df, at_entry_df, flown_ls_df)
 
     # if not args.skip_oracle:
-    #    output_to_oracle_flight_level(center_df, tier)
 
-    #NOT: output_json_to_file(center_df, ctr, center_minus_tracon_shp)
+    output_to_oracle_flight_level(center_df, tier)
+
+    output_json_to_file(center_df, ctr, center_minus_tracon_shp)
 
     output_postgis(center_df, ctr, center_minus_tracon_shp)
 

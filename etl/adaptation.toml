@@ -8,10 +8,10 @@
     nw = "RAMMS"
 
     parent = "ZDV"
-    1st = [ "ZLA", "ZLC", "ZMP", "ZKC", "ZAB",]
-    2nd = [ "ZOA", "ZSE", "ZAU", "ZID", "ZME", "ZFW",]
+    1sttier = [ "ZLA", "ZLC", "ZMP", "ZKC", "ZAB",]
+    2ndtier = [ "ZOA", "ZSE", "ZAU", "ZID", "ZME", "ZFW",]
 
-    tracon = "shapefiles/d01_tracon.shp"
+    tracon = "d01_den_tracon.shp"
 
 [ATL]
     # my guess by looking at chart:
@@ -21,8 +21,8 @@
     nw = "RMG"
 
     parent = "ZTL"
-    1st = [ "ZHU", "ZME", "ZID", "ZDC", "ZJX",]
-    2nd = [ "ZAB", "ZKC", "ZAU", "ZOB", "ZNY", "ZMA" ]
+    1sttier = [ "ZHU", "ZME", "ZID", "ZDC", "ZJX",]
+    2ndtier = [ "ZAB", "ZKC", "ZAU", "ZOB", "ZNY", "ZMA" ]
 
 [DFW]
     # my guess by looking at chart and from what I remember from my TBFM days:
@@ -32,6 +32,6 @@
     nw = "UKW"    # Bowie vor
 
     parent = "ZFW"
-    1st = [ "ZAB", "ZKC", "ZME", "ZHU",]
-    2nd = [ "ZLA", "ZDV", "ZMP", "ZAU", "ZID", "ZTL", "ZJX" ]
+    1sttier = [ "ZAB", "ZKC", "ZME", "ZHU",]
+    2ndtier = [ "ZLA", "ZDV", "ZMP", "ZAU", "ZID", "ZTL", "ZJX" ]
 
