@@ -166,7 +166,7 @@ def get_all_tz(ops_date, fids, args_verbose):
 
             ora_df_list.append(pd.read_sql(qTracks, con=ex_conn))
 
-            print("received")
+            #print("received")
 
     ora_df = pd.concat(ora_df_list)
 

@@ -356,7 +356,7 @@ def output_to_oracle_flight_level(center_df, tier):
 
 def make_b4_depart_ls(sched_df):
 
-    bb = elapsed.Elapsed()
+    #bb = elapsed.Elapsed()
 
     # b1. get just schedules with ORIG_TIME before departure
 
@@ -371,7 +371,7 @@ def make_b4_depart_ls(sched_df):
     last_b4_dep_df['sched_path'] = last_b4_dep_df.apply( lambda row: form_linestring(row, False), axis=1)
     last_b4_dep_df.dropna(inplace=True)
 
-    bb.end("paths before depart")
+    #bb.end("paths before depart")
 
     if args.verbose: print("last_b4_dep_df")
     if args.verbose: print(last_b4_dep_df)
@@ -590,13 +590,13 @@ last_b4_dep_df = make_b4_depart_ls(sched_df)
 
 flown_pts_df, flown_ls_df = get_flown_data(just_fids)
 
-cn = elapsed.Elapsed()
-print("beginning corners")
+# cn = elapsed.Elapsed()
+# print("beginning corners")
 
 flown_ls_df['corner'] = flown_ls_df['flown_path'].apply(
                      lambda ls: closest_corner(ls))
 
-cn.end("find all corners")
+# cn.end("find all corners")
 
 # >>>>>>>>>>>>>>>>>>>> begin loop on artccs <<<<<<<<<<<<<<<<<<<<<<<<<
 
