@@ -584,8 +584,6 @@ sched_df, just_fids = get_sched_data_from_oracle(args.date, args.airport)
 
 last_b4_dep_df = make_b4_depart_ls(sched_df)
 
-# >>>>>>>>>>>>>>>>>> OPS_DAY
-
 # ==== c. retrieve TZ (flown) data from oracle
 
 flown_pts_df, flown_ls_df = get_flown_data(just_fids)
@@ -662,5 +660,5 @@ for ctr, tier in artccs:
 
     #ectr.end("end of:" + ctr)
 
-print("finished.")
+print("finished:", args.airport, args.date)
 
