@@ -44,7 +44,12 @@ parser.add_argument('-v', '--verbose', action='store_const', const=True,
 parser.add_argument('-p', '--pickle', action='store_const', const=True,
             help="use pickle instead of oracle", default=False )
 
+parser.add_argument('-s', '--skip_oracle', action='store_const', const=True,
+            help="skip writing to oracle", default=False )
+
 args = parser.parse_args()
+
+y_m = args.date.strftime("%Y_%m")
 
 # =========================================================================
 
@@ -53,6 +58,9 @@ from shapely.wkt import loads
 # ---- and read in adaptation
 
 adapt = toml.load("adaptation.toml")
+
+tracon_shp_dir = "/home/data/wturner/shapefiles/"
+tracon_shapefile = tracon_shp_dir + adapt[args.airport]['tracon']
 
 # ---- make table of corners
 
@@ -70,7 +78,6 @@ corners = {
 artccs = [ (adapt[args.airport]['parent'], 'parent'),         ] + \
          [ (c, '1sttier') for c in adapt[args.airport]['1st'] ] + \
          [ (c, '2ndtier') for c in adapt[args.airport]['2nd'] ]
-
 
 # ####################################################################### #
 #                 schedule path processing routines                       #
@@ -176,7 +183,7 @@ def read_artcc_and_tracon(ctr):
     # 1) read shapefile using with PyShp
     # https://gis.stackexchange.com/questions/113799/how-to-read-a-shapefile-in-python
 
-    tracon_shape = shapefile.Reader(adapt[args.airport]['tracon'])
+    tracon_shape = shapefile.Reader(tracon_shapefile)
 
     # first feature of the shapefile
     tracon_feature = tracon_shape.shapeRecords()[0]
@@ -548,6 +555,41 @@ def form_feature_collection(flts_df, artcc_shp):
     feature_collection = FeatureCollection(features)
     return(feature_collection)
 
+# ==========================================================================
+
+def output_postgis(ctr_df, ctr_name, center_minus_tracon_shp):
+
+    ctr_df.rename( {
+        'DEPT_APRT'   : 'dep_apt',
+        'ARR_APRT'    : 'arr_apt',
+
+        # q: need to explicitly make lower case?
+        'FID'      : 'fid',
+        'ACID'     : 'acid',
+        'ACID'     : 'acid',
+        'DEP_TIME' : 'dep_time',
+        'ARR_TIME' : 'arr_time',
+        }, axis=1, inplace=True)
+
+    ctr_df['artcc'] = ctr_name
+
+    #print("ctr_df")
+    #print(ctr_df)
+    #print(ctr_df.columns)
+
+    # Index(['FID', 'ACID', 'DEP_TIME', 'ARR_TIME', 'DEPT_APRT', 'ARR_APRT',
+    #  'b4_dep_path', 'b4_dep_dist', 'b4_ent_path', 'b4_ent_dist', 'corner',
+    #  'flw_path', 'flw_dist'],
+
+    #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    tbl = "fvf_" + y_m
+    print(tbl)
+
+    fpostg.write_ff_to_postgis(tbl, ctr_df)
+
+    sys.exit(1)
+
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 # ####################################################################### #
@@ -630,9 +672,12 @@ for ctr, tier in artccs:
 
     center_df = merge_everything( last_b4_dep_df, at_entry_df, flown_ls_df)
 
-    # output_to_oracle_flight_level(center_df, tier)
+    # if not args.skip_oracle:
+    #    output_to_oracle_flight_level(center_df, tier)
 
-    output_json_to_file(center_df, ctr, center_minus_tracon_shp)
+    #NOT: output_json_to_file(center_df, ctr, center_minus_tracon_shp)
+
+    output_postgis(center_df, ctr, center_minus_tracon_shp)
 
     ectr.end("end of:" + ctr)
 

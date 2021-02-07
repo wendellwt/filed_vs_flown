@@ -14,13 +14,20 @@ import elapsed
 from sqlalchemy import create_engine
 
 # =====================================================================
+import os
 
-# note: d.b. access credentials are in dot files
-pg_conn = psycopg2.connect(database='meekma')
-pg_csr = pg_conn.cursor( )   # calc_scores needs this
+username = os.environ.get('PGUSER')
+password = os.environ.get('PGPASSWORD')
+database = os.environ.get('PGDATABASE')
+host     = os.environ.get('PGHOST')
 
-# Creating SQLAlchemy's engine to use; FIXME: use env vars!!!
-engine = create_engine('postgresql://wturner:@localhost:5432/meekma')
+# d.b. access credentials are in env vars
+pg_conn = psycopg2.connect(database=database)
+pg_csr = pg_conn.cursor( )
+
+# the sqlalchemy way:
+engine = create_engine('postgresql://' + \
+                 username + ':' + password + '@' + host + ':5432/' + database)
 
 # =====================================================================
 
@@ -388,4 +395,86 @@ def temp_points_table_to_mdb_table(temp_tablename, flown_tablename, verbose=Fals
     print("inserted.")
 
     ef.end("insert from temp to flown")
+
+
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+#CREATE TABLE fvf_2020_03 (
+#    acid          text,
+#    fid           bigint,
+#    corner        text,
+#    artcc         text,
+#    dep_apt       text,
+#    arr_apt       text,
+#    flw_dist      float,
+#    b4_ent_dist   float,
+#    b4_dep_dist   float,
+#    dep_time      timestamptz,
+#    arr_time      timestamptz,
+#    flw_geog      Geography,
+#    b4_ent_geog   Geography,
+#    b4_dep_geog   Geography
+#);
+
+# ==================================================================
+
+from geoalchemy2 import Geography, WKTElement
+
+# write pandas df WITH MULTIPLE GEOGRAPHY COLUMNS out to postgis
+
+def write_ff_to_postgis(fvf_tbl, ctr_df):
+
+    ctr_df.rename( {
+        'flw_path'    : 'flw_geog',
+        'b4_ent_path' : 'b4_ent_geog',
+        'b4_dep_path' : 'b4_dep_geog',
+        }, axis=1, inplace=True)
+
+    ctr_gf = gpd.GeoDataFrame(ctr_df, geometry='flw_geog')
+
+    # ---- 1) convert each geom from shapely to wkt
+
+    # .buffer(0) on ch is prob. redundant
+    # but it does make polygon a valid one
+
+    ctr_gf.set_geometry('flw_geog', inplace=True)  # so .buffer() will work
+
+    ctr_gf['flw_geog_wkt'] = ctr_gf['flw_geog'] \
+                        .apply(lambda x: WKTElement(x.wkt, srid=4326))
+
+    ctr_gf.set_geometry('b4_ent_geog', inplace=True)
+
+    ctr_gf['b4_ent_geog_wkt'] = ctr_gf['b4_ent_geog'] \
+                        .apply(lambda x: WKTElement(x.wkt, srid=4326))
+
+    ctr_gf.set_geometry('b4_dep_geog', inplace=True)
+
+    ctr_gf['b4_dep_geog_wkt'] = ctr_gf['b4_dep_geog'] \
+                        .apply(lambda x: WKTElement(x.wkt, srid=4326))
+
+    # ---- 2) drop the shapely columns
+
+    ctr_gf.drop(['flw_geog', 'b4_ent_geog', 'b4_dep_geog'],  axis=1,
+                                                           inplace=True)
+
+    # ---- 3) rename wkt columns to match PostGIS
+
+    ctr_gf.rename( {
+        'flw_geog_wkt'    : 'flw_geog',
+        'b4_ent_geog_wkt' : 'b4_ent_geog',
+        'b4_dep_geog_wkt' : 'b4_dep_geog',
+        }, axis=1, inplace=True)
+
+    # ---- 4) finish off to ensure it is a proper geodataframe
+    ctr_gf.crs = {'init' :'epsg:4326'}
+
+    # note: flw_geom column is now _not_ a (shapely) geometry column,
+    #  but a wkt that looks like one
+    #wrong: ctr_gf.set_geometry('flw_geog', inplace=True)  # pointless???
+
+    ctr_gf.to_sql(fvf_tbl, engine, if_exists='append', index=False,
+         dtype={'flw_geog'   : Geography(),   # use col id for type & srid(?)
+                'b4_ent_geog': Geography(),
+                'b4_dep_geog': Geography()
+                })
 
