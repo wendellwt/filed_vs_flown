@@ -73,17 +73,24 @@
                     rounded
                     v-on:click="GoEverything()"
                     >GET DATA</b-button>
-
-          <b-button type='is-info'
-                    size="is-small"
-                    rounded
-                    v-on:click="CallAFunction_draw_circle()"
-                    >debug me</b-button>
-
                 &nbsp; &nbsp; &nbsp;
             <b-checkbox type="is-info"
                         size="is-small"
-                        v-model="use_pickle">debug </b-checkbox>
+                        v-model="use_pickle">use pickle</b-checkbox>
+        </div>
+        <div class="panel-block">
+
+          <b-button type="is-danger is-light"
+                    size="is-small"
+                    rounded
+                    v-on:click="CallAFunction_draw_circle()"
+                    >draw_circle()</b-button>
+          <b-button type="is-danger is-light"
+                    size="is-small"
+                    rounded
+                    v-on:click="CallAFunction_fvf_geojson()"
+                    >fvf_geojson()</b-button>
+
         </div>
 
   <p class="panel-heading">
@@ -117,7 +124,10 @@
 <script>
 
 // a file captured from ./everything.py over on rserver:
-// not for flask: import sample_json_data from "./output_everything.json";
+// not for flask: 
+//import sample_json_data from "./files/output_everything.json";
+import e_zdv from "./files/e_ZDV.json";
+//soon: import e_zlc from "./files/e_ZLC.json";
 
 export default {
   name: 'panel',
@@ -130,7 +140,8 @@ export default {
 
         arr_selected: "DEN",
         center_selected: "ZDV",
-        sel_date: new Date('January 10, 2020 09:00:00'),  // start???
+        //sel_date: new Date('January 10, 2020 09:00:00'),  // start???
+        sel_date: new Date('December 4, 2020 14:00:00'),  // start???
 
         airportlist: [ "DEN", "DFW" ],  // the only ones we've run so far
         // centerlist: [ "ZDV", "ZFW", "ZLA", 'ZKC', 'ZME' ],
@@ -154,10 +165,10 @@ export default {
         slider_vals : [0,70],
 
         hour_val   : 5,                   // from ui chooser
-        y_m_d_val  : "2020_01_10",        // intermediate/temp value
-        y_m_dt_val : "2020-01-10T05",     // portion of ISO time string to match
-        y_m_da_val : "2020_01_10_05",     // arrival time is rounded to this
-        y_m_dd_val : "2020-01-10 05:00",  // display on Chart component
+        y_m_d_val  : "2020_12_04",        // intermediate/temp value
+        y_m_dt_val : "2020-12-04T18",     // portion of ISO time string to match
+        y_m_da_val : "2020_12_04_05",     // arrival time is rounded to this
+        y_m_dd_val : "2020-12-04 05:00",  // display on Chart component
 
         details_data : [],  // fetched data from everything.py
         chart_data   : [],  // fetched data from everything.py
@@ -210,7 +221,8 @@ export default {
 
             // ---- tell Map component
 
-            let map_args = { mdata: this.map_data, hour : this.y_m_dt_val };
+            // new fvf: let map_args = { mdata: this.map_data, hour : this.y_m_dt_val };
+            let map_args = { mdata: e_zdv, hour : this.y_m_dt_val };
             this.$root.$emit('draw_all_fc', (map_args) );
 
             // ---- tell Chart component
@@ -344,6 +356,17 @@ export default {
     },
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    CallAFunction_fvf_geojson() {
+console.log("CallAFunction - new geojson");
+console.log(e_zdv);
+console.log(this.y_m_dt_val);
+          // not for flask: 
+        let map_args = { mdata: e_zdv, hour : this.y_m_dt_val };
+        this.$root.$emit('draw_all_fc', (map_args) );
+console.log("new emit");
+    },
+
+    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     CallAFunction_draw_circle() {
 console.log("CallAFunction - circular");
 
@@ -382,10 +405,11 @@ console.log("emit circ:");
 
         /*********************************************************************/
     set_and_show_flown_and_entry() {
-console.log("set_and_show_flown_and_entry");
+console.log("set_and_show_flown_and_entry -- fvf");
 
-        if (this.fe_data.length > 0 ) {
-            let chart_args = { cdata       : this.fe_data,
+        //if (this.fe_data.length > 0 ) {
+          if (e_zdv.length > 0) {
+            let chart_args = { cdata       : e_zdv, // this.fe_data,
                                atedata     : this.ate_data,
                                slider_vals : this.slider_vals,
                                title_date  : this.y_m_dd_val   };

@@ -78,7 +78,6 @@ import { Vector as VectorLayer } from 'ol/layer'
 
 //csv: import CornerCircBar from './CornerCircBar'
 
-
 // ==========================================================
 
 const HELPME_OFFSET = 1000000; // flight_ndx offset to at_ent flight_ndx
@@ -137,18 +136,18 @@ const methods = {
               if (features_list[k].id < HELPME_OFFSET) {
                   let elem = {
                       acid:     features_list[k].properties.acid,
-                      flt_ndx:  features_list[k].properties.flt_ndx,
+                      //flt_ndx:  features_list[k].properties.flt_ndx,
                       corner:   features_list[k].properties.corner,
                       dep_apt:  features_list[k].properties.dep_apt,
-                      actype:   features_list[k].properties.actype,
-                      arr_time: features_list[k].properties.arr_time,
+                      //actype:   features_list[k].properties.actype,
+                      //arr_time: features_list[k].properties.arr_time,
 
-                      sdist:    features_list[k].properties.sdist,
-                      adist:    features_list[k].properties.adist,
-                      fdist:    features_list[k].properties.fdist,
-                      diff:     (parseFloat(features_list[k].properties.adist) -
-                                 parseFloat(features_list[k].properties.fdist)
-                                ).toFixed(1)
+                      //sdist:    features_list[k].properties.sdist,
+                      //adist:    features_list[k].properties.adist,
+                      //fdist:    features_list[k].properties.fdist,
+                      //diff:     (parseFloat(features_list[k].properties.adist) -
+                      //           parseFloat(features_list[k].properties.fdist)
+                      //          ).toFixed(1)
                               };
                   dlist.push(elem);
               }
@@ -309,18 +308,22 @@ export default {
 
       let flts_to_disp = [ ]
       for (let k = 0; k < all_flights.features.length; k++) {
-
+// console.log("k="+k);
           // Q: should this just check for existance of an 'arr_time' property???
 
           // if it is a (Multi) LineString (i.e. flight), then check arr time
           // i.e., don't do the artcc polygon!
           if ( (all_flights.features[k].geometry.type == "LineString") ||
                (all_flights.features[k].geometry.type == "MultiLineString")) {
+//console.log(all_flights.features[k].properties.arr_time.substr(0,13));
+//console.log(hour_to_disp);
+
                if (all_flights.features[k].properties.arr_time.substr(0,13) == hour_to_disp) {
 
                   // TODO: COMBINE this with DataPos generation!!!
                   // (maybe not so bad; DataPos list is constructed from this list)
                   flts_to_disp.push(all_flights.features[k]);
+//console.log("push:"+k);
                }
            } else {
 
@@ -330,6 +333,7 @@ export default {
       }
       this.everythingFeatures = flts_to_disp;
 
+      //new_fvf: 
       this.populate_datalist(flts_to_disp);
 
     })
