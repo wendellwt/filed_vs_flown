@@ -383,7 +383,7 @@ def make_b4_depart_ls(sched_df):
 
 def get_flown_data(just_fids):
 
-    cc = elapsed.Elapsed()
+    # cc = elapsed.Elapsed()
 
     # ---- c.1) fetch all FIDs from Oracle/TFMS
 
@@ -420,7 +420,7 @@ def get_flown_data(just_fids):
     flown_ls_df = pd.DataFrame( {'FID'        : flown_ls_sr.index,
                                  'flown_path' : flown_ls_sr.values} )
 
-    cc.end("get flown data")
+    # cc.end("get flown data")
 
     if args.verbose: print("flown_pts_df")
     if args.verbose: print(flown_pts_df)

@@ -265,7 +265,7 @@ def get_all_tz_using_temp(ops_date, fids, args_verbose):
 
         ora_df = pd.read_sql(qTracks, con=ex_conn)
 
-        print("received")
+        #print("received")
 
     #print("for-end")
     #for row in ex_csr.execute("select fid from temp_table_session6 where rownum < 10"):
