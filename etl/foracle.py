@@ -218,12 +218,14 @@ def get_all_tz_using_temp(ops_date, fids, args_verbose):
         row = (fids[k],)
         rows.append(row)
 
+    #aa = elapsed.Elapsed()
     # insert all of the rows as a batch and commit
     ex_csr.prepare('insert into temp_table_session6 (fid) values (:FID)')
     ex_csr.executemany(None, rows)
     ex_conn.commit()
 
-    print("temp session table inserted")
+    #aa.end("temp session table inserted")
+    #print("temp session table inserted")
 
     #print("for")
     #for row in ex_csr.execute("select fid from temp_table_session6 where rownum < 100"):
@@ -258,6 +260,7 @@ def get_all_tz_using_temp(ops_date, fids, args_verbose):
 
     if args_verbose: print(qTracks)
 
+    #bb = elapsed.Elapsed()
     if (args_verbose):
         ora_df = pd.read_sql(qTracks, con=ex_conn)
         print(ora_df)
@@ -266,6 +269,7 @@ def get_all_tz_using_temp(ops_date, fids, args_verbose):
         ora_df = pd.read_sql(qTracks, con=ex_conn)
 
         #print("received")
+    #bb.end("all lat,lons selected")
 
     #print("for-end")
     #for row in ex_csr.execute("select fid from temp_table_session6 where rownum < 10"):
