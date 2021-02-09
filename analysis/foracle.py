@@ -21,7 +21,7 @@ fv_conn    = cx_Oracle.connect(username, password, fv_dsn_tns)
 
 def write_to_flight_level_BAD(fvf_df):
 
-    tbl_name = "FLIGHT_LEVEL"
+    tbl_name = "FILED_VS_FLOWN"
 
     print("about to write to oracle")
 
@@ -45,8 +45,8 @@ conn = create_engine(credentials,
 
 def write_to_flight_level(fvf_df, verbose=False):
 
-    tbl_name = "flight_level"   # note: lower case, otherwise:
-    # sql.py:1336: UserWarning: The provided table name 'FLIGHT_LEVEL' is not
+    tbl_name = "filed_vs_flown"   # note: lower case, otherwise:
+    # sql.py:1336: UserWarning: The provided table name 'FILED_VS_FLOWN' is not
     # found exactly as such in the database
 
     if verbose: print("calling: to_sql()")
