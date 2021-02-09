@@ -570,7 +570,10 @@ def output_postgis(ctr_df, ctr_name, center_minus_tracon_shp):
     tbl = "fvf_" + y_m
     #print(tbl)
 
-    fpostg.write_ff_to_postgis(tbl, ctr_df)
+    #fpostg.write_ff_to_postgis(tbl, ctr_df, ctr_name)
+    #fpostg.write_ff_to_postgis_loop(tbl, ctr_df, ctr_name)
+
+    fpostg.write_ff_to_postgis_cssi(tbl, ctr_df, ctr_name)
 
 # ####################################################################### #
 #                                  main                                   #
@@ -650,9 +653,8 @@ for ctr, tier in artccs:
 
     center_df = merge_everything( last_b4_dep_df, at_entry_df, flown_ls_df)
 
-    # if not args.skip_oracle:
-
-    output_to_oracle_flight_level(center_df, tier)
+    if not args.skip_oracle:
+        output_to_oracle_flight_level(center_df, tier)
 
     output_json_to_file(center_df, ctr, center_minus_tracon_shp)
 

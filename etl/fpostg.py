@@ -422,8 +422,213 @@ from geoalchemy2 import Geography, WKTElement
 
 # write pandas df WITH MULTIPLE GEOGRAPHY COLUMNS out to postgis
 
-def write_ff_to_postgis(fvf_tbl, ctr_df):
+import code                     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+import time
 
+def write_ff_to_postgis(fvf_tbl, ctr_df, ctr_name_HELP):
+    global engine, pg_conn, pg_csr # HELP!!!
+
+    ctr_df.rename( {
+        'flw_path'    : 'flw_geog',
+        'b4_ent_path' : 'b4_ent_geog',
+        'b4_dep_path' : 'b4_dep_geog',
+        }, axis=1, inplace=True)
+
+    ctr_gf = gpd.GeoDataFrame(ctr_df, geometry='flw_geog')
+
+    # ?????????????????????????????????????????
+    # TEST FOR Geography elements that may cause PostGIS to CRASH
+
+    # this WASN'T it, but I suppose it doesn't hurt...
+    # (I think it does help sometimes)
+    ctr_gf = ctr_gf.loc[ctr_gf['flw_geog'   ].apply(lambda p: p.is_empty == False )]
+    ctr_gf = ctr_gf.loc[ctr_gf['b4_ent_geog'].apply(lambda p: p.is_empty == False )]
+    ctr_gf = ctr_gf.loc[ctr_gf['b4_dep_geog'].apply(lambda p: p.is_empty == False )]
+
+    # as a TEST, keep just the FLOWN tracks that are really LINESTRINGS
+    ctr_gf = ctr_gf.loc[ctr_gf['flw_geog'   ].apply(lambda p: p.geom_type == 'LineString' )]
+    ctr_gf = ctr_gf.loc[ctr_gf['b4_ent_geog'].apply(lambda p: p.geom_type == 'LineString' )]
+    ctr_gf = ctr_gf.loc[ctr_gf['b4_dep_geog'].apply(lambda p: p.geom_type == 'LineString' )]
+
+    set_of_types = set()
+
+    ctr_gf['flw_geog'   ].apply(lambda g: set_of_types.add(g.geom_type))
+    ctr_gf['b4_ent_geog'].apply(lambda g: set_of_types.add(g.geom_type))
+    ctr_gf['b4_dep_geog'].apply(lambda g: set_of_types.add(g.geom_type))
+
+    print("set_of_types")
+    print(set_of_types)
+
+    set_of_simple = set()
+    ctr_gf['flw_geog'   ].apply(lambda g: set_of_simple.add(g.is_simple))
+    ctr_gf['b4_ent_geog'].apply(lambda g: set_of_simple.add(g.is_simple))
+    ctr_gf['b4_dep_geog'].apply(lambda g: set_of_simple.add(g.is_simple))
+    print("set_of_simple")
+    print(set_of_simple)
+
+    set_of_valid = set()
+    ctr_gf['flw_geog'   ].apply(lambda g: set_of_valid.add(g.is_valid))
+    ctr_gf['b4_ent_geog'].apply(lambda g: set_of_valid.add(g.is_valid))
+    ctr_gf['b4_dep_geog'].apply(lambda g: set_of_valid.add(g.is_valid))
+    print("set_of_valid")
+    print(set_of_valid)
+
+    # code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    # ?????????????????????????????????????????
+
+    # ---- 1) convert each geom from shapely to wkt
+
+    # .buffer(0) on ch is prob. redundant
+    # but it does make polygon a valid one
+
+    ctr_gf.set_geometry('flw_geog', inplace=True)  # so .buffer() will work
+
+    ctr_gf['flw_geog_wkt'] = ctr_gf['flw_geog'] \
+                        .apply(lambda x: WKTElement(x.wkt, srid=4326))
+
+    ctr_gf.set_geometry('b4_ent_geog', inplace=True)
+
+    ctr_gf['b4_ent_geog_wkt'] = ctr_gf['b4_ent_geog'] \
+                        .apply(lambda x: WKTElement(x.wkt, srid=4326))
+
+    ctr_gf.set_geometry('b4_dep_geog', inplace=True)
+
+    ctr_gf['b4_dep_geog_wkt'] = ctr_gf['b4_dep_geog'] \
+                        .apply(lambda x: WKTElement(x.wkt, srid=4326))
+
+    # ---- 2) drop the shapely columns
+
+    ctr_gf.drop(['flw_geog', 'b4_ent_geog', 'b4_dep_geog'],  axis=1,
+                                                           inplace=True)
+
+    # ---- 3) rename wkt columns to match PostGIS
+
+    ctr_gf.rename( {
+        'flw_geog_wkt'    : 'flw_geog',
+        'b4_ent_geog_wkt' : 'b4_ent_geog',
+        'b4_dep_geog_wkt' : 'b4_dep_geog',
+        }, axis=1, inplace=True)
+
+    # ---- 4) finish off to ensure it is a proper geodataframe
+    ctr_gf.crs = {'init' :'epsg:4326'}
+
+    ctr_gf.to_csv(fvf_tbl + '_' + ctr_name_HELP + ".csv")  # <<<<<<< HELP <
+
+    # note: flw_geom column is now _not_ a (shapely) geometry column,
+    #  but a wkt that looks like one
+    #wrong: ctr_gf.set_geometry('flw_geog', inplace=True)  # pointless???
+
+    foo = ctr_gf.reset_index(drop=True)  # HELP: may be some sort of index issue
+    try:
+        foo.to_sql(fvf_tbl, engine, if_exists='append', index=False,
+             dtype={'flw_geog'   : Geography(),   # use col id for type & srid(?)
+                    'b4_ent_geog': Geography(),
+                    'b4_dep_geog': Geography()
+                    })
+    except:
+        print(">>>>>>>>>>>>> HELP!!!")
+        print(ctr_gf)
+        print(">>>>>>>>>>>>> HELP!!!")
+
+        print("sleeping...")
+        time.sleep(20)
+        print("awaken")
+        #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+        # TODO: RECONNECT!!!!!!!!!!!!!
+        # d.b. access credentials are in env vars
+        pg_conn = psycopg2.connect(database=database)
+        pg_csr = pg_conn.cursor( )
+
+        # the sqlalchemy way:
+        engine = create_engine('postgresql://' + \
+            username + ':' + password + '@' + host + ':5432/' + database)
+
+
+
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+def write_ff_to_postgis_loop(fvf_tbl, ctr_df, ctr_name_HELP):
+
+    ctr_df.rename( {
+        'flw_path'    : 'flw_geog',
+        'b4_ent_path' : 'b4_ent_geog',
+        'b4_dep_path' : 'b4_dep_geog',
+        }, axis=1, inplace=True)
+
+    # ---- 1) convert each geom from shapely to wkt
+
+    # .buffer(0) on ch is prob. redundant
+    # but it does make polygon a valid one
+
+    ctr_df['flw_geog_wkt'] = ctr_df['flw_geog'] \
+                        .apply(lambda x: WKTElement(x.wkt, srid=4326))
+
+    ctr_df['b4_ent_geog_wkt'] = ctr_df['b4_ent_geog'] \
+                        .apply(lambda x: WKTElement(x.wkt, srid=4326))
+
+    ctr_df['b4_dep_geog_wkt'] = ctr_df['b4_dep_geog'] \
+                        .apply(lambda x: WKTElement(x.wkt, srid=4326))
+
+    # ---- 2) drop the shapely columns
+
+    #ctr_df.drop(['flw_geog', 'b4_ent_geog', 'b4_dep_geog'],  axis=1,
+    #                                                       inplace=True)
+
+    #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    for index, row in ctr_df.iterrows():
+
+        print(row)
+
+        sql = """
+INSERT INTO fvf_2020_12 (fid, acid, dep_time, arr_time,
+  dep_apt, arr_apt,
+  b4_ent_dist, b4_dep_dist, flw_dist,
+  corner, artcc,
+  b4_dep_geog,
+  b4_ent_geog,
+  flw_geog)
+VALUES (""" + \
+     str(row['fid']) + ',' + \
+     sq(row['acid']) + ',' + \
+     sq(row['dep_time'].isoformat()) + '::timestamp,' + \
+     sq(row['arr_time'].isoformat()) + '::timestamp,' + \
+     sq(row['dep_apt']) + ',' + \
+     sq(row['arr_apt']) + ',' + \
+     str(row['b4_ent_dist']) + ',' + str(row['b4_dep_dist']) + ',' + str(row['flw_dist']) + ',' + \
+     sq(row['corner']) + ',' + sq(row['artcc']) + ',' + \
+     "ST_GeogFromText('SRID=4326;" + row['b4_dep_geog'].wkt + "')," + \
+     "ST_GeogFromText('SRID=4326;" + row['b4_ent_geog'].wkt + "')," + \
+     "ST_GeogFromText('SRID=4326;" + row['flw_geog'   ].wkt + "'))"
+
+        print(sql)
+
+        #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+        pg_csr.execute(sql)
+        pg_conn.commit()
+
+# ==================================================================
+
+import sys
+
+cssi_username = os.environ.get('CSSI_USER')
+cssi_password = os.environ.get('CSSI_PASSWORD')
+cssi_database = os.environ.get('CSSI_DATABASE')
+cssi_host     = os.environ.get('CSSI_HOST')
+
+# the CSSI sqlalchemy way:
+cssi_engine = create_engine('postgresql://' + \
+            cssi_username + ':' + cssi_password + '@' + cssi_host + ':5432/' + cssi_database)
+
+#from geoalchemy2 import Geography, WKTElement
+
+# write pandas df WITH MULTIPLE GEOGRAPHY COLUMNS out to postgis
+
+def write_ff_to_postgis_cssi(fvf_tbl, ctr_df, ctr_name_HELP):
+
+    print(" >>>>>>>> CSSI")
     ctr_df.rename( {
         'flw_path'    : 'flw_geog',
         'b4_ent_path' : 'b4_ent_geog',
@@ -468,13 +673,25 @@ def write_ff_to_postgis(fvf_tbl, ctr_df):
     # ---- 4) finish off to ensure it is a proper geodataframe
     ctr_gf.crs = {'init' :'epsg:4326'}
 
+    #HELP: ctr_gf.to_csv(fvf_tbl + '_' + ctr_name_HELP + ".csv")  # <<<<<<< HELP <
+
     # note: flw_geom column is now _not_ a (shapely) geometry column,
     #  but a wkt that looks like one
     #wrong: ctr_gf.set_geometry('flw_geog', inplace=True)  # pointless???
 
-    ctr_gf.to_sql(fvf_tbl, engine, if_exists='append', index=False,
-         dtype={'flw_geog'   : Geography(),   # use col id for type & srid(?)
-                'b4_ent_geog': Geography(),
-                'b4_dep_geog': Geography()
-                })
+    print(" >>>>>>>> CSSI.to_sql")
+    try:
+        ctr_gf.to_sql(fvf_tbl, cssi_engine, if_exists='append', index=False,
+             dtype={'flw_geog'   : Geography(),   # use col id for type & srid(?)
+                    'b4_ent_geog': Geography(),
+                    'b4_dep_geog': Geography()
+                    })
+    except:
+        print(">>>>>>>>>>>>> HELP!!!")
+        print(ctr_gf)
+        print(">>>>>>>>>>>>> HELP!!!")
+
+        sys.exit(1)
+
+    print(" >>>>>>>> CSSI.finished")
 
