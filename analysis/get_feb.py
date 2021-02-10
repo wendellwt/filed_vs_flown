@@ -10,12 +10,15 @@ import datetime
 import psycopg2
 from sqlalchemy import create_engine
 
+#import elapsed
+
 # ===============================================================
 
 den_artccs = ('ZDV', 'ZLA', 'ZLC', 'ZMP', 'ZKC', 'ZAB', 'ZOA',
               'ZSE', 'ZAU', 'ZID', 'ZME', 'ZFW')
 
 den_artccs = ('ZDV', 'ZKC')
+den_artccs = ('ZDV', )
 
 # ===============================================================
 
@@ -37,38 +40,69 @@ cssi_engine = create_engine('postgresql://' + \
 
 # ===============================================================
 
+all_cols = """ acid, fid, corner, dep_apt, flw_dist,
+b4_ent_dist, b4_dep_dist, dep_time, arr_time,
+flw_geog, b4_ent_geog, b4_dep_geog """
+
+flw_cols = """ acid, fid, corner, dep_apt, flw_dist,
+b4_ent_dist, b4_dep_dist, dep_time, arr_time,
+flw_geog """
+
+ate_cols = """ acid, fid, corner, b4_ent_geog """
+
+# an fid:   20201211768187
+fid_offset= 10000000000000
+
 def retrieve_path_center_geojson(lgr, gdate, ctr, verbose=False):
+
+    #if args.elapsed: aa = elapsed.Elapsed()
 
     y_m   = gdate.strftime("%Y_%m")
     yhmhd = gdate.strftime("%Y-%m-%d")
 
     limit = "LIMIT 3" if verbose else ""
 
-    sql = """ SELECT jsonb_build_object (
-    'type',     'FeatureCollection',
-    'features', jsonb_agg(features.feature)
-)
-FROM (
-
--- ============ flown paths
+    # ============ flown paths
+    flown_paths_sql = """
+    --  ============ flown paths
   SELECT jsonb_build_object(
     'type',         'Feature',
     'id',           fid,
     'geometry',     ST_AsGeoJSON(flw_geog)::jsonb,
-    'properties',   to_jsonb(inputs) - 'flw_geog' - 'b4_ent_geog' - 'b4_dep_geog'
+    'properties',   to_jsonb(inputs_flw) - 'flw_geog'
     ) AS feature
   FROM (
-    SELECT *
+    SELECT %s, 'flw' as ptype
     FROM fvf_%s
-    WHERE arr_time >= to_timestamp('%s 15:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
-    AND   arr_time <  to_timestamp('%s 19:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
-    AND   artcc = '%s'
+    WHERE artcc = '%s'
+    -- AND   arr_time >= to_timestamp('%s 15:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
+    -- AND   arr_time <  to_timestamp('%s 19:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
     %s
-) inputs
+) inputs_flw """ % ( flw_cols, y_m, ctr, yhmhd, yhmhd, limit )
 
-UNION ALL
+    # ============ at entry paths
+    # need geojson id, but it _must_ be unique
+    at_entry_paths_sql = """
+    --  ============ at_entry paths
+  SELECT jsonb_build_object(
+    'type',         'Feature',
+    'id',           fidx,
+    'geometry',     ST_AsGeoJSON(b4_ent_geog)::jsonb,
+    'properties',   to_jsonb(inputs_ate) - 'b4_ent_geog' -'fidx'
+    ) AS feature
+  FROM (
+    SELECT %s, 'ate' as ptype, fid+%d as fidx
+    FROM fvf_%s
+    WHERE artcc = '%s'
+    -- AND   arr_time >= to_timestamp('%s 15:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
+    -- AND   arr_time <  to_timestamp('%s 19:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
+    %s
+) inputs_ate """ % ( ate_cols, fid_offset, y_m, ctr, yhmhd, yhmhd, limit )
 
--- ============ artcc
+    # ============ artcc TODO: diff with tracon!!!!!!!
+
+    artcc_sql = """
+    -- ============ artcc
   SELECT jsonb_build_object(
     'type',         'Feature',
     'id',           1,  -- watch out for this
@@ -79,9 +113,21 @@ UNION ALL
     SELECT *
     FROM centers
     WHERE name='%s'
-) inputs_ctr
+) inputs_ctr """ % ctr
 
-) features; """ % (y_m, yhmhd, yhmhd, ctr, limit, ctr)
+    # ============  everything together
+
+    sql = """ SELECT jsonb_build_object (
+    'type',     'FeatureCollection',
+    'features', jsonb_agg(features.feature)
+)
+FROM (
+%s
+UNION ALL
+%s
+UNION ALL
+%s
+) features; """ % ( flown_paths_sql, at_entry_paths_sql, artcc_sql)
 
     if verbose: print(sql)
     lgr.debug(sql)
@@ -99,6 +145,8 @@ UNION ALL
     #    fd.write( json.dumps(gjsn) )
     #print("written:", fn)
 
+    #if args.elapsed: aa.end("retr paths:" + ctr)
+
     return(gjsn)
 
 # ===========================================================================
@@ -108,7 +156,7 @@ UNION ALL
 
 def my_df_to_dict(xxx_df):
 
-    xxx_jsn = xxx_df.to_json(date_format='iso', orient="records",
+    xxx_jsn = xxx_df.to_json(date_format='iso', orient="split",
                                  default_handler=str)
     xxx_dct = json.loads(xxx_jsn)
 
@@ -118,6 +166,8 @@ def my_df_to_dict(xxx_df):
 
 def get_details(lgr, gdate, ctr, verbose=False):
 
+    #if args.elapsed: bb = elapsed.Elapsed()
+
     y_m   = gdate.strftime("%Y_%m")
     yhmhd = gdate.strftime("%Y-%m-%d")
 
@@ -125,11 +175,9 @@ def get_details(lgr, gdate, ctr, verbose=False):
 flw_dist,  b4_ent_dist, b4_dep_dist, dep_time, arr_time
 FROM fvf_%s
 WHERE artcc = '%s'
-AND arr_time >= to_timestamp('%s 15:00:00+00',
-                             'YYYY-MM-DD HH24:MI:SS+ZZ')
-AND arr_time <  to_timestamp('%s 19:00:00+00',
-                             'YYYY-MM-DD HH24:MI:SS+ZZ')""" % \
-                             (y_m, ctr, yhmhd, yhmhd)
+-- AND arr_time >= to_timestamp('%s 15:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
+-- AND arr_time <  to_timestamp('%s 19:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
+""" % (y_m, ctr, yhmhd, yhmhd)
 
     if verbose: print(sql)
     lgr.debug(sql)
@@ -139,16 +187,22 @@ AND arr_time <  to_timestamp('%s 19:00:00+00',
     if verbose: print(details_df)
     lgr.debug(details_df)
 
+    #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
     # make smaller if testing
     details_df = details_df[2:4] if verbose else details_df
 
     details_dct = my_df_to_dict( details_df )
+
+    #if args.elapsed: bb.end("retr details:" + ctr)
 
     return(details_df, details_dct)
 
 # ===========================================================================
 
 def get_chart_from_details(lgr, details_df, ctr):
+
+    #if args.elapsed: cc = elapsed.Elapsed()
 
     # get the quarter-hour bin for each flight
     # first, make a datetime object out of it
@@ -200,6 +254,8 @@ def get_chart_from_details(lgr, details_df, ctr):
     #pprint(chart_dct)
 
     # code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    #if args.elapsed: cc.end("form chart:" + ctr)
 
     return(ate_cnr_dct, flw_cnr_dct, chart_dct)
 
@@ -273,15 +329,25 @@ if __name__ == "__main__":
     parser.add_argument('-o', '--output', type=str,
             help="output style (j=json, p=pretty)", choices=('j', 'p'), default="j")
 
+    #parser.add_argument('-e', '--elapsed', action='store_const', const=True,
+    #        help="use elapsed measurements", default=False )
+
+    parser.add_argument('-f', '--filename', type=str,
+            help="output filename", default="fixme.json")
+
     args = parser.parse_args()
 
     # ==================================================================
 
     main_output = get_postg_data_from_asdidb(lgr, args.date)
 
-    if args.output == 'p':
-        pprint(main_output)           # nice format
+    with open(args.filename, "w") as fd:
 
-    if args.output == 'j':
-        print(json.dumps(main_output)) # actual json-encoded data sent to browser
+        if args.output == 'p':
+            fd.write(pprint(main_output))           # nice format
 
+        # actual json-encoded data sent to browser
+        if args.output == 'j':
+            fd.write(json.dumps(main_output) )
+
+    print("written:", args.filename)
