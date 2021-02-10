@@ -170,6 +170,7 @@ export default {
         y_m_da_val : "2020_12_04_05",     // arrival time is rounded to this
         y_m_dd_val : "2020-12-04 05:00",  // display on Chart component
 
+        all_json_data: [],  // the (large) json received from server
         details_data : [],  // fetched data from everything.py
         chart_data   : [],  // fetched data from everything.py
         map_data     : [],  // fetched data from everything.py
@@ -263,11 +264,12 @@ export default {
 
     process_fetch_response(data) {
 
-        this.map_data     = data.map_data;
-        this.chart_data   = data.chart_data;
-        this.details_data = data.details_data;
-        this.fe_data      = data.flw_chart_data;
-        this.ate_data     = data.ate_chart_data;
+        this.all_json_data= data;  // save everything there is
+        //this.map_data     = data.map_data[this.center_selected];
+        //this.chart_data   = data.chart_data[this.center_selected];
+        this.details_data = data.details_data[this.center_selected];
+        //this.fe_data      = data.flw_chart_data[this.center_selected];
+        //this.ate_data     = data.ate_chart_data[this.center_selected];
 
         // =========== chart details ==============
 
@@ -277,7 +279,7 @@ export default {
 
         // ---- tell Map component
 
-        let map_args = { mdata: this.map_data[this.center_selected],
+        let map_args = { mdata: this.map_data,
                          hour : this.y_m_dt_val };
         this.$root.$emit('draw_all_fc', (map_args) );
 
@@ -365,9 +367,9 @@ console.log(e_feb);
 this.process_fetch_response(e_feb);
 console.log(this.y_m_dt_val);
 console.log("data to show:"+this.center_selected);
-console.log(this.map_data[this.center_selected]);
+console.log(this.map_data);
           // not for flask: 
-        let map_args = { mdata: this.map_data[this.center_selected],
+        let map_args = { mdata: this.map_data,
                          hour : this.y_m_dt_val };
         this.$root.$emit('draw_all_fc', (map_args) );
 console.log("new emit");
@@ -416,8 +418,8 @@ console.log("set_and_show_flown_and_entry -- fvf");
 
         //if (this.fe_data.length > 0 ) {
           // FIXME: s.b. 0 !!!!!!!!!!!
-          if (this.map_data[this.center_selected].features.length > 99999) {
-            let chart_args = { cdata       : this.map_data[this.center_selected], // this.fe_data,
+          if (this.map_data.features.length > 99999) {
+            let chart_args = { cdata       : this.map_data, // this.fe_data,
                                atedata     : this.ate_data,
                                slider_vals : this.slider_vals,
                                title_date  : this.y_m_dd_val   };

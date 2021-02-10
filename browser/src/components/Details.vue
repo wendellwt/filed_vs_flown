@@ -19,10 +19,10 @@
                     <td              >{{ item.acid         }}</td>
                     <td              >{{ item.corner       }}</td>
                     <td              >{{ item.arr_time     }}</td>
-                    <td align="right">{{ item.flight_index }}</td>
-                    <td align="right">{{ item.at_dep_dist  }}</td>
-                    <td align="right">{{ item.at_ent_dist  }}</td>
-                    <td align="right">{{ item.flown_dist   }}</td>
+                    <td align="right">{{ item.fid          }}</td>
+                    <td align="right">{{ parseFloat(item.b4_dep_dist).toFixed(1)  }}</td>
+                    <td align="right">{{ parseFloat(item.b4_ent_dist).toFixed(1)  }}</td>
+                    <td align="right">{{ parseFloat(item.flw_dist   ).toFixed(1)  }}</td>
                 </tr>
             </tbody>
 
