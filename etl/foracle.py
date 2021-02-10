@@ -75,6 +75,8 @@ aspm_77  = ("ABQ", "ANC", "ATL", "AUS", "BDL", "BHM", "BNA", "BOS", "BUF",
 # get everything we can from oracle for flights to this airport on the ops day
 
 import sys
+import pytz
+import code
 
 def read_ops_day_data(ops_date, arr_apt, args_verbose):
 
@@ -83,10 +85,6 @@ def read_ops_day_data(ops_date, arr_apt, args_verbose):
     yestr = (ops_date - datetime.timedelta(days=1)).strftime("%Y%m%d")
     today = (ops_date                             ).strftime("%Y%m%d")
     tomor = (ops_date + datetime.timedelta(days=1)).strftime("%Y%m%d")
-
-    #ora_tbls = "(SELECT * FROM ROUTE_" + yestr + "@ETMSREP UNION ALL " + \
-    #            "SELECT * FROM ROUTE_" + today + "@ETMSREP UNION ALL " + \
-    #            "SELECT * FROM ROUTE_" + tomor + "@ETMSREP) "
 
     ora_tbls = "(SELECT * FROM ROUTE_" + yestr + "@ETMSREP WHERE FID > 0 UNION ALL " + \
                 "SELECT * FROM ROUTE_" + today + "@ETMSREP WHERE FID > 0 UNION ALL " + \
@@ -117,6 +115,19 @@ AND arr_aprt %s """ % (ora_tbls, arr_time, apt_where)
     if args_verbose: print(sql)
 
     ora_df = pd.read_sql(sql, con=ex_conn)
+
+    print("BEFORE pytz")
+    code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    # Q: does this fixe the @#$%$%^& UTC issue???
+    ora_df['DEP_TIME'] = ora_df['DEP_TIME'].map(
+                                  lambda t: t.replace(tzinfo=pytz.UTC))
+
+    ora_df['ARR_TIME'] = ora_df['ARR_TIME'].map(
+                                  lambda t: t.replace(tzinfo=pytz.UTC))
+
+    print("AFTER pytz")
+    code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     # if args_verbose: print(ora_df)
 
