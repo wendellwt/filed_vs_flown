@@ -124,7 +124,7 @@
 <script>
 
 // a file captured from ./everything.py over on rserver:
-// not for flask: 
+// not for flask:
 //import sample_json_data from "./files/output_everything.json";
 //import e_zdv from "./files/e_ZDV.json";
 import e_feb from "./files/e_2020_01_10.json";
@@ -309,7 +309,15 @@ export default {
         document.body.style.cursor='wait';
         this.go_button_loading = true;
 
-    fetch(the_query, { headers: { 'Content-Type': 'application/json' }})
+         // don't know which gzip might work...
+        // content-encoding may be just for POST when SENDING to server...
+
+// Q: need to manually gzip on server???
+// https://stackoverflow.com/questions/9622998/how-to-use-content-encoding-gzip-with-python-simplehttpserver
+
+    fetch(the_query, { headers: { 'Content-Type': 'application/json',
+                                  'Content-Encoding': 'gzip',
+                                  'Accept-Encoding' : 'gzip'          }})
         .then(response => response.json())
         .then(data => {
             document.body.style.cursor='default';
@@ -368,7 +376,7 @@ this.process_fetch_response(e_feb);
 console.log(this.y_m_dt_val);
 console.log("data to show:"+this.center_selected);
 console.log(this.map_data);
-          // not for flask: 
+          // not for flask:
         let map_args = { mdata: this.map_data,
                          hour : this.y_m_dt_val };
         this.$root.$emit('draw_all_fc', (map_args) );
