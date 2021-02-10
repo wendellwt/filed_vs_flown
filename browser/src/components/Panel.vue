@@ -126,7 +126,8 @@
 // a file captured from ./everything.py over on rserver:
 // not for flask: 
 //import sample_json_data from "./files/output_everything.json";
-import e_zdv from "./files/e_ZDV.json";
+//import e_zdv from "./files/e_ZDV.json";
+import e_feb from "./files/e_2020_01_10.json";
 //soon: import e_zlc from "./files/e_ZLC.json";
 
 export default {
@@ -140,8 +141,7 @@ export default {
 
         arr_selected: "DEN",
         center_selected: "ZDV",
-        //sel_date: new Date('January 10, 2020 09:00:00'),  // start???
-        sel_date: new Date('December 4, 2020 14:00:00'),  // start???
+        sel_date: new Date('January 10, 2020 14:00:00'),  // start???
 
         airportlist: [ "DEN", "DFW" ],  // the only ones we've run so far
         // centerlist: [ "ZDV", "ZFW", "ZLA", 'ZKC', 'ZME' ],
@@ -222,7 +222,8 @@ export default {
             // ---- tell Map component
 
             // new fvf: let map_args = { mdata: this.map_data, hour : this.y_m_dt_val };
-            let map_args = { mdata: e_zdv, hour : this.y_m_dt_val };
+            let map_args = { mdata: this.map_data[this.center_selected],
+                             hour : this.y_m_dt_val };
             this.$root.$emit('draw_all_fc', (map_args) );
 
             // ---- tell Chart component
@@ -276,7 +277,8 @@ export default {
 
         // ---- tell Map component
 
-        let map_args = { mdata: this.map_data, hour : this.y_m_dt_val };
+        let map_args = { mdata: this.map_data[this.center_selected],
+                         hour : this.y_m_dt_val };
         this.$root.$emit('draw_all_fc', (map_args) );
 
         // =========== table details ==============
@@ -357,11 +359,16 @@ export default {
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     CallAFunction_fvf_geojson() {
-console.log("CallAFunction - new geojson");
-console.log(e_zdv);
+console.log("CallAFunction - feb geojson");
+console.log(e_feb);
+
+this.process_fetch_response(e_feb);
 console.log(this.y_m_dt_val);
+console.log("data to show:"+this.center_selected);
+console.log(this.map_data[this.center_selected]);
           // not for flask: 
-        let map_args = { mdata: e_zdv, hour : this.y_m_dt_val };
+        let map_args = { mdata: this.map_data[this.center_selected],
+                         hour : this.y_m_dt_val };
         this.$root.$emit('draw_all_fc', (map_args) );
 console.log("new emit");
     },
@@ -408,8 +415,9 @@ console.log("emit circ:");
 console.log("set_and_show_flown_and_entry -- fvf");
 
         //if (this.fe_data.length > 0 ) {
-          if (e_zdv.length > 0) {
-            let chart_args = { cdata       : e_zdv, // this.fe_data,
+          // FIXME: s.b. 0 !!!!!!!!!!!
+          if (this.map_data[this.center_selected].features.length > 99999) {
+            let chart_args = { cdata       : this.map_data[this.center_selected], // this.fe_data,
                                atedata     : this.ate_data,
                                slider_vals : this.slider_vals,
                                title_date  : this.y_m_dd_val   };

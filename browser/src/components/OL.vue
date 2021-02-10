@@ -319,6 +319,8 @@ export default {
 //console.log(hour_to_disp);
 
                if (all_flights.features[k].properties.arr_time.substr(0,13) == hour_to_disp) {
+//console.log(hour_to_disp);
+//console.log(all_flights.features[k].properties.arr_time.substr(0,13));
 
                   // TODO: COMBINE this with DataPos generation!!!
                   // (maybe not so bad; DataPos list is constructed from this list)
@@ -327,7 +329,7 @@ export default {
                }
            } else {
 
-              // and always draw everything else
+              // and always draw everything else (the artcc)
               flts_to_disp.push(all_flights.features[k]);
            }
       }
