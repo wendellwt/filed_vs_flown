@@ -328,6 +328,13 @@ def output_to_oracle_flight_level(center_df, tier):
 
     ora_output_df['ARTCC_LEVEL'] = tier
 
+    # Q: does this fixe the @#$%$%^& UTC issue???
+    ora_output_df['DEP_TIME'] = ora_output_df['DEP_TIME'].map(
+                                  lambda t: t.replace(tzinfo=pytz.UTC))
+
+    ora_output_df['ARR_TIME'] = ora_output_df['ARR_TIME'].map(
+                                  lambda t: t.replace(tzinfo=pytz.UTC))
+
     ora_output_df.rename( {
         'DEPT_APRT'   : 'ORIG',
         'ARR_APRT'    : 'DEST',
@@ -345,7 +352,6 @@ def output_to_oracle_flight_level(center_df, tier):
     #print("ora_output_df")
     #print(ora_output_df)
     #print(ora_output_df.columns)
-
 
     foracle.write_to_flight_level(ora_output_df, args.verbose)
 

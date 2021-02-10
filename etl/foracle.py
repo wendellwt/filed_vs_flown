@@ -15,11 +15,12 @@ service  = os.environ.get('EXTR1_SERVICE')
 username = os.environ.get('EXTR1_USER')
 password = os.environ.get('EXTR1_PASS')
 
-#now INOP: = cxo.makedsn(host, port, service)
+# ######################  oracle + plain to extr1  #######################
+
 ex_dsn_tns = cxo.makedsn(host, port, service_name=service)
 ex_conn    = cxo.connect(username, password, ex_dsn_tns)
 
-# ######################  oracle + sqlalchemy  #########################
+# ######################  oracle + sqlalchemy to filed_vs_flown  ########
 
 from sqlalchemy import types, create_engine
 
@@ -33,8 +34,20 @@ credentials = 'oracle+cx_oracle://' + \
                username + ':' + password + '@' + host + ':' + port + \
               '/?service_name=' + service
 
-sq_conn = create_engine(credentials,
-                     max_identifier_length=30)
+# q: should this be named sq_engine???
+sq_conn = create_engine(credentials, max_identifier_length=30)
+
+# ======================================================================
+# this doesn't seem to hurt...
+
+with sq_conn.connect() as sq_con:
+
+    sql_utc = "ALTER SESSION SET TIME_ZONE='UTC'"
+
+    sq_con.execute(sql_utc)
+
+ex_csr = cxo.Cursor(ex_conn)
+ex_csr.execute(sql_utc)
 
 # ########################################################################## #
 
@@ -286,15 +299,27 @@ def get_all_tz_using_temp(ops_date, fids, args_verbose):
 
 # =========================================================================
 
+# Notes:
+# Timezone aware datetime columns will be written as Timestamp with timezone
+# type with SQLAlchemy if supported by the database. Otherwise, the datetimes
+# will be stored as timezone unaware timestamps local to the original timezone.
+
+from sqlalchemy import TIMESTAMP
+
 def write_to_flight_level(fvf_df, verbose=False):
 
-    tbl_name = "flight_level"   # note: lower case, otherwise:
+    tbl_name = "filed_vs_flown"   # note: lower case, otherwise:
     # sql.py:1336: UserWarning: The provided table name 'FLIGHT_LEVEL' is not
     # found exactly as such in the database
 
     if verbose: print("calling: to_sql()")
 
-    fvf_df.to_sql(tbl_name, sq_conn, if_exists='append', index=False)
+    # this doesn't seem to hurt...
+    coltypes = {'DEP_TIME': TIMESTAMP,
+                'ARR_TIME': TIMESTAMP}
+
+    fvf_df.to_sql(tbl_name, sq_conn, if_exists='append', index=False,
+                                     dtype=coltypes )
 
     print("done:", len(fvf_df))
 
