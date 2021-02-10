@@ -8,6 +8,7 @@ from mobilitydb.psycopg import register
 from geojson import Feature, FeatureCollection, dumps
 
 from flask import Flask, render_template, request
+from flask_compress import Compress
 
 sys.path.append('copied')  # stupid git/sharing  work-around
 import get_paths
@@ -16,8 +17,11 @@ import everything    # CATION: each of these makes a new PosgGreSQL connection
 import web_logging
 
 # --------------------------------------------------------------------
+# compress:
+# https://pypi.org/project/Flask-Compress/#:~:text=Flask%2DCompress%20allows%20you%20to,solve%20the%20problem%20for%20you.
 
 app = Flask(__name__)
+Compress(app)
 
 # --------------------------------------------------------------------
 
