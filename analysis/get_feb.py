@@ -263,6 +263,8 @@ def get_chart_from_details(lgr, details_df, ctr):
 
 def get_postg_data_from_asdidb(lgr, gdate):
 
+    lgr.info("get_postg starting")
+
     main_output = { 'map_data'     : {},
                     'chart_data'   : {},
                     'details_data' : {} }
@@ -287,6 +289,8 @@ def get_postg_data_from_asdidb(lgr, gdate):
                                                     lgr, details_df, ctr)
 
         main_output['chart_data'][ctr] = chart_dct  # AND FLOWN AND CHART???
+
+    lgr.info("get_postg finished")
 
     # return a dict containing dicts which Flask/CherryPy will json.dumps()
     return(main_output)
