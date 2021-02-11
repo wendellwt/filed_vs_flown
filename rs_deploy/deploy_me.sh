@@ -45,6 +45,7 @@ sed "s%cssi_star.png%/content/${APP_ID}/static/cssi_star.png%" static/index.html
 
 cp ../analysis/fvf_by_artcc.py copied/
 cp ../analysis/everything.py copied/
+cp ../analysis/get_feb.py copied/
 
 STATIC_FILES=`find static/ -type f | grep -v index.html`
 
@@ -52,5 +53,6 @@ rsconnect deploy api --title $APP_TITLE --server http://172.26.21.40:3939 --api-
      copied/fvf_by_artcc.py \
      copied/get_paths.py \
      copied/everything.py \
+     copied/get_feb.py \
      templates/index.html  $STATIC_FILES
 
