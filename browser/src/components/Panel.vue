@@ -71,7 +71,7 @@
                     size="is-small"
                     :loading.sync="go_button_loading"
                     rounded
-                    v-on:click="GoEverything()"
+                    v-on:click="GoEverything_feb()"
                     >GET DATA</b-button>
                 &nbsp; &nbsp; &nbsp;
             <b-checkbox type="is-info"
@@ -127,7 +127,7 @@
 // not for flask:
 //import sample_json_data from "./files/output_everything.json";
 //import e_zdv from "./files/e_ZDV.json";
-import e_feb from "./files/e_2020_01_10.json";
+// import e_feb from "./files/e_2020_01_10.json";
 //soon: import e_zlc from "./files/e_ZLC.json";
 
 export default {
@@ -248,7 +248,7 @@ export default {
 
         let force_reload = Math.floor(Math.random() * 99999);
 
-        let the_query = "get_everything" +
+        let the_query = "get_feb" +
                         "?apt="  + this.arr_selected +
                         "&ctr="  + this.center_selected +
                         "&date=" + udate +
@@ -295,7 +295,7 @@ export default {
     // -----------------------------------------------
     // ----------- everything processing  ---------
     // --------------------------------------------
-    GoEverything() {
+    GoEverything_feb() {
 
         if (this.use_pickle==true) {
           console.log("NOT doing anything here.")
@@ -369,7 +369,8 @@ export default {
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     CallAFunction_fvf_geojson() {
-console.log("CallAFunction - feb geojson");
+console.log("CallAFunction - feb geojson - NOT");
+        /************************************
 console.log(e_feb);
 
 this.process_fetch_response(e_feb);
@@ -381,6 +382,7 @@ console.log(this.map_data);
                          hour : this.y_m_dt_val };
         this.$root.$emit('draw_all_fc', (map_args) );
 console.log("new emit");
+        ************************************/
     },
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
