@@ -628,7 +628,7 @@ cssi_engine = create_engine('postgresql://' + \
 
 def write_ff_to_postgis_cssi(fvf_tbl, ctr_df, ctr_name_HELP):
 
-    print(" >>>>>>>> CSSI")
+    #print(" >>>>>>>> CSSI")
 
     # code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -695,7 +695,7 @@ def write_ff_to_postgis_cssi(fvf_tbl, ctr_df, ctr_name_HELP):
     #  but a wkt that looks like one
     #wrong: ctr_gf.set_geometry('flw_geog', inplace=True)  # pointless???
 
-    print(" >>>>>>>> CSSI.to_sql")
+    print(" CSSI.to_sql")
     #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     try:
         ctr_gf.to_sql(fvf_tbl, cssi_engine, if_exists='append', index=False,
@@ -712,5 +712,5 @@ def write_ff_to_postgis_cssi(fvf_tbl, ctr_df, ctr_name_HELP):
 
     # sys.exit(1)
 
-    print(" >>>>>>>> CSSI.finished")
+    print(" CSSI.finished")
 
