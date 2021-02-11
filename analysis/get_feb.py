@@ -75,8 +75,8 @@ def retrieve_path_center_geojson(lgr, gdate, ctr, verbose=False):
     SELECT %s, 'flw' as ptype
     FROM fvf_%s
     WHERE artcc = '%s'
-    -- AND   arr_time >= to_timestamp('%s 15:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
-    -- AND   arr_time <  to_timestamp('%s 19:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
+    AND   arr_time >= to_timestamp('%s 00:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
+    AND   arr_time <  to_timestamp('%s 23:59:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
     %s
 ) inputs_flw """ % ( flw_cols, y_m, ctr, yhmhd, yhmhd, limit )
 
@@ -94,8 +94,8 @@ def retrieve_path_center_geojson(lgr, gdate, ctr, verbose=False):
     SELECT %s, 'ate' as ptype, fid+%d as fidx
     FROM fvf_%s
     WHERE artcc = '%s'
-    -- AND   arr_time >= to_timestamp('%s 15:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
-    -- AND   arr_time <  to_timestamp('%s 19:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
+    AND   arr_time >= to_timestamp('%s 00:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
+    AND   arr_time <  to_timestamp('%s 23:59:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
     %s
 ) inputs_ate """ % ( ate_cols, fid_offset, y_m, ctr, yhmhd, yhmhd, limit )
 
