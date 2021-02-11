@@ -97,8 +97,10 @@ def get_sched_data_from_oracle(act_date, arr_apt):
     if args.pickle:
         arrivals_df = pickle.load( open( "p_filed_df.p", "rb" ) )
     else:
-        all_df = foracle.read_ops_day_data(act_date, arr_apt, args.verbose)
-        arrivals_df = all_df.loc[all_df['ARR_APRT'] == args.airport]  # redundant?
+        arrivals_df = foracle.read_ops_day_data(act_date, arr_apt, args.verbose)
+
+        #all_df = foracle.read_ops_day_data(act_date, arr_apt, args.verbose)
+        # done in foracle: arrivals_df = all_df.loc[all_df['ARR_APRT'] == args.airport]  # redundant?
 
         pickle.dump( arrivals_df, open( "p_filed_df.p","wb" ) )
 
@@ -149,31 +151,7 @@ def form_linestring(row, verbose=False):
 
 # ======================================================================
 
-def UNUSED_make_waypoints_into_linestrings(sched_df):  # OLD, possibly replaced
-
-    ls = elapsed.Elapsed()
-    print("creating linestrings, num sched flts:", len(sched_df))
-
-    if args.pickle:
-        sched_df = pickle.load( open( "p_linestrings_df.p", "rb" ) )
-    else:
-        sched_df['sched_path'] = sched_df.apply(
-                           lambda row: form_linestring(row, False), axis=1)
-
-        pickle.dump( sched_df, open( "p_linestrings_df.p","wb" ) )
-
-    ls.end("create linestrings")
-    cl = elapsed.Elapsed()
-    if args.verbose: print("done with linestrings")
-
-    sched_df.dropna(inplace=True)
-
-    if args.verbose: print("clean, len=", len(sched_df))
-    cl.end("clean na")
-
-    return(sched_df)
-
-# ========================= read shapefile of artcc and tracon
+# -----------------------  read shapefile of artcc and tracon
 
 import shapefile
 from shapely import wkb
@@ -317,32 +295,32 @@ import pytz
 
 def output_to_oracle_flight_level(center_df, tier):
 
+    #import code                     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
     # drop cols CP doesn't want
     ora_output_df = center_df.drop([ 'FID', 'b4_dep_path',
-                                    'b4_ent_path', 'flw_path'], axis=1)
+                                    'b4_ent_path', 'flw_path',
+                                    'b4_dep_up_to_path', 'flw_up_to_path',
+                                    ], axis=1)
+
+    ora_output_df['ARTCC_LEVEL'] = tier
 
     ora_output_df['OPSDAY'] = ora_output_df['ARR_TIME'].apply(lambda dt:
          (dt - datetime.timedelta(hours=8))
                  .replace(hour=0,minute=0,second=0)
                  .replace(tzinfo=pytz.UTC))
 
-    ora_output_df['ARTCC_LEVEL'] = tier
-
-    # Q: does this fixe the @#$%$%^& UTC issue???
-    ora_output_df['DEP_TIME'] = ora_output_df['DEP_TIME'].map(
-                                  lambda t: t.replace(tzinfo=pytz.UTC))
-
-    ora_output_df['ARR_TIME'] = ora_output_df['ARR_TIME'].map(
-                                  lambda t: t.replace(tzinfo=pytz.UTC))
-
     ora_output_df.rename( {
-        'DEPT_APRT'   : 'ORIG',
-        'ARR_APRT'    : 'DEST',
-        'DEP_TIME'    : 'DEPT_TIME',
-        'corner'      : 'CORNERPOST',
-        'b4_dep_dist' : 'LAST_FILED_DIST',
-        'b4_ent_dist' : 'BEFORE_ENTRY_DIST',
-        'flw_dist'    : 'FLOWN_DIST'
+        'DEPT_APRT'         : 'ORIG',
+        'ARR_APRT'          : 'DEST',
+        'DEP_TIME'          : 'DEPT_TIME',
+        'corner'            : 'CORNERPOST',
+        'b4_dep_dist'       : 'LAST_FILED_DIST',
+        'b4_ent_dist'       : 'BEFORE_ENTRY_DIST',
+        'flw_dist'          : 'FLOWN_DIST',
+        'b4_dep_up_to_dist' : 'LAST_FILED_UP_TO_DIST',
+        'flw_up_to_dist'    : 'FLOWN_UP_TO_DIST'
         }, axis=1, inplace=True)
 
         # these are ok:
@@ -416,6 +394,10 @@ def get_flown_data(just_fids):
 
     # Q: do we need to sort by POSIT_TIME ???
     # this is a Series
+
+    # TODO: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    #   add row containing position of departure airport with FAKE POSIT_TIME
+    # code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     posit_time_df = flown_pts_df.sort_values(by='POSIT_TIME')
 
@@ -597,13 +579,13 @@ last_b4_dep_df = make_b4_depart_ls(sched_df)
 
 flown_pts_df, flown_ls_df = get_flown_data(just_fids)
 
-# cn = elapsed.Elapsed()
+cn = elapsed.Elapsed()
 # print("beginning corners")
 
 flown_ls_df['corner'] = flown_ls_df['flown_path'].apply(
                      lambda ls: closest_corner(ls))
 
-# cn.end("find all corners")
+cn.end("find all corners")
 
 # >>>>>>>>>>>>>>>>>>>> begin loop on artccs <<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -628,6 +610,19 @@ for ctr, tier in artccs:
     last_b4_dep_df['b4_dep_dist'] = last_b4_dep_df['b4_dep_path'].apply(
                                           lambda ls: gc_length(ls) )
 
+    # ==== g2. before depart paths up to that poly
+
+    # get a linestring (possibly mulitlinestring) of the geospatial difference
+    last_b4_dep_df['b4_dep_up_to_path'] = \
+        last_b4_dep_df['sched_path'].apply( lambda ls: ls.difference(center_minus_tracon_shp))
+
+    # and if it is a MultiLineString, take the first one
+    last_b4_dep_df['b4_dep_up_to_path'] = last_b4_dep_df['b4_dep_up_to_path'].apply(
+        lambda ls: ls if ls.geom_type == "LineString" else ls[0])
+
+    last_b4_dep_df['b4_dep_up_to_dist'] = \
+          last_b4_dep_df['b4_dep_up_to_path'].apply(lambda ls: gc_length(ls) )
+
     # ==== h. before entry paths intersected by that poly
     # get df of rows from sched_df having orig_time last one before artcc entry
 
@@ -647,12 +642,23 @@ for ctr, tier in artccs:
 
     # ==== j. flown path within artcc
 
-    # Q: has flown list of POSITION been made into a LINESTRING yet???
-
     flown_ls_df['flw_path'] = flown_ls_df['flown_path'].apply(
                      lambda ls: ls.intersection(center_minus_tracon_shp))
 
     flown_ls_df['flw_dist'] = flown_ls_df['flw_path'].apply(
+                                          lambda ls: gc_length(ls) )
+
+    # ==== j2. flown path up to artcc
+
+    # get a linestring (possibly mulitlinestring) of the geospatial difference
+    flown_ls_df['flw_up_to_path'] = flown_ls_df['flown_path'].apply(
+                     lambda ls: ls.difference(center_minus_tracon_shp))
+
+    # and if it is a MultiLineString, take the first one
+    flown_ls_df['flw_up_to_path'] = flown_ls_df['flw_up_to_path'].apply(
+        lambda ls: ls if ls.geom_type == "LineString" else ls[0])
+
+    flown_ls_df['flw_up_to_dist'] = flown_ls_df['flw_up_to_path'].apply(
                                           lambda ls: gc_length(ls) )
 
     # ==== k. assemble data elements into output frame
@@ -662,7 +668,7 @@ for ctr, tier in artccs:
     if not args.skip_oracle:
         output_to_oracle_flight_level(center_df, tier)
 
-    output_json_to_file(center_df, ctr, center_minus_tracon_shp)
+    # FIXED DATES used here: output_json_to_file(center_df, ctr, center_minus_tracon_shp)
 
     output_postgis(center_df, ctr, center_minus_tracon_shp)
 

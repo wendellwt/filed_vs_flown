@@ -629,10 +629,15 @@ cssi_engine = create_engine('postgresql://' + \
 def write_ff_to_postgis_cssi(fvf_tbl, ctr_df, ctr_name_HELP):
 
     print(" >>>>>>>> CSSI")
+
+    # code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
     ctr_df.rename( {
-        'flw_path'    : 'flw_geog',
-        'b4_ent_path' : 'b4_ent_geog',
-        'b4_dep_path' : 'b4_dep_geog',
+        'flw_path'          : 'flw_geog',
+        'b4_ent_path'       : 'b4_ent_geog',
+        'b4_dep_path'       : 'b4_dep_geog',
+        'b4_dep_up_to_path' : 'b4_dep_up_to_geog',  # feb 11
+        'flw_up_to_path'    : 'flw_up_to_geog',
         }, axis=1, inplace=True)
 
     ctr_gf = gpd.GeoDataFrame(ctr_df, geometry='flw_geog')
@@ -657,9 +662,17 @@ def write_ff_to_postgis_cssi(fvf_tbl, ctr_df, ctr_name_HELP):
     ctr_gf['b4_dep_geog_wkt'] = ctr_gf['b4_dep_geog'] \
                         .apply(lambda x: WKTElement(x.wkt, srid=4326))
 
+    # feb 11
+    ctr_gf['flw_up_to_geog_wkt'] = ctr_gf['flw_up_to_geog'] \
+                        .apply(lambda x: WKTElement(x.wkt, srid=4326))
+
+    ctr_gf['b4_dep_up_to_geog_wkt'] = ctr_gf['b4_dep_up_to_geog'] \
+                        .apply(lambda x: WKTElement(x.wkt, srid=4326))
+
     # ---- 2) drop the shapely columns
 
-    ctr_gf.drop(['flw_geog', 'b4_ent_geog', 'b4_dep_geog'],  axis=1,
+    ctr_gf.drop(['flw_geog', 'b4_ent_geog', 'b4_dep_geog',
+                 'flw_up_to_geog', 'b4_dep_up_to_geog'    ],  axis=1,
                                                            inplace=True)
 
     # ---- 3) rename wkt columns to match PostGIS
@@ -668,6 +681,9 @@ def write_ff_to_postgis_cssi(fvf_tbl, ctr_df, ctr_name_HELP):
         'flw_geog_wkt'    : 'flw_geog',
         'b4_ent_geog_wkt' : 'b4_ent_geog',
         'b4_dep_geog_wkt' : 'b4_dep_geog',
+
+        'b4_dep_up_to_geog_wkt' : 'b4_dep_up_to_geog',
+        'flw_up_to_geog_wkt'    : 'flw_up_to_geog',
         }, axis=1, inplace=True)
 
     # ---- 4) finish off to ensure it is a proper geodataframe
@@ -680,18 +696,21 @@ def write_ff_to_postgis_cssi(fvf_tbl, ctr_df, ctr_name_HELP):
     #wrong: ctr_gf.set_geometry('flw_geog', inplace=True)  # pointless???
 
     print(" >>>>>>>> CSSI.to_sql")
+    #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     try:
         ctr_gf.to_sql(fvf_tbl, cssi_engine, if_exists='append', index=False,
-             dtype={'flw_geog'   : Geography(),   # use col id for type & srid(?)
-                    'b4_ent_geog': Geography(),
-                    'b4_dep_geog': Geography()
+             dtype={'flw_geog'         : Geography(),   # use col id for type & srid(?)
+                    'b4_ent_geog'      : Geography(),
+                    'b4_dep_geog'      : Geography(),
+                    'flw_up_to_geog'   : Geography(),
+                    'b4_dep_up_to_geog': Geography()
                     })
     except:
         print(">>>>>>>>>>>>> HELP!!!")
         print(ctr_gf)
         print(">>>>>>>>>>>>> HELP!!!")
 
-        sys.exit(1)
+    # sys.exit(1)
 
     print(" >>>>>>>> CSSI.finished")
 
