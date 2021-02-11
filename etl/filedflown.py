@@ -306,11 +306,6 @@ def output_to_oracle_flight_level(center_df, tier):
 
     ora_output_df['ARTCC_LEVEL'] = tier
 
-    ora_output_df['OPSDAY'] = ora_output_df['ARR_TIME'].apply(lambda dt:
-         (dt - datetime.timedelta(hours=8))
-                 .replace(hour=0,minute=0,second=0)
-                 .replace(tzinfo=pytz.UTC))
-
     ora_output_df.rename( {
         'DEPT_APRT'         : 'ORIG',
         'ARR_APRT'          : 'DEST',
@@ -664,6 +659,12 @@ for ctr, tier in artccs:
     # ==== k. assemble data elements into output frame
 
     center_df = merge_everything( last_b4_dep_df, at_entry_df, flown_ls_df)
+
+    # put this in postgis also, just to keep them consistent...
+    center_df['OPSDAY'] = center_df['ARR_TIME'].apply(lambda dt:
+         (dt - datetime.timedelta(hours=8))
+                 .replace(hour=0,minute=0,second=0)
+                 .replace(tzinfo=pytz.UTC))
 
     if not args.skip_oracle:
         output_to_oracle_flight_level(center_df, tier)
