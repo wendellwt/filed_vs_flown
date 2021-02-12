@@ -82,7 +82,6 @@ artccs = [ (adapt[args.airport]['parent'], 'parent'),         ] + \
 
 # ####################################################################### #
 #                 schedule path processing routines                       #
-                                                  # this uses args.pickle
 # ####################################################################### #
 
 # ---- retrieve _all_ scheduled data from route_yyyymmdd@extr1 tables,
@@ -95,14 +94,14 @@ def get_sched_data_from_oracle(act_date, arr_apt):
     ro = elapsed.Elapsed()
 
     if args.pickle:
-        arrivals_df = pickle.load( open( "p_filed_df.p", "rb" ) )
+        arrivals_df = pickle.load( open( "p_filed_" + y_m_d + "_df.p", "rb" ) )
     else:
         arrivals_df = foracle.read_ops_day_data(act_date, arr_apt, args.verbose)
 
         #all_df = foracle.read_ops_day_data(act_date, arr_apt, args.verbose)
         # done in foracle: arrivals_df = all_df.loc[all_df['ARR_APRT'] == args.airport]  # redundant?
 
-        pickle.dump( arrivals_df, open( "p_filed_df.p","wb" ) )
+        pickle.dump( arrivals_df, open( "p_filed_" + y_m_d + "_df.p","wb" ) )
 
     # ---- 2. get distinct flight id's
 
@@ -367,13 +366,13 @@ def get_flown_data(just_fids):
     # ---- c.1) fetch all FIDs from Oracle/TFMS
 
     if args.pickle:
-        full_tz_df = pickle.load( open( "p_full_tz_df.p", "rb" ) )
+        full_tz_df = pickle.load( open( "p_full_tz_" + y_m_d + "_df.p", "rb" ) )
     else:
 
         # NOT SORTED BY POSIT_TIME !!!!!!!!!!!!!!
         full_tz_df = foracle.get_all_tz_using_temp(args.date, just_fids, args.verbose)
 
-        pickle.dump( full_tz_df, open( "p_full_tz_df.p","wb" ) )
+        pickle.dump( full_tz_df, open( "p_full_tz_" + y_m_d + "_df.p","wb" ) )
 
     # ---- remove duplicated time fields
 
