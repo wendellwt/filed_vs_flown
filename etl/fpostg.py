@@ -3,18 +3,18 @@
 #                               postgis                                   #
 # ####################################################################### #
 
+# note: this file contains _all_ postgis subroutines used by both
+#  filedflown.py and (the now ole and superceeded) oracle2postg.py
+
 import io
 import psycopg2
 import geopandas as gpd
 
-# ours
-#import adaptation
 import elapsed
-
-from sqlalchemy import create_engine
 
 # =====================================================================
 import os
+from sqlalchemy import create_engine
 
 username = os.environ.get('PGUSER')
 password = os.environ.get('PGPASSWORD')
@@ -272,7 +272,6 @@ def write_sched_df_as_loop(sch_df, sch_tbl, verbose=False):
     # TODO rename 'geometry' column to be 'sched_path'
 
     pg_conn.commit()     # only now do the commit
-
 
     print("sched paths written; good: %d  bad: %d" % (good, bad))
 
@@ -546,8 +545,6 @@ def write_ff_to_postgis(fvf_tbl, ctr_df, ctr_name_HELP):
         engine = create_engine('postgresql://' + \
             username + ':' + password + '@' + host + ':5432/' + database)
 
-
-
 # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 def write_ff_to_postgis_loop(fvf_tbl, ctr_df, ctr_name_HELP):
@@ -698,7 +695,8 @@ def write_ff_to_postgis_cssi(fvf_tbl, ctr_df, ctr_name_HELP):
     #  but a wkt that looks like one
     #wrong: ctr_gf.set_geometry('flw_geog', inplace=True)  # pointless???
 
-    print(" CSSI.to_sql")
+    #print(" CSSI.to_sql")
+    cssi = elapsed.Elapsed()
     #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     try:
         ctr_gf.to_sql(fvf_tbl, cssi_engine, if_exists='append', index=False,
@@ -712,8 +710,8 @@ def write_ff_to_postgis_cssi(fvf_tbl, ctr_df, ctr_name_HELP):
         print(">>>>>>>>>>>>> HELP!!!")
         print(ctr_gf)
         print(">>>>>>>>>>>>> HELP!!!")
+        # sys.exit(1)
 
-    # sys.exit(1)
-
-    print(" CSSI.finished")
+    cssi.end("wrote cssi postgis")
+    #print(" CSSI.finished")
 
