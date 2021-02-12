@@ -15,7 +15,7 @@ import pickle
 
 from shapely.wkt import dumps  #, loads
 
-import foracle
+# import foracle
 
 #==========================================================
 # note: d.b. access credentials are in dot files or var panel in Connect
@@ -474,8 +474,7 @@ def insert_oracle(every_df, artcc_tier, verbose=False):
 
     if verbose: print(ora_df)
 
-    foracle.write_to_flight_level(ora_df, verbose)
-
+    # NOT FOR APP: foracle.write_to_flight_level(ora_df, verbose)
 
 # ######################################################################## #
 #                              standalone main                             #
