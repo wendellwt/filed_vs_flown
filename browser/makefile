@@ -24,9 +24,9 @@ deploy:
 	@echo "now do this (NOTE: TEST):"
 	@echo "   cd ../rs_deploy; ./deploy_me.sh test ; cd ../browser"
 	@echo "and visit the connect page (allows login):"
-	@echo "   http://172.26.21.40:3939/connect/#/apps/196"
+	@echo "   http://172.26.21.40:3939/connect/#/apps/201"
 	@echo "or the external page (no login):"
-	@echo "   http://172.26.21.40:3939/content/196/"
+	@echo "   http://172.26.21.40:3939/content/201/"
 
 endif
 
