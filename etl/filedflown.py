@@ -672,5 +672,5 @@ for ctr, tier in artccs:
 
     #ectr.end("end of:" + ctr)
 
-all.end("finished:" +  args.airport + ' ' +  args.date)
+all.end("finished " +  args.airport + ' ' +  args.date.strftime('%Y-%m-%d'))
 
