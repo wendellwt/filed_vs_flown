@@ -557,6 +557,8 @@ def output_postgis(ctr_df, ctr_name, center_minus_tracon_shp):
 #                                  main                                   #
 # ####################################################################### #
 
+all = elapsed.Elapsed()
+
 # ==== a. read _all_ schedules from oracle
 
 sched_df, just_fids = get_sched_data_from_oracle(args.date, args.airport)
@@ -646,7 +648,7 @@ for ctr, tier in artccs:
 
     # and if it is a MultiLineString, take the first one
     flown_ls_df['flw_up_to_path'] = flown_ls_df['flw_up_to_path'].apply(
-        lambda ls: ls if ls.geom_type == "LineString" else ls[0])
+        lambda ls: ls[0] if ls.geom_type == "MultiLineString" else ls)
 
     flown_ls_df['flw_up_to_dist'] = flown_ls_df['flw_up_to_path'].apply(
                                           lambda ls: gc_length(ls) )
@@ -670,5 +672,5 @@ for ctr, tier in artccs:
 
     #ectr.end("end of:" + ctr)
 
-print("finished:", args.airport, args.date)
+all.end("finished:" +  args.airport + ' ' +  args.date)
 
