@@ -551,10 +551,6 @@ def output_postgis(ctr_df, ctr_name, center_minus_tracon_shp):
     ctr_df['artcc'] = ctr_name
 
     tbl = "fvf_" + y_m
-    #print(tbl)
-
-    #fpostg.write_ff_to_postgis(tbl, ctr_df, ctr_name)
-    #fpostg.write_ff_to_postgis_loop(tbl, ctr_df, ctr_name)
 
     fpostg.write_ff_to_postgis_cssi(tbl, ctr_df, ctr_name)
 
@@ -613,7 +609,7 @@ for ctr, tier in artccs:
 
     # and if it is a MultiLineString, take the first one
     last_b4_dep_df['b4_dep_up_to_path'] = last_b4_dep_df['b4_dep_up_to_path'].apply(
-        lambda ls: ls if ls.geom_type == "LineString" else ls[0])
+        lambda ls: ls[0] if ls.geom_type == "MultiLineString" else ls)
 
     last_b4_dep_df['b4_dep_up_to_dist'] = \
           last_b4_dep_df['b4_dep_up_to_path'].apply(lambda ls: gc_length(ls) )
