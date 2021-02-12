@@ -25,7 +25,7 @@
          <b-tab-item label="Charts"> <Charts /> </b-tab-item>
 
          <!-- ============= stacked chart tab ============== -->
-         <b-tab-item label="Stacked"> <Stacked /> </b-tab-item>
+         <!-- b-tab-item label="Stacked"> <Stacked /> </b-tab-item -->
 
          <!-- ============= circular chart tab ============== -->
          <b-tab-item label="Circular"> <Circular /> </b-tab-item>
@@ -48,7 +48,7 @@
 import OL         from './OL.vue';
 import DataPos    from "./DataPos.vue";
 import Charts     from "./Charts.vue";
-import Stacked    from "./Stacked.vue";
+//import Stacked    from "./Stacked.vue";
 import FiledEntry from "./FiledEntry.vue";
 import Details    from "./Details.vue";
 import About      from "./About.vue";
@@ -63,7 +63,7 @@ export default {
       // 'mytable'  : Table,    // duh! 'table' is bad choice for a local html component!
       'mydetails': Details,
       Charts,
-      Stacked,
+      //Stacked,
       FiledEntry,
       Circular,
       About

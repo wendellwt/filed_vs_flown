@@ -113,10 +113,10 @@ console.log(xLabels);
 
     methods: {
 
-        nice_x_label: function(d) {
-console.log("nxl");
-            return x(d.data.arr_qh);
-        },
+//       nice_x_label: function(d) {
+//console.log("nxl");
+//            return x(d.data.arr_qh);
+//        },
 
         displayGData : function(ndata, ate_data, wt_groups, y_min, y_max, xLabels) {
 
@@ -217,7 +217,7 @@ console.log("nxl");
                 // help: .style("top", (d3.event.pageY - 28) + "px");
 
                   })
-       .on("mouseout", function(d) {
+       .on("mouseout", function() {   // faa laptop: removed 'd' from arg
            let tooltip = d3.select("#tooltip");
            tooltip.style("opacity", 0);
        });
