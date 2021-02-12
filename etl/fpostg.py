@@ -29,6 +29,8 @@ pg_csr = pg_conn.cursor( )
 engine = create_engine('postgresql://' + \
                  username + ':' + password + '@' + host + ':5432/' + database)
 
+engine.execute("SET TIME ZONE 'UTC';")  # date has timezone ???
+
 # =====================================================================
 
 # get the (single) geojson descr of artcc center without tracon
@@ -678,6 +680,7 @@ def write_ff_to_postgis_cssi(fvf_tbl, ctr_df, ctr_name_HELP):
     # ---- 3) rename wkt columns to match PostGIS
 
     ctr_gf.rename( {
+        'OPSDAY'          : 'opsday',   # wtf???
         'flw_geog_wkt'    : 'flw_geog',
         'b4_ent_geog_wkt' : 'b4_ent_geog',
         'b4_dep_geog_wkt' : 'b4_dep_geog',
