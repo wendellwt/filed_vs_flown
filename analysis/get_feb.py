@@ -103,21 +103,22 @@ def retrieve_path_center_geojson(lgr, gdate, ctr, verbose=False):
     %s
 ) inputs_ate """ % ( ate_cols, fid_offset, y_m, ctr, yhmhd, yhmhd, limit )
 
-    # ============ artcc TODO: diff with tracon!!!!!!!
+    # ============ artcc
+    # note: no properties, boundary only
 
+    # FIXME:  name='DEN' <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     artcc_sql = """
     -- ============ artcc
   SELECT jsonb_build_object(
     'type',         'Feature',
     'id',           1,  -- watch out for this
-    'geometry',     ST_AsGeoJSON(boundary)::jsonb,
-    'properties',   to_jsonb(inputs_ctr) - 'boundary'
+    'geometry',     ST_AsGeoJSON(boundary)::jsonb
     ) AS feature
   FROM (
-    SELECT *
-    FROM centers
-    WHERE name='%s'
-) inputs_ctr """ % ctr
+SELECT ST_Difference(
+    (SELECT boundary::geometry from centers where name='%s'),
+    (SELECT ST_Transform(ST_Transform(boundary::geometry,26754),4326) FROM tracons WHERE name='DEN')
+) as boundary) inputs_ctr """  % ctr
 
     # ============  everything together
 
