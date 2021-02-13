@@ -9,6 +9,7 @@ from geojson import Feature, FeatureCollection, dumps
 
 from flask import Flask, render_template, request
 from flask_compress import Compress
+from flask_cors import cross_origin
 
 sys.path.append('copied')  # stupid git/sharing  work-around
 import get_paths
@@ -35,6 +36,7 @@ lgr.info("web app starting")
 #######################################################################
 
 @app.route('/')
+@cross_origin()
 
 def home():
     return render_template('index.html')
@@ -158,6 +160,7 @@ def do_everything():
 import datetime
 
 @app.route('/get_feb', methods=['GET'])
+@cross_origin(origins="*/*")
 
 def do_feb():
 
@@ -165,7 +168,7 @@ def do_feb():
 
     #airport = request.args['apt']
     #center = request.args['ctr']
-    gdate = datetime.datetime.strptime( request.args['date'], '%Y-%m-%d')
+    gdate = datetime.datetime.strptime( request.args['date'], '%Y_%m_%d')
 
     feb_js = get_feb.get_postg_data_from_asdidb(lgr, gdate)
 
