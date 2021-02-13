@@ -315,7 +315,10 @@ export default {
           // i.e., don't do the artcc polygon!
           if ( (all_flights.features[k].geometry.type == "LineString") ||
                (all_flights.features[k].geometry.type == "MultiLineString")) {
+//console.log("aa");
+//console.log(all_flights.features[k].properties);
 //console.log(all_flights.features[k].properties.arr_time.substr(0,13));
+//console.log("bb");
 //console.log(hour_to_disp);
 
                if (all_flights.features[k].properties.arr_time.substr(0,13) == hour_to_disp) {

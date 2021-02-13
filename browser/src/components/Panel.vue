@@ -127,7 +127,7 @@
 // not for flask:
 //import sample_json_data from "./files/output_everything.json";
 //import e_zdv from "./files/e_ZDV.json";
-// import e_feb from "./files/e_2020_01_10.json";
+import e_feb from "./files/ate_has_arr_time.json";
 //soon: import e_zlc from "./files/e_ZLC.json";
 
 export default {
@@ -223,7 +223,7 @@ export default {
             // ---- tell Map component
 
             // new fvf: let map_args = { mdata: this.map_data, hour : this.y_m_dt_val };
-            let map_args = { mdata: this.map_data[this.center_selected],
+            let map_args = { mdata: this.map_data,
                              hour : this.y_m_dt_val };
             this.$root.$emit('draw_all_fc', (map_args) );
 
@@ -233,7 +233,7 @@ export default {
 
             // =========== caroline chart ==============
 
-            this.set_and_show_flown_and_entry();
+            // NOT TODAY: this.set_and_show_flown_and_entry();
         }
     },
     methods: {
@@ -265,7 +265,7 @@ export default {
     process_fetch_response(data) {
 
         this.all_json_data= data;  // save everything there is
-        //this.map_data     = data.map_data[this.center_selected];
+        this.map_data     = data.map_data[this.center_selected];
         //this.chart_data   = data.chart_data[this.center_selected];
         this.details_data = data.details_data[this.center_selected];
         //this.fe_data      = data.flw_chart_data[this.center_selected];
@@ -289,7 +289,7 @@ export default {
 
         // =========== caroline chart ==============
 
-        this.set_and_show_flown_and_entry();
+        // NOT TODAY: this.set_and_show_flown_and_entry();
     },
 
     // -----------------------------------------------
@@ -298,9 +298,10 @@ export default {
     GoEverything_feb() {
 
         if (this.use_pickle==true) {
-          console.log("NOT doing anything here.")
-          // not for flask: this.process_fetch_response(sample_json_data);
-          return;
+          console.log("using STORED json file.")
+          // not for flask: 
+          this.process_fetch_response(e_feb);
+          return; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         }
         let the_query = this.form_fetch_args()
 
@@ -312,12 +313,22 @@ export default {
          // don't know which gzip might work...
         // content-encoding may be just for POST when SENDING to server...
 
+        // <<<<<<<<<<<<<<< when vscode on faa laptop:
+        //the_query = "http://172.26.21.40:3939/content/201/" + the_query;
+
 // Q: need to manually gzip on server???
 // https://stackoverflow.com/questions/9622998/how-to-use-content-encoding-gzip-with-python-simplehttpserver
 
-    fetch(the_query, { headers: { 'Content-Type': 'application/json',
-                                  'Content-Encoding': 'gzip',
-                                  'Accept-Encoding' : 'gzip'          }})
+    fetch(the_query, { 
+        mode: 'no-cors',  // so faa laptop + vscode can fetch from rserver
+      headers: { 
+        'Content-Type': 'text/plain',
+             // "Access-Control-Allow-Origin": "*",
+        //'Content-Type': 'application/json'//,
+      //                            'Content-Encoding': 'gzip',
+      //                            'Accept-Encoding' : 'gzip' 
+               }
+      })
         .then(response => response.json())
         .then(data => {
             document.body.style.cursor='default';
@@ -423,7 +434,11 @@ console.log("emit circ:");
     },
 
         /*********************************************************************/
-    set_and_show_flown_and_entry() {
+   // CALLED BY:
+   //   * process_fetch_data
+   //   * hour slider
+   //   * high/low slider
+   set_and_show_flown_and_entry() {
 console.log("set_and_show_flown_and_entry -- fvf");
 
         //if (this.fe_data.length > 0 ) {
