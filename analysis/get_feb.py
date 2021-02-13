@@ -20,6 +20,8 @@ den_artccs = ('ZDV', 'ZLA', 'ZLC', 'ZMP', 'ZKC', 'ZAB', 'ZOA',
 den_artccs = ('ZDV', 'ZKC')
 den_artccs = ('ZDV', )
 
+args_verbose = False
+
 # ===============================================================
 
 cssi_username = os.environ.get('CSSI_USER')
@@ -48,13 +50,15 @@ flw_cols = """ acid, fid, corner, dep_apt, flw_dist,
 b4_ent_dist, b4_dep_dist, dep_time, arr_time,
 flw_geog """
 
-ate_cols = """ acid, fid, corner, b4_ent_geog """
+# arr_time is used in OL.vue to display hourly!!!
+ate_cols = """ acid, fid, corner, arr_time, b4_ent_geog """
 
 # an fid:   20201211768187
 fid_offset= 10000000000000
 
 def retrieve_path_center_geojson(lgr, gdate, ctr, verbose=False):
 
+    lgr.info("retrieve_path_center starting")
     #if args.elapsed: aa = elapsed.Elapsed()
 
     y_m   = gdate.strftime("%Y_%m")
@@ -129,15 +133,20 @@ UNION ALL
 %s
 ) features; """ % ( flown_paths_sql, at_entry_paths_sql, artcc_sql)
 
-    if verbose: print(sql)
-    lgr.debug(sql)
+    #if verbose: print(sql)
+    #lgr.debug(sql)
+    #lgr.info(sql)
+    lgr.info("calling .execute()")
 
     pg_csr.execute(sql)
+
     ret = pg_csr.fetchall()
+
     gjsn = ret[0][0]
 
-    if verbose: print(gjsn)
-    lgr.debug(gjsn)
+    #if verbose: print(gjsn)
+    #lgr.debug(gjsn)
+    lgr.info("got response")
 
     # ==== for no particular reason, write it out to a file:
     #fn = "py_out_" + ctr + ".gjsn"
@@ -269,17 +278,23 @@ def get_postg_data_from_asdidb(lgr, gdate):
                     'chart_data'   : {},
                     'details_data' : {} }
 
+    lgr.info("ma")
     for ctr in den_artccs:
+
+        lgr.info("mb")
+        lgr.info(ctr)
 
         # -------------- part 1: get map geojson
 
-        map_dct = retrieve_path_center_geojson(lgr, gdate, ctr, args.verbose)
+        map_dct = retrieve_path_center_geojson(lgr, gdate, ctr, args_verbose)
+
+        lgr.info("have map_dct")
 
         main_output['map_data'][ctr] = map_dct
 
         # -------------- part 2: get details
 
-        details_df, details_dct = get_details(lgr, gdate, ctr, args.verbose)
+        details_df, details_dct = get_details(lgr, gdate, ctr, args_verbose)
 
         main_output['details_data'][ctr] = details_dct
 
@@ -345,13 +360,20 @@ if __name__ == "__main__":
 
     main_output = get_postg_data_from_asdidb(lgr, args.date)
 
-    with open(args.filename, "w") as fd:
+    # nice format
+    if args.output == 'p':
+        if args.filename is not None:
+            with open(args.filename, "w") as fd:
+                fd.write(pprint(main_output))
+        else:
+            pprint(main_output)
 
-        if args.output == 'p':
-            fd.write(pprint(main_output))           # nice format
-
-        # actual json-encoded data sent to browser
-        if args.output == 'j':
-            fd.write(json.dumps(main_output) )
+    # actual json-encoded data sent to browser
+    if args.output == 'j':
+        if args.filename is not None:
+            with open(args.filename, "w") as fd:
+                fd.write(json.dumps(main_output) )
+        else:
+            pprint(json.dumps(main_output))
 
     print("written:", args.filename)
