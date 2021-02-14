@@ -59,17 +59,20 @@ export default {
 
         // ---- tell Map component
 
-        let map_args = { mdata: new_data.map_data.ZDV,  // FIXME <<<<<<<<
-                         hour : this.y_m_dt_val };
-        this.$root.$emit('new_model_data', (map_args) );
+        //let map_args = { mdata: new_data.map_data.ZDV,  // FIXME <<<<<<<<
+        //                 hour : this.y_m_dt_val };
+        //CHART TESTING: this.$root.$emit('new_model_data', (map_args) );
 
         // =========== chart details ==============
-
-        //csv: this.set_and_show_hourly_data();
+        let chart_args = { cdata: new_data.chart_data.ZDV,  // FIXME <<<<<<<<
+                         title_date  : this.y_m_dd_val   };
+        this.$root.$emit('new_barchart_data', (chart_args) );
+        
+        //this.set_and_show_hourly_data();
 
         // =========== table details ==============
 
-        // this.$root.$emit('draw_new_details', (this.details_data) );
+        this.$root.$emit('draw_new_details', (new_data.details_data.ZDV) ); // FIXME <<<<<
 
         // =========== caroline chart ==============
 
