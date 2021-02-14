@@ -19,9 +19,6 @@ var wt_groups = [ "ne", "se", "sw", "nw" ];
 
 // List of subgroups = header of the csv files
 var wt_subgroups = [ "b4_dep_dist", "b4_ent_dist", "flw_dist"];
-//var wt_subgroups = [ "first_sch_dist", "at_ent_dist", 'flown_dist' ];
-
-// let y_max = 70000;    // <<<<<<<<<<<<<<<<<<<<<<<<
 
 var wt_chart_colors = [ // I think these look nice:
             '#996600'    // brown
@@ -43,30 +40,9 @@ export default {
     },
 
   mounted: function() {
+
       this.$root.$on('new_barchart_data', (chart_args) => {
-/*****************
-        "ZDV": {
-            "columns": [
-                "index",
-                "arr_qh",
-                "corner",
-                "b4_dep_dist",
-                "b4_ent_dist",
-                "flw_dist"
-            ],
-            "data": [
-                [
-                    0,
-                    "2020-03-02T08:00:00.000Z",
-                    "ne",
-                    227.3117248064,
-                    227.3117248064,
-                    228.0891889659
-                ],
- * ******************/
           // convert input as a list of lists into an assoc array
-console.log("chart.cdata >>>>>>>>>>>:");
-console.log(chart_args.cdata);
           this.cadata = [];
           for(var k = 0; k < chart_args.cdata.data.length; k++) {
             var item = { 'arr_qh'       : chart_args.cdata.data[k][1].substr(0,16),
@@ -74,12 +50,8 @@ console.log(chart_args.cdata);
                           'b4_dep_dist' : chart_args.cdata.data[k][3],
                           'b4_ent_dist' : chart_args.cdata.data[k][4],
                           'flw_dist'    : chart_args.cdata.data[k][5] };
-//console.log("k="+k);
-//console.log(item);
               this.cadata.push(item);
           }
-//console.log("this.cadata");
-//console.log(this.cadata);
           this.the_date = chart_args.title_date
 
           this.displayGData(this.cadata, this.ymin, this.ymax);
@@ -90,7 +62,7 @@ console.log(chart_args.cdata);
           this.ymin = chart_s_args.slider_vals[0] * 100;
           this.ymax = chart_s_args.slider_vals[1] * 100;
 
-          //HELPthis.displayGData(this.cadata, this.ymin, this.ymax);
+          this.displayGData(this.cadata, this.ymin, this.ymax);
       })
   },
 

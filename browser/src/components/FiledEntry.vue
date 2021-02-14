@@ -66,6 +66,7 @@ export default {
   name: 'Charts',
     data() {
       return {
+        fe_data : [], // the data to draw
         the_date: new Date()  // in header/title
       }
     },

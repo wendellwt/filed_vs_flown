@@ -172,20 +172,13 @@ export default {
 
         // slider vals changed; tell Chart component, but don't need to recalc hourly list
         slider_vals: function(vals) {
-console.log("slider:"+vals+" this="+this.slider_vals);
 
             let chart_s_args = { slider_vals : this.slider_vals };
             this.$root.$emit('chart_slider_vals', (chart_s_args) );
-
-            // =========== caroline chart ==============
-            //loop: this.set_and_show_flown_and_entry();
-
-           //loop: this.CallAFunction_draw_circle();
         },
 
         // hour selector changed, CALC NEW chart and map data
         hour_val: function(hval) {
-console.log("hour:"+hval+" this="+this.hour_val);
             //this.hour_val  = hval ; // redundant???  TIGHT LOOP???
             // almost like the other, but '-' and 'T' instead of '_' and ' '
 
@@ -207,24 +200,16 @@ console.log("hour:"+hval+" this="+this.hour_val);
 
             this.$root.$emit('new_hour_slide', (hour_args) );
 
-            // ---- tell Chart component
-
-            //csv: this.set_and_show_hourly_data() // ???????
-
-            // =========== caroline chart ==============
-
-            // NOT TODAY: this.set_and_show_flown_and_entry();
         }
     },
-    methods: {
 
     // -----------------------------------------------
     // ----------- everything processing  ---------
     // --------------------------------------------
+    methods: {
 
     GoEverything_feb() {
 
-console.log('aaaaaaaaaaaa')
         let fetch_args = { sel_date    : this.sel_date,
                            arr_apt     : this.arr_selected,
                            center      : this.center_selected,
@@ -237,7 +222,7 @@ console.log('aaaaaaaaaaaa')
     // use GLOBALS this.chart_data and this.hour_val to construct
     //  new this.hourly_data and call chart func
 
-    set_and_show_hourly_data() {
+    set_and_show_hourly_data_DEPRECATED() {
 console.log("set and sshow");
         // console.log("hr-a=" + this.y_m_da_val);
 
@@ -257,7 +242,7 @@ console.log("set and sshow");
     },
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    CallAFunction_draw_circle() {
+    CallAFunction_draw_circle() { // DEBUGGING <<<<<<<<<<<<<<<<<<<
 console.log("CallAFunction - circular");
 
         let circ_data = [
@@ -293,30 +278,6 @@ console.log("emit circ:");
             this.$root.$emit('draw_circ_chart', (chart_args) );
     },
 
-        /*********************************************************************/
-   // CALLED BY:
-   //   * process_fetch_data
-   //   * hour slider
-   //   * high/low slider
-   set_and_show_flown_and_entry() {
-console.log("set_and_show_flown_and_entry -- fvf");
-/*********************************
-        //if (this.fe_data.length > 0 ) {
-          // FIXME: s.b. 0 !!!!!!!!!!!
-          if (this.map_data.features.length > 99999) {
-            let chart_args = { cdata       : this.map_data, // this.fe_data,
-                               atedata     : this.ate_data,
-                               slider_vals : this.slider_vals,
-                               title_date  : this.y_m_dd_val   };
-console.log("emit fe:");
-            this.$root.$emit('draw_fe_chart', (chart_args) );
-
-        } else {
-            console.log("nothing to chart");
-        }
-***************************/
-    }
-        // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   },
   mounted () {
 

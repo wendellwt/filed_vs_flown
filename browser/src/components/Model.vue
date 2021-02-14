@@ -59,9 +59,9 @@ export default {
 
         // ---- tell Map component
 
-        //let map_args = { mdata: new_data.map_data.ZDV,  // FIXME <<<<<<<<
-        //                 hour : this.y_m_dt_val };
-        //CHART TESTING: this.$root.$emit('new_model_data', (map_args) );
+        let map_args = { mdata: new_data.map_data.ZDV,  // FIXME <<<<<<<<
+                         hour : this.y_m_dt_val };
+        this.$root.$emit('new_model_data', (map_args) );
 
         // =========== chart details ==============
         let chart_args = { cdata: new_data.chart_data.ZDV,  // FIXME <<<<<<<<
@@ -94,7 +94,7 @@ export default {
     // use GLOBALS this.chart_data and this.hour_val to construct
     //  new this.hourly_data and call chart func
 
-    set_and_show_hourly_data() {
+    set_and_show_hourly_data() {   // REMOVE OR include this elsewhere!!!
 
         // console.log("hr-a=" + this.y_m_da_val);
 
