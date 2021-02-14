@@ -173,14 +173,9 @@ export default {
         // slider vals changed; tell Chart component, but don't need to recalc hourly list
         slider_vals: function(vals) {
 console.log("slider:"+vals+" this="+this.slider_vals);
-            //this.slider_vals  = vals ; // redundant???  TIGHT LOOP???
 
-            if (this.hourly_data.length > 0 ) {
-                let chart_args = { cdata: this.hourly_data, slider_vals : this.slider_vals };
-                this.$root.$emit('draw_new_chart', (chart_args) );
-            } else {
-                console.log("nothing to chart");
-            }
+            let chart_s_args = { slider_vals : this.slider_vals };
+            this.$root.$emit('chart_slider_vals', (chart_s_args) );
 
             // =========== caroline chart ==============
             //loop: this.set_and_show_flown_and_entry();
