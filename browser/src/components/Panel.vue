@@ -172,8 +172,8 @@ export default {
 
         // slider vals changed; tell Chart component, but don't need to recalc hourly list
         slider_vals: function(vals) {
-console.log("slider");
-            this.slider_vals  = vals ; // redundant???
+console.log("slider:"+vals+" this="+this.slider_vals);
+            //this.slider_vals  = vals ; // redundant???  TIGHT LOOP???
 
             if (this.hourly_data.length > 0 ) {
                 let chart_args = { cdata: this.hourly_data, slider_vals : this.slider_vals };
@@ -190,8 +190,8 @@ console.log("slider");
 
         // hour selector changed, CALC NEW chart and map data
         hour_val: function(hval) {
-console.log("hour");
-            this.hour_val  = hval ; // redundant???
+console.log("hour:"+hval+" this="+this.hour_val);
+            //this.hour_val  = hval ; // redundant???  TIGHT LOOP???
             // almost like the other, but '-' and 'T' instead of '_' and ' '
 
             this.y_m_d_val =  this.sel_date.getUTCFullYear() + '_' +
@@ -262,8 +262,6 @@ console.log("set and sshow");
     },
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     CallAFunction_draw_circle() {
 console.log("CallAFunction - circular");
 
@@ -327,6 +325,7 @@ console.log("emit fe:");
   },
   mounted () {
 
+  // Model's fetch needs to tell when to turn off spin button
   this.$root.$on('go_button_loading', (gbl_val) => {
         this.go_button_loading = gbl_val;
     })

@@ -15,13 +15,13 @@
           {{ item.corner  }} &nbsp; &nbsp;
           {{ item.dep_apt }} &nbsp; &nbsp;
           <br/>
-          <div class="dbsmall">
+          <!-- div class="dbsmall">
               {{ item.flt_ndx }} &nbsp; &nbsp;
               {{ item.actype  }} &nbsp; &nbsp;
               {{ item.adist   }} &nbsp; &nbsp;
               {{ item.fdist   }} &nbsp; &nbsp;
               ({{ item.diff   }})
-          </div>
+          </div-->
     </li>
   </ul>
 
@@ -53,7 +53,9 @@ export default {
       // why do we need to do this here?: remove duplicate key / track
       // WAIT: is this an old hold-over from asdex ops???
 
-      this.datablocks = this.removeDuplicates(dlist, 'flt_ndx');
+      this.datablocks = dlist;  // no FID yet???
+      //this.datablocks = this.removeDuplicates(dlist, 'fid');
+
     })
   },
 

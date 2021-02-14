@@ -80,7 +80,10 @@ import { Vector as VectorLayer } from 'ol/layer'
 
 // ==========================================================
 
-const HELPME_OFFSET = 1000000; // flight_ndx offset to at_ent flight_ndx
+//const HELPME_OFFSET = 1000000; // flight_ndx offset to at_ent flight_ndx
+//30200302036612
+const HELPME_OFFSET = 30000000000000;  // if FID is larger than this it is a
+                      // schedule and not to be in datapos list
 
 // -------------- linestrings
 
@@ -129,7 +132,7 @@ const methods = {
 
        let dlist = [];
        for (let k = 0; k < features_list.length; k++) {
-
+//console.log("pop_datalist,k="+k+',id='+features_list[k].id);
            if ((features_list[k].geometry.type == "LineString")  ||
                (features_list[k].geometry.type == "MultiLineString")) {
 
@@ -181,7 +184,8 @@ const methods = {
        ********************/
 
        // and send to DataPos list component
-       this.$root.$emit('dlist', (sortedlist) );
+console.log(sortedlist);
+       //HELP:: this.$root.$emit('dlist', (sortedlist) );
    },
    // ==========================================================
 
@@ -199,7 +203,6 @@ const methods = {
 
       let flts_to_disp = [ ]
       for (let k = 0; k < this.model_data.features.length; k++) {
-//console.log("k="+k);
 
           // Q: should this just check for existance of an 'arr_time' property???
 
@@ -342,11 +345,10 @@ export default {
     // ================================
 
     // called from Model because new dataset received or hour changed
+    // NEW feb13: this is ALL of the data, and it is not kept elsewhere, btw
 
     this.$root.$on('new_model_data', (map_args) => {
-console.log("new_model_data");
-//console.log(map_args);
-      // NEW feb13: this is ALL of the data, and it is not kept elsewhere, btw
+
       this.model_data  = map_args.mdata;  // this is the FC, should it be just the Features[] ???
 
       this.hour_to_disp = map_args.hour;
