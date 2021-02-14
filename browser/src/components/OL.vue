@@ -24,7 +24,7 @@
       <!-- ===================== FeatureCollection everything ========= -->
 
       <vl-layer-vector >
-        <vl-source-vector :features.sync="everythingFeatures" />
+        <vl-source-vector :features.sync="display_data" />
         <vl-style-func    :factory="everythStyleFactory"></vl-style-func>
       </vl-layer-vector>
 
@@ -188,8 +188,47 @@ const methods = {
    do_some_d3() {
      let corner_data = 1;
      this.$root.$emit('draw_this_corner', (corner_data));
-   }
+   },
    // ==========================================================
+
+    // called from anywhere when display needs to be updated
+    // * new model data received
+    // * hour changed
+
+    help_display_model_data() {
+
+      let flts_to_disp = [ ]
+      for (let k = 0; k < this.model_data.features.length; k++) {
+//console.log("k="+k);
+
+          // Q: should this just check for existance of an 'arr_time' property???
+
+          // if it is a (Multi) LineString (i.e. flight), then check arr time
+          // i.e., don't do the artcc polygon!
+          if ( (this.model_data.features[k].geometry.type == "LineString") ||
+               (this.model_data.features[k].geometry.type == "MultiLineString")) {
+//console.log(this.hour_to_disp)
+//console.log(this.model_data.features[k].properties.arr_time.substr(0,13));
+               if (this.model_data.features[k].properties.arr_time.substr(0,13) == 
+                                                           this.hour_to_disp) {
+
+                  // TODO: COMBINE this with DataPos generation!!!
+                  // (maybe not so bad; DataPos list is constructed from this list)
+                  flts_to_disp.push(this.model_data.features[k]);
+               }
+           } else {
+
+              // and always draw everything else (the artcc)
+              flts_to_disp.push(this.model_data.features[k]);
+           }
+      }
+      this.display_data = flts_to_disp;
+
+      //new_fvf:
+      this.populate_datalist(flts_to_disp);
+
+    }
+
 }
 
 // ==========================================================
@@ -211,7 +250,10 @@ export default {
 
         geojFeatures: [], // USED???
 
-        everythingFeatures: [],
+        model_data: [],     // model data from source
+        display_data: [],   // hour data selected for display
+
+        hour_to_disp: '2020_03_02T16',
 
         highlightedFeat_flw : 0,   // the current (old) item that may need to be turned off
         highlightedFeat_sch : 0,   // the current (old) item that may need to be turned off
@@ -295,53 +337,30 @@ export default {
 
           this.highlightedFeat_sch.setStyle(targetHigh_sch);
       }
-    })
+    }),
 
     // ================================
 
-    // called from Panel because new dataset received or hour changed
+    // called from Model because new dataset received or hour changed
 
-    this.$root.$on('draw_all_fc', (map_args) => {
+    this.$root.$on('new_model_data', (map_args) => {
+console.log("new_model_data");
+//console.log(map_args);
+      // NEW feb13: this is ALL of the data, and it is not kept elsewhere, btw
+      this.model_data  = map_args.mdata;  // this is the FC, should it be just the Features[] ???
 
-      let all_flights  = map_args.mdata;  // this is the FC, should it be just the Features[] ???
-      let hour_to_disp = map_args.hour;
+      this.hour_to_disp = map_args.hour;
 
-      let flts_to_disp = [ ]
-      for (let k = 0; k < all_flights.features.length; k++) {
-// console.log("k="+k);
-          // Q: should this just check for existance of an 'arr_time' property???
-
-          // if it is a (Multi) LineString (i.e. flight), then check arr time
-          // i.e., don't do the artcc polygon!
-          if ( (all_flights.features[k].geometry.type == "LineString") ||
-               (all_flights.features[k].geometry.type == "MultiLineString")) {
-//console.log("aa");
-//console.log(all_flights.features[k].properties);
-//console.log(all_flights.features[k].properties.arr_time.substr(0,13));
-//console.log("bb");
-//console.log(hour_to_disp);
-
-               if (all_flights.features[k].properties.arr_time.substr(0,13) == hour_to_disp) {
-//console.log(hour_to_disp);
-//console.log(all_flights.features[k].properties.arr_time.substr(0,13));
-
-                  // TODO: COMBINE this with DataPos generation!!!
-                  // (maybe not so bad; DataPos list is constructed from this list)
-                  flts_to_disp.push(all_flights.features[k]);
-//console.log("push:"+k);
-               }
-           } else {
-
-              // and always draw everything else (the artcc)
-              flts_to_disp.push(all_flights.features[k]);
-           }
-      }
-      this.everythingFeatures = flts_to_disp;
-
-      //new_fvf: 
-      this.populate_datalist(flts_to_disp);
-
+      this.help_display_model_data();
     })
+
+    this.$root.$on('new_hour_to_disp', (map_args) => {
+
+      this.hour_to_disp = map_args.hour;
+
+      this.help_display_model_data();
+    })
+
   } // ---- mounted
 }
 

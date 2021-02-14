@@ -40,6 +40,7 @@
          <b-tab-item label="About"><About /></b-tab-item>
 
         </b-tabs>
+        <Model />  <!-- pointless??? -->
     </section>
 </template>
 
@@ -54,10 +55,12 @@ import Details    from "./Details.vue";
 import About      from "./About.vue";
 import Circular   from "./Circular.vue";
 //import Table   from "./Table.vue";
+import Model      from "./Model.vue";
 
 export default {
   name: 'Tabs',
     components: {
+      Model,
       'app-ol'   : OL,
       'data-pos' : DataPos,
       // 'mytable'  : Table,    // duh! 'table' is bad choice for a local html component!

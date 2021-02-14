@@ -85,11 +85,11 @@
                     rounded
                     v-on:click="CallAFunction_draw_circle()"
                     >draw_circle()</b-button>
-          <b-button type="is-danger is-light"
+          <!-- b-button type="is-danger is-light"
                     size="is-small"
                     rounded
                     v-on:click="CallAFunction_fvf_geojson()"
-                    >fvf_geojson()</b-button>
+                    >fvf_geojson()</b-button -->
 
         </div>
 
@@ -122,13 +122,6 @@
 </template>
 
 <script>
-
-// a file captured from ./everything.py over on rserver:
-// not for flask:
-//import sample_json_data from "./files/output_everything.json";
-//import e_zdv from "./files/e_ZDV.json";
-import e_feb from "./files/ate_has_arr_time.json";
-//soon: import e_zlc from "./files/e_ZLC.json";
 
 export default {
   name: 'panel',
@@ -165,17 +158,10 @@ export default {
         slider_vals : [0,70],
 
         hour_val   : 5,                   // from ui chooser
-        y_m_d_val  : "2020_12_04",        // intermediate/temp value
-        y_m_dt_val : "2020-12-04T18",     // portion of ISO time string to match
-        y_m_da_val : "2020_12_04_05",     // arrival time is rounded to this
-        y_m_dd_val : "2020-12-04 05:00",  // display on Chart component
-
-        all_json_data: [],  // the (large) json received from server
-        details_data : [],  // fetched data from everything.py
-        chart_data   : [],  // fetched data from everything.py
-        map_data     : [],  // fetched data from everything.py
-        fe_data      : [],  // fetched data from everything.py
-        ate_data     : [],  // fetched data from everything.py
+        y_m_d_val  : "2020_03_02",        // intermediate/temp value
+        y_m_dt_val : "2020-03-02T18",     // portion of ISO time string to match
+        y_m_da_val : "2020_03_02_05",     // arrival time is rounded to this
+        y_m_dd_val : "2020-03-03 05:00",  // display on Chart component
 
         hourly_data  : [],  // set of chart_data for selected hour
         go_button_loading : false,
@@ -186,7 +172,7 @@ export default {
 
         // slider vals changed; tell Chart component, but don't need to recalc hourly list
         slider_vals: function(vals) {
-
+console.log("slider");
             this.slider_vals  = vals ; // redundant???
 
             if (this.hourly_data.length > 0 ) {
@@ -197,14 +183,14 @@ export default {
             }
 
             // =========== caroline chart ==============
-            this.set_and_show_flown_and_entry();
+            //loop: this.set_and_show_flown_and_entry();
 
-           this.CallAFunction_draw_circle();
+           //loop: this.CallAFunction_draw_circle();
         },
 
         // hour selector changed, CALC NEW chart and map data
         hour_val: function(hval) {
-
+console.log("hour");
             this.hour_val  = hval ; // redundant???
             // almost like the other, but '-' and 'T' instead of '_' and ' '
 
@@ -222,9 +208,8 @@ export default {
 
             // ---- tell Map component
 
-            // new fvf: let map_args = { mdata: this.map_data, hour : this.y_m_dt_val };
-            let map_args = { mdata: this.map_data,
-                             hour : this.y_m_dt_val };
+            let map_args = { hour : this.y_m_dt_val };
+
             this.$root.$emit('draw_all_fc', (map_args) );
 
             // ---- tell Chart component
@@ -238,129 +223,27 @@ export default {
     },
     methods: {
 
-      form_fetch_args() {
-
-        let udate =        this.sel_date.getUTCFullYear() + '_' +
-                    String(this.sel_date.getUTCMonth()+1).padStart(2,'0')  + '_' +
-                    String(this.sel_date.getUTCDate()   ).padStart(2,'0');
-
-        //don't I wish: let udate = "&date=" + this.sel_date.strftime("%Y_%m_%d");
-
-        let force_reload = Math.floor(Math.random() * 99999);
-
-        let the_query = "get_feb" +
-                        "?apt="  + this.arr_selected +
-                        "&ctr="  + this.center_selected +
-                        "&date=" + udate +
-                        "&rand=" + force_reload +
-                        "&pckl=" + this.use_pickle;
-
-        console.log("fetch:" + the_query);
-
-        return(the_query);
-    },
-
-    // =========== fetch respose ==============
-
-    process_fetch_response(data) {
-
-        this.all_json_data= data;  // save everything there is
-        this.map_data     = data.map_data[this.center_selected];
-        //this.chart_data   = data.chart_data[this.center_selected];
-        this.details_data = data.details_data[this.center_selected];
-        //this.fe_data      = data.flw_chart_data[this.center_selected];
-        //this.ate_data     = data.ate_chart_data[this.center_selected];
-
-        // =========== chart details ==============
-
-        //csv: this.set_and_show_hourly_data();
-
-        // =========== OL FeatureCollection ==============
-
-        // ---- tell Map component
-
-        let map_args = { mdata: this.map_data,
-                         hour : this.y_m_dt_val };
-        this.$root.$emit('draw_all_fc', (map_args) );
-
-        // =========== table details ==============
-
-        this.$root.$emit('draw_new_details', (this.details_data) );
-
-        // =========== caroline chart ==============
-
-        // NOT TODAY: this.set_and_show_flown_and_entry();
-    },
-
     // -----------------------------------------------
     // ----------- everything processing  ---------
     // --------------------------------------------
+
     GoEverything_feb() {
 
-        if (this.use_pickle==true) {
-          console.log("using STORED json file.")
-          // not for flask: 
-          this.process_fetch_response(e_feb);
-          return; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        }
-        let the_query = this.form_fetch_args()
+console.log('aaaaaaaaaaaa')
+        let fetch_args = { sel_date    : this.sel_date,
+                           arr_apt     : this.arr_selected,
+                           center      : this.center_selected,
+                           pickle      : this.use_pickle   };
 
-        // =========== fetch / response ==============
-
-        document.body.style.cursor='wait';
-        this.go_button_loading = true;
-
-         // don't know which gzip might work...
-        // content-encoding may be just for POST when SENDING to server...
-
-        // <<<<<<<<<<<<<<< when vscode on faa laptop:
-        //the_query = "http://172.26.21.40:3939/content/201/" + the_query;
-
-// Q: need to manually gzip on server???
-// https://stackoverflow.com/questions/9622998/how-to-use-content-encoding-gzip-with-python-simplehttpserver
-
-    fetch(the_query, { 
-        mode: 'no-cors',  // so faa laptop + vscode can fetch from rserver
-      headers: { 
-        'Content-Type': 'text/plain',
-             // "Access-Control-Allow-Origin": "*",
-        //'Content-Type': 'application/json'//,
-      //                            'Content-Encoding': 'gzip',
-      //                            'Accept-Encoding' : 'gzip' 
-               }
-      })
-        .then(response => response.json())
-        .then(data => {
-            document.body.style.cursor='default';
-            this.go_button_loading = false;
-
-            this.process_fetch_response(data);
-
-        })
-       .catch((error) => {
-           document.body.style.cursor='default';
-            this.go_button_loading = false;
-           alert('Error:', error);
-           console.error('Error:', error);
-       });
+        this.$root.$emit('fetch_data', (fetch_args) );
     },
     // ---------------------------------------
-    // --------------------------------------------
-
-/*********************
-                       arr_hr corner  first_sch_dist  at_ent_dist  flown_dist
-0   2020_01_10_03     ne          2580.2       2550.9      2567.3
-1   2020_01_10_03     nw           147.8        147.8       174.9
-2   2020_01_10_03     se          1567.8       1521.4      1562.0
-3   2020_01_10_03     sw           707.0        678.6       678.7
-4   2020_01_10_04     ne          2321.1       2322.5      2329.6
-*********************/
 
     // use GLOBALS this.chart_data and this.hour_val to construct
     //  new this.hourly_data and call chart func
 
     set_and_show_hourly_data() {
-
+console.log("set and sshow");
         // console.log("hr-a=" + this.y_m_da_val);
 
         // form new hourly dataset
@@ -379,22 +262,6 @@ export default {
     },
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    CallAFunction_fvf_geojson() {
-console.log("CallAFunction - feb geojson - NOT");
-        /************************************
-console.log(e_feb);
-
-this.process_fetch_response(e_feb);
-console.log(this.y_m_dt_val);
-console.log("data to show:"+this.center_selected);
-console.log(this.map_data);
-          // not for flask:
-        let map_args = { mdata: this.map_data,
-                         hour : this.y_m_dt_val };
-        this.$root.$emit('draw_all_fc', (map_args) );
-console.log("new emit");
-        ************************************/
-    },
 
     // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     CallAFunction_draw_circle() {
@@ -440,7 +307,7 @@ console.log("emit circ:");
    //   * high/low slider
    set_and_show_flown_and_entry() {
 console.log("set_and_show_flown_and_entry -- fvf");
-
+/*********************************
         //if (this.fe_data.length > 0 ) {
           // FIXME: s.b. 0 !!!!!!!!!!!
           if (this.map_data.features.length > 99999) {
@@ -454,9 +321,16 @@ console.log("emit fe:");
         } else {
             console.log("nothing to chart");
         }
-
+***************************/
     }
         // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  },
+  mounted () {
+
+  this.$root.$on('go_button_loading', (gbl_val) => {
+        this.go_button_loading = gbl_val;
+    })
+
   }
 }
 </script>
