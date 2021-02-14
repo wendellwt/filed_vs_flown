@@ -208,9 +208,9 @@ console.log("hour");
 
             // ---- tell Map component
 
-            let map_args = { hour : this.y_m_dt_val };
+            let hour_args = { hour : this.y_m_dt_val };
 
-            this.$root.$emit('draw_all_fc', (map_args) );
+            this.$root.$emit('new_hour_slide', (hour_args) );
 
             // ---- tell Chart component
 

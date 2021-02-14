@@ -354,7 +354,7 @@ console.log("new_model_data");
       this.help_display_model_data();
     })
 
-    this.$root.$on('new_hour_to_disp', (map_args) => {
+    this.$root.$on('new_hour_slide', (map_args) => {
 
       this.hour_to_disp = map_args.hour;
 
