@@ -184,8 +184,9 @@ const methods = {
        ********************/
 
        // and send to DataPos list component
-console.log(sortedlist);
-       //HELP:: this.$root.$emit('dlist', (sortedlist) );
+//console.log(sortedlist);
+       //HELP:: 
+       this.$root.$emit('dlist', (sortedlist) );
    },
    // ==========================================================
 
