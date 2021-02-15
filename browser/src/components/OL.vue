@@ -357,10 +357,13 @@ export default {
       this.help_display_model_data();
     })
 
-    this.$root.$on('new_hour_slide', (map_args) => {
-
-      this.hour_to_disp = map_args.hour;
-
+    this.$root.$on('new_hour_slider', (map_args) => {
+//console.log("on:hour_slider:"+map_args.hour);
+        this.hour_to_disp =  map_args.hour.getUTCFullYear() + '-' +
+                    String(map_args.hour.getUTCMonth()+1).padStart(2,'0') + '-' +
+                    String(map_args.hour.getUTCDate()   ).padStart(2,'0') + 'T' +
+                    String(map_args.hour.getUTCHours()  ).padStart(2,'0');
+//console.log("new_hour_slider hour_to_disp:"+this.hour_to_disp)
       this.help_display_model_data();
     })
 

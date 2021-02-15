@@ -9,7 +9,7 @@
       <b-field label="Date">
           <b-datepicker
             placeholder="Click to select..."
-             v-model="sel_date"
+             v-model="date_selected"
              :min-date="our_min_date"
              :max-date="our_max_date"
              maxlength=11
@@ -101,7 +101,7 @@
           <b-field label="Hour of map">
               <b-slider size="is-medium" :min="0" :max="23"
                             type="is-info"
-                            v-model="hour_val"
+                            v-model="hour_selected"
                   >
               </b-slider>
           </b-field>
@@ -122,6 +122,20 @@
 </template>
 
 <script>
+var zdv_tiers = [ ["ZDV",  "ZDV (parent)"   ],
+                  ["ZKC",  "ZKC (1st tier)" ],
+                  ["ZMP",  "ZMP (1st tier)" ],
+                  ["ZLC",  "ZLC (1st tier)" ],
+                  ["ZLA",  "ZLA (1st tier)" ],
+                  ["ZAB",  "ZAB (1st tier)" ],
+
+                  ["ZFW",  "ZFW (2nd tier)" ],
+                  ["ZME",  "ZME (2nd tier)" ],
+                  ["ZID",  "ZID (2nd tier)" ],
+                  ["ZAU",  "ZAU (2nd tier)" ],
+                  ["ZSE",  "ZSE (2nd tier)" ],
+                  ["ZOA",  "ZOA (2nd tier)" ],
+                  ["ZHU",  "ZHU (2nd tier)" ]  ];
 
 export default {
   name: 'panel',
@@ -130,40 +144,20 @@ export default {
   data () {
       return {
         our_min_date: new Date("2020-01-01"),  // the only ones we've run so far
-        our_max_date: new Date("2020-12-31"),  // the only ones we've run so far
+        our_max_date: new Date("2021-05-31"),  // the only ones we've run so far
 
-        arr_selected: "DEN",
-        center_selected: "ZDV",
-        sel_date: new Date('January 10, 2020 14:00:00'),  // start???
+        arr_selected    : "DEN",
+        center_selected : "ZDV",
+        date_selected   : new Date('March 2, 2020 14:00:00'),  // start???
 
         airportlist: [ "DEN", "DFW" ],  // the only ones we've run so far
-        // centerlist: [ "ZDV", "ZFW", "ZLA", 'ZKC', 'ZME' ],
 
-        tierlist: [ ["ZDV",  "ZDV (parent)"  ],
-
-                    ["ZKC",  "ZKC (1st tier)" ],
-                    ["ZMP",  "ZMP (1st tier)" ],
-                    ["ZLC",  "ZLC (1st tier)" ],
-                    ["ZLA",  "ZLA (1st tier)" ],
-                    ["ZAB",  "ZAB (1st tier)" ],
-
-                    ["ZFW",  "ZFW (2nd tier)" ],
-                    ["ZME",  "ZME (2nd tier)" ],
-                    ["ZID",  "ZID (2nd tier)" ],
-                    ["ZAU",  "ZAU (2nd tier)" ],
-                    ["ZSE",  "ZSE (2nd tier)" ],
-                    ["ZOA",  "ZOA (2nd tier)" ],
-                    ["ZHU",  "ZHU (2nd tier)" ] ],
+        tierlist: zdv_tiers,
 
         slider_vals : [0,70],
 
-        hour_val   : 5,                   // from ui chooser
-        y_m_d_val  : "2020_03_02",        // intermediate/temp value
-        y_m_dt_val : "2020-03-02T18",     // portion of ISO time string to match
-        y_m_da_val : "2020_03_02_05",     // arrival time is rounded to this
-        y_m_dd_val : "2020-03-03 05:00",  // display on Chart component
-
-        hourly_data  : [],  // set of chart_data for selected hour
+        hour_selected   : 5,                   // from ui chooser
+        y_m_d_h_m       : new Date(Date.UTC(2020,3-1,2,15,0,0)),
         go_button_loading : false,
         use_pickle : false
    }
@@ -171,107 +165,47 @@ export default {
     watch: {
 
         // slider vals changed; tell Chart component, but don't need to recalc hourly list
-        slider_vals: function(vals) {
+        slider_vals: function() {
 
             let chart_s_args = { slider_vals : this.slider_vals };
             this.$root.$emit('chart_slider_vals', (chart_s_args) );
         },
 
         // hour selector changed, CALC NEW chart and map data
-        hour_val: function(hval) {
-            //this.hour_val  = hval ; // redundant???  TIGHT LOOP???
-            // almost like the other, but '-' and 'T' instead of '_' and ' '
+        hour_selected: function() {
 
-            this.y_m_d_val =  this.sel_date.getUTCFullYear() + '_' +
-                       String(this.sel_date.getUTCMonth()+1).padStart(2,'0') + '_' +
-                       String(this.sel_date.getUTCDate()   ).padStart(2,'0');
-
-            this.y_m_da_val =  this.y_m_d_val + '_' + String(this.hour_val).padStart(2,'0');
-            this.y_m_dd_val =  this.y_m_d_val + ' ' + String(this.hour_val).padStart(2,'0') + ":00";
-
-            this.y_m_dt_val =  this.sel_date.getUTCFullYear() + '-' +
-                        String(this.sel_date.getUTCMonth()+1).padStart(2,'0') + '-' +
-                        String(this.sel_date.getUTCDate()   ).padStart(2,'0') + 'T' +
-                        String(this.hour_val).padStart(2,'0');
+            this.y_m_d_h_m =  new Date(Date.UTC(
+                              this.date_selected.getUTCFullYear(),
+                              this.date_selected.getUTCMonth(),
+                              this.date_selected.getUTCDate(),
+                              this.hour_selected,   // HOUR is from slider
+                              0, 0));   // MINUTE is zero!
 
             // ---- tell Map component
-
-            let hour_args = { hour : this.y_m_dt_val };
-
-            this.$root.$emit('new_hour_slide', (hour_args) );
+            let hour_args = { hour : this.y_m_d_h_m };
+//console.log("new_hour_slider:emit:"+this.y_m_d_h_m);
+            this.$root.$emit('new_hour_slider', (hour_args) );
 
         }
     },
 
     // -----------------------------------------------
-    // ----------- everything processing  ---------
-    // --------------------------------------------
     methods: {
 
     GoEverything_feb() {
 
-        let fetch_args = { sel_date    : this.sel_date,
-                           arr_apt     : this.arr_selected,
-                           center      : this.center_selected,
-                           pickle      : this.use_pickle   };
+        let fetch_args = { sel_date  : this.date_selected,
+                           arr_apt   : this.arr_selected,
+                           center    : this.center_selected,
+                           pickle    : this.use_pickle   };
 
         this.$root.$emit('fetch_data', (fetch_args) );
     },
     // ---------------------------------------
 
-    // use GLOBALS this.chart_data and this.hour_val to construct
-    //  new this.hourly_data and call chart func
-
-    set_and_show_hourly_data_DEPRECATED() {
-console.log("set and sshow");
-        // console.log("hr-a=" + this.y_m_da_val);
-
-        // form new hourly dataset
-        this.hourly_data = [ ];
-        for (let k = 0; k < this.chart_data.length; k++ ){
-            if (this.chart_data[k].arr_hr == this.y_m_da_val) {
-                this.hourly_data.push( this.chart_data[k] );
-            }
-        }
-
-        let chart_args = { cdata       : this.hourly_data,
-                           slider_vals : this.slider_vals,
-                           title_date  : this.y_m_dd_val   };
-
-        this.$root.$emit('draw_new_chart', (chart_args) );
-    },
-
-    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     CallAFunction_draw_circle() { // DEBUGGING <<<<<<<<<<<<<<<<<<<
-console.log("CallAFunction - circular");
 
-        let circ_data = [
-            { 'arr_hr' :  0, 'dist' : 10 },
-            { 'arr_hr' :  1, 'dist' : 40 },
-            { 'arr_hr' :  2, 'dist' : 30 },
-            { 'arr_hr' :  3, 'dist' : 50 },
-            { 'arr_hr' :  4, 'dist' : 40 },
-            { 'arr_hr' :  5, 'dist' : 10 },
-            { 'arr_hr' :  6, 'dist' : 30 },
-            { 'arr_hr' :  7, 'dist' : 20 },
-            { 'arr_hr' :  8, 'dist' : 30 },
-            { 'arr_hr' :  9, 'dist' : 20 },
-            { 'arr_hr' : 10, 'dist' : 40 },
-            { 'arr_hr' : 11, 'dist' : 20 },
-            { 'arr_hr' : 12, 'dist' : 10 },
-            { 'arr_hr' : 13, 'dist' : 20 },
-            { 'arr_hr' : 14, 'dist' : 30 },
-            { 'arr_hr' : 15, 'dist' : 50 },
-            { 'arr_hr' : 16, 'dist' : 40 },
-            { 'arr_hr' : 17, 'dist' : 30 },
-            { 'arr_hr' : 18, 'dist' : 10 },
-            { 'arr_hr' : 19, 'dist' : 20 },
-            { 'arr_hr' : 20, 'dist' : 10 },
-            { 'arr_hr' : 21, 'dist' : 30 },
-            { 'arr_hr' : 22, 'dist' : 20 },
-            { 'arr_hr' : 23, 'dist' : 10 } ];
-
-            let chart_args = { cdata       : circ_data,
+            let chart_args = { cdata       : "use_local_data",
                                slider_vals : this.slider_vals,
                                title_date  : this.y_m_dd_val   };
 console.log("emit circ:");
