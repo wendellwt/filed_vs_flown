@@ -150,16 +150,14 @@ export default {
         center_selected : "ZDV",
         date_selected   : new Date('March 2, 2020 14:00:00'),  // start???
 
-        airportlist: [ "DEN", "DFW" ],  // the only ones we've run so far
+        airportlist : [ "DEN", "DFW" ],  // the only ones we've run so far
+        tierlist    : zdv_tiers,
 
-        tierlist: zdv_tiers,
-
-        slider_vals : [0,70],
-
-        hour_selected   : 5,                   // from ui chooser
-        y_m_d_h_m       : new Date(Date.UTC(2020,3-1,2,15,0,0)),
+        slider_vals       : [0,70],
+        hour_selected     : 5,             // from ui chooser
+        y_m_d_h_m         : new Date(Date.UTC(2020,3-1,2,15,0,0)),
         go_button_loading : false,
-        use_pickle : false
+        use_pickle        : false
    }
   },
     watch: {
