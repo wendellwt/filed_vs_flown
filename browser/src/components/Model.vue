@@ -7,6 +7,7 @@
 <script>
 
 // a file captured from ./everything.py over on rserver:
+// TODO: for FLASK, when publishing, make this a very small valid json file!
 import e_feb from "./files/g_2020-03-02.json";    // set to empty file for flask
 
 export default {
