@@ -73,9 +73,6 @@ export default {
 
     methods: {
         displayGData : function(ndata, y_min, y_max) {
-console.log("chart ndata-x:");
-console.log(ndata);
-console.log(y_min, y_max);
 
   // set the dimensions and margins of the graph
   let margin = {top: 10, right: 30, bottom: 20, left: 50},
