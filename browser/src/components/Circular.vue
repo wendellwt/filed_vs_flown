@@ -34,6 +34,19 @@ var chart_height = 300;
 //    ,'#AB8422'   // RGB (171, 132, 34)
 //    ,'#5E6A71'   // RGB (94, 106, 113)
 //          ];
+var circ_data = [
+{ 'arr_hr' :  0, 'dist' : 10 }, { 'arr_hr' :  1, 'dist' : 40 }, 
+{ 'arr_hr' :  2, 'dist' : 30 }, { 'arr_hr' :  3, 'dist' : 50 }, 
+{ 'arr_hr' :  4, 'dist' : 40 }, { 'arr_hr' :  5, 'dist' : 10 },
+{ 'arr_hr' :  6, 'dist' : 30 }, { 'arr_hr' :  7, 'dist' : 20 },
+{ 'arr_hr' :  8, 'dist' : 30 }, { 'arr_hr' :  9, 'dist' : 20 },
+{ 'arr_hr' : 10, 'dist' : 40 }, { 'arr_hr' : 11, 'dist' : 20 },
+{ 'arr_hr' : 12, 'dist' : 10 }, { 'arr_hr' : 13, 'dist' : 20 },
+{ 'arr_hr' : 14, 'dist' : 30 }, { 'arr_hr' : 15, 'dist' : 50 },
+{ 'arr_hr' : 16, 'dist' : 40 }, { 'arr_hr' : 17, 'dist' : 30 },
+{ 'arr_hr' : 18, 'dist' : 10 }, { 'arr_hr' : 19, 'dist' : 20 },
+{ 'arr_hr' : 20, 'dist' : 10 }, { 'arr_hr' : 21, 'dist' : 30 },
+{ 'arr_hr' : 22, 'dist' : 20 }, { 'arr_hr' : 23, 'dist' : 10 } ];
 
 // ========================
 
@@ -48,7 +61,7 @@ export default {
   mounted: function() {
       this.$root.$on('draw_circ_chart', (chart_args) => {
 
-          let cdata     = chart_args.cdata;
+          let cdata     = circ_data;      // chart_args.cdata;
           let ymax      = chart_args.slider_vals[1];
           this.the_date = chart_args.title_date
 
