@@ -109,7 +109,8 @@ const methods = {
       this.$refs.map.$map.getControls().extend([
         new ScaleLine( { units: 'nautical'} ),
         new ZoomSlider(),
-      ])
+      ]);
+      this.$refs.map.updateSize()   // when map is in a tab, do this
     },
 
    // ------------ everything paths have color in them
