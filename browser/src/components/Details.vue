@@ -62,7 +62,7 @@ export default {
 
   mounted () {
 
-    this.$root.$on('draw_new_details', (the_data) => {
+    this.$root.$on('new_details_data', (the_data) => {
 
       this.detailColumns = the_data['columns'];
       this.detailData = the_data['data'];
