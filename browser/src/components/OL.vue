@@ -127,6 +127,20 @@ const methods = {
      }
    },
 
+    /**********************************
+                "properties": {
+        "acid": "FFT756",
+                    "arr_time": "2020-01-10T02:05:00-05:00",
+                    "b4_dep_dist": 325.01551865834,
+                    "b4_ent_dist": 325.01551865834,
+        "corner": "sw",
+        "dep_apt": "PHX",
+                    "dep_time": "2020-01-10T00:44:00-05:00",
+        "fid": 20200110461222,
+                    "flw_dist": 299.98276884894005,
+                    "ptype": "flw"
+                },
+    **********************************/
   // pick out important fields from GeoJson properties
   // and populate object to send to DataPos
    populate_datalist(features_list) {
@@ -140,19 +154,14 @@ const methods = {
               if (features_list[k].id < HELPME_OFFSET) {
                   let elem = {
                       acid:     features_list[k].properties.acid,
-                      //flt_ndx:  features_list[k].properties.flt_ndx,
+                      fid:      features_list[k].properties.fid,
                       corner:   features_list[k].properties.corner,
                       dep_apt:  features_list[k].properties.dep_apt,
-                      //actype:   features_list[k].properties.actype,
-                      //arr_time: features_list[k].properties.arr_time,
 
-                      //sdist:    features_list[k].properties.sdist,
-                      //adist:    features_list[k].properties.adist,
-                      //fdist:    features_list[k].properties.fdist,
-                      //diff:     (parseFloat(features_list[k].properties.adist) -
-                      //           parseFloat(features_list[k].properties.fdist)
-                      //          ).toFixed(1)
-                              };
+                      diff:     (parseFloat(features_list[k].properties.b4_ent_dist) -
+                                 parseFloat(features_list[k].properties.flw_dist)
+                                ).toFixed(1)
+                      };
                   dlist.push(elem);
               }
            }
@@ -367,7 +376,6 @@ export default {
                     String(map_args.hour.getUTCHours()  ).padStart(2,'0');
 
       this.help_display_model_data();
-
     })
 
   } // ---- mounted

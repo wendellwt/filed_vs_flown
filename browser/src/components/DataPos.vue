@@ -15,12 +15,9 @@
           {{ item.corner  }} &nbsp; &nbsp;
           {{ item.dep_apt }} &nbsp; &nbsp;
           <br/>
-          <!-- div class="dbsmall">
-              {{ item.flt_ndx }} &nbsp; &nbsp;
-              {{ item.actype  }} &nbsp; &nbsp;
-              {{ item.adist   }} &nbsp; &nbsp;
-              {{ item.fdist   }} &nbsp; &nbsp;
-              ({{ item.diff   }})
+          <div class="dbsmall">
+               {{ item.fid  }} &nbsp; &nbsp;
+              ({{ item.diff }})
           </div-->
     </li>
   </ul>
@@ -30,17 +27,24 @@
 
 <script>
 
+/******************
+   acid:     features_list[k].properties.acid,
+   fid:      features_list[k].properties.fid,
+   corner:   features_list[k].properties.corner,
+   dep_apt:  features_list[k].properties.dep_apt,
+   diff:   ...
+*********************/
 export default {
     data () {
       return {
         last_rcvd: new Date(),
 
         datablocks : [
-          { flt_ndx: 1, acid: 'N111', actype: 'C172', corner: 'ne' },
-          { flt_ndx: 2, acid: 'N112', actype: 'C172', corner: 'se' },
-          { flt_ndx: 3, acid: 'N113', actype: 'C172', corner: 'sw' },
-          { flt_ndx: 4, acid: 'N114', actype: 'C172', corner: 'nw' },
-          { flt_ndx: 5, acid: 'N115', actype: 'C172', corner: 'ne' } ]
+          { fid: 1, acid: 'N111', actype: 'C172', corner: 'ne' },
+          { fid: 2, acid: 'N112', actype: 'C172', corner: 'se' },
+          { fid: 3, acid: 'N113', actype: 'C172', corner: 'sw' },
+          { fid: 4, acid: 'N114', actype: 'C172', corner: 'nw' },
+          { fid: 5, acid: 'N115', actype: 'C172', corner: 'ne' } ]
       }
     },
 
@@ -74,9 +78,9 @@ export default {
 
   datablockclicked: function(item) {
 
-        console.log("highlightthis-emit:" + item.flt_ndx + ":" + item.acid + "_" + item.actype);
+        console.log("highlightthis-emit:" + item.fid + ":" + item.acid); // + "_" + item.actype);
 
-        this.$root.$emit('highlightthis', (item.flt_ndx) );
+        this.$root.$emit('highlightthis', (item.fid) );
     }
   }
 }
