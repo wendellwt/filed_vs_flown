@@ -39,6 +39,8 @@ var wt_chart_colors = [
     ,'#5E6A71'   // RGB (94, 106, 113)
           ];
 
+var globalKey = "ne";   // VERY HOKEY
+
 // ========================
 
 import * as d3 from 'd3';
@@ -96,16 +98,21 @@ export default {
           for(var k = 0; k < chart_args.ef_data.data.length; k++) {
 
               // collect chart data for contents
-              var item = { 'arr_qh'  : chart_args.ef_data.data[k][0].substr(5,11),
-                           "ne_flw"  : chart_args.ef_data.data[k][1],
-                           "se_flw"  : chart_args.ef_data.data[k][2],
-                           "sw_flw"  : chart_args.ef_data.data[k][3],
-                           "nw_flw"  : chart_args.ef_data.data[k][4] }
+              var item = { 'arr_qh'  : chart_args.ef_data.data[k][ 0].substr(5,11),
+                           "ne_flw"  : chart_args.ef_data.data[k][ 1],
+                           "se_flw"  : chart_args.ef_data.data[k][ 2],
+                           "sw_flw"  : chart_args.ef_data.data[k][ 3],
+                           "nw_flw"  : chart_args.ef_data.data[k][ 4],
+                           "ne_dif"  : chart_args.ef_data.data[k][ 9],
+                           "se_dif"  : chart_args.ef_data.data[k][10],
+                           "sw_dif"  : chart_args.ef_data.data[k][11],
+                           "nw_dif"  : chart_args.ef_data.data[k][12] }
                 this.ef_data.push(item);
 
                 // collect grouping elements and x-axis data/labels
+                // wait!  how come these are the same now???
                 this.arr_qh_set.push(chart_args.ef_data.data[k][0].substr(5,11));
-                this.xLabels  .push(chart_args.ef_data.data[k][0].substr(5,11));
+                this.xLabels   .push(chart_args.ef_data.data[k][0].substr(5,11));
           }
 
           this.display_EF_Data(this.ef_data, 1, this.arr_qh_set, this.ymin, this.ymax, this.xLabels);
@@ -135,15 +142,9 @@ export default {
 
     methods: {
 
-//       nice_x_label: function(d) {
-//console.log("nxl");
-//            return x(d.data.arr_qh);
-//        },
-
-        /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
+        /* %%%%%%%%%%%%%%%%%%%%%%  display_EF_Data  %%%%%%%%%%%%%%%%%%%%%%%%%%%% */
 
         display_EF_Data : function(ef_data, ate_data, arr_qh_set, y_min, y_max, xLabels) {
-
 
   // set the dimensions and margins of the graph
   let width  = chart_width  - margin.left - margin.right;
@@ -209,6 +210,30 @@ console.log(stackedData);
     .domain(wt_subgroups)
     .range(wt_chart_colors)
 
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    let colorStoreKey = function(key) {
+        globalKey = key;
+    }
+  let colorFunction = function(data) {
+
+console.log("key="+globalKey);
+        let use_val = 0;
+        let color = "brown";  // unassigned
+
+             if (globalKey=="ne_flw") { use_val = data.ne_dif; }
+        else if (globalKey=="se_flw") { use_val = data.se_dif; }
+        else if (globalKey=="sw_flw") { use_val = data.sw_dif; }
+        else if (globalKey=="nw_flw") { use_val = data.nw_dif; }
+
+console.log("use_val="+use_val);
+
+        if (use_val < -10) { color = "green"; }
+        if (use_val >  10) { color = "red"  ; }
+console.log("color="+color);
+        return (color);
+    }
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
   // ---- show the _stacked_ bars
   svg.append("g")
     .selectAll("g")
@@ -216,15 +241,23 @@ console.log(stackedData);
     // Enter in the stack data === loop over keys (group by group?)
     .data(stackedData)
     .enter().append("g")
-      .attr("fill", function(d) { return colorScale(d.key); })
+
+      // use this for coloring by corner
+      .attr("fill", (d) => colorScale(d.key) )
+      //attempted: .attr("fill", (d) => colorStoreKey(d.key) )   // VERY BOGUS
+
       .selectAll("rect")
 
       // enter a second time = loop over subgroups to add all rectangles
-      .data(function(d) { return d; })
+      .data( (d) => d )
       .enter().append("rect")
         .attr("x",      (d) => xScale(d.data.arr_qh)       )
         .attr("y",      (d) => yScale(d[1])                )
         .attr("height", (d) => yScale(d[0]) - yScale(d[1]) )
+
+        // use this for coloring by more/less
+        //attempted: .attr("fill",   (d) => colorFunction(d.data) )
+
         .attr("width",xScale.bandwidth())
 
         // https://bl.ocks.org/d3noob/a22c42db65eb00d4e369
