@@ -706,12 +706,16 @@ def write_ff_to_postgis_cssi(fvf_tbl, ctr_df, ctr_name_HELP):
                     'flw_up_to_geog'   : Geography(),
                     'b4_dep_up_to_geog': Geography()
                     })
-    except:
-        print(">>>>>>>>>>>>> HELP!!!")
-        print(ctr_gf)
-        print(">>>>>>>>>>>>> HELP!!!")
+        cssi.end("wrote cssi postgis")
+
+    except Exception as exc:
+        #print traceback.format_exc()
+        print(exc)
+        #print(">>>>>>>>>>>>> HELP!!!")
+        #print(ctr_gf)
+        #print(">>>>>>>>>>>>> HELP!!!")
         # sys.exit(1)
 
-    cssi.end("wrote cssi postgis")
+
     #print(" CSSI.finished")
 
