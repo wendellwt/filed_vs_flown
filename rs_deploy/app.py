@@ -167,10 +167,12 @@ def do_feb():
     lgr.info("get_feb - in")
 
     #airport = request.args['apt']
-    #center = request.args['ctr']
+    center = request.args['ctr']
     gdate = datetime.datetime.strptime( request.args['date'], '%Y_%m_%d')
 
-    feb_js = get_feb.get_postg_data_from_asdidb(lgr, gdate)
+    lgr.info("get_feb - in.b:" + str(gdate))
+
+    feb_js = get_feb.get_postg_data_from_asdidb(lgr, gdate, center)
 
     lgr.info("get_feb - out")
     #lgr.info("+++++")
