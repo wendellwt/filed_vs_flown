@@ -8,7 +8,7 @@
 
 // a file captured from ./everything.py over on rserver:
 // TODO: for FLASK, when publishing, make this a very small valid json file!
-import e_feb from "./files/g_2020-03-02.json";    // set to empty file for flask
+import e_feb from "./files/j_2020-01-10.json";    // set to empty file for flask
 
 export default {
   name: 'model',
@@ -56,21 +56,28 @@ export default {
 
         // ---- tell Map component
 
-        let map_args = { mdata: new_data.map_data.ZDV,  // FIXME <<<<<<<<
-                         hour : this.y_m_d_h_m };
-console.log("emit:"+this.y_m_d_h_m);
-        this.$root.$emit('new_model_data', (map_args) );
+//        let map_args = { mdata: new_data.map_data,
+//                         hour : this.y_m_d_h_m };
+//console.log("emit:"+this.y_m_d_h_m);
+//        this.$root.$emit('new_model_data', (map_args) );
 
-        // =========== chart details ==============
+        // =========== ef chart details ==============
+        let chart_args = { ef_data     : new_data.chart_data,
+                           title_date  : "put date/time here"   };
+        this.$root.$emit('new_ef_data', (chart_args) );
+
+
+        /*** OLD =========== chart details ==============
         let chart_args = { cdata: new_data.chart_data.ZDV,  // FIXME <<<<<<<<
                          title_date  : this.y_m_dd_val   };
         this.$root.$emit('new_barchart_data', (chart_args) );
+      ***/
         
         //this.set_and_show_hourly_data();
 
         // =========== table details ==============
 
-        this.$root.$emit('new_details_data', (new_data.details_data.ZDV) ); // FIXME <<<<<
+        this.$root.$emit('new_details_data', (new_data.details_data) ); // FIXME <<<<<
 
     },
 

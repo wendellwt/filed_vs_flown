@@ -1,6 +1,6 @@
 <template>
   <div>
-      <h3>filed &amp; at_entry Corner Chart {{the_date}}</h3>
+      <h3>on File at artcc entry and Flown Chart {{the_date}}</h3>
       <p class="chsmall">bars are sum of flown distances by hour and corner</p>
       <p class="chsmall">red dot is sum of the at-entry schedule by hour</p>
 
@@ -18,9 +18,9 @@
 
 
 // overall chart size -- HELP this MUST match the css in <style>
-var chart_width  = 560;
+var chart_width  = 760;
 var chart_height = 450;
-var margin = {top: 90, right: 30, bottom: 80, left: 50};
+var margin = {top: 90, right: 30, bottom: 20, left: 50};
 
 // position of legend
 var legend_x = 300;
@@ -28,7 +28,7 @@ var legend_y =   5;
 var leg_size =  15;
 
 // List of subgroups = header of the csv files
-var wt_subgroups = [ "ne", "se", "sw", "nw"];
+var wt_subgroups = [ "ne_flw", "se_flw", "sw_flw", "nw_flw"];
 
 // https://tools.aspm.faa.gov/confluence/display/prod/Tableau+Dashboard+Style+Guide
 var wt_chart_colors = [
@@ -66,38 +66,89 @@ export default {
   name: 'Charts',
     data() {
       return {
-        fe_data : [], // the data to draw
-        the_date: new Date()  // in header/title
+
+        ef_data   : [],          // the data to draw
+        the_date  : new Date(),  // in header/title
+        wt_groups : [],
+        xLabels   : [],
+        ymin      : 0,
+        ymax      : 6000
       }
     },
 
   mounted: function() {
-      this.$root.$on('draw_fe_chart', (chart_args) => {
+      this.$root.$on('new_ef_data', (chart_args) => {
+console.log("ef starting.");
+          this.the_date = chart_args.title_date;
 
-          let ndata     = chart_args.cdata;
-          let ate_data  = chart_args.atedata;
-          let ymin      = chart_args.slider_vals[0] * 100;
-          let ymax      = chart_args.slider_vals[1] * 100;
-          this.the_date = chart_args.title_date
+/*********************
+                "columns": [ "arr_qh",
+"ne_flw",  "se_flw",  "sw_flw",  "nw_flw",
+"ne_ate",  "se_ate",  "sw_ate",  "nw_ate",
+"ne_diff", "se_diff", "sw_diff", "nw_diff" ],
 
-          let wt_groups = [ ];
-          let xLabels = [ ];
-          for (let k = 0; k < ndata.length; k++ ) {
-                  wt_groups.push(ndata[k].arr_qh);
-                  xLabels  .push(ndata[k].arr_qh.substr(8,8));
+        "data": [
+
+            [ "2020-01-10T05:00:00.000Z",
+228.9242318776, 474.0443257578, 332.1119153879, 173.239155921,
+252.1244843646, 483.4809662288, 334.0080910996, 171.6641628169,
+-23.200252487, -9.436640471, -1.8961757118, 1.5749931041  ],
+
+            [ "2020-01-10T05:15:00.000Z",
+456.8877513607, 357.576098375, 331.7720443895, 0.0,
+501.556690982, 396.1441334338, 333.1322582447, 0.0,
+-44.6689396213, -38.5680350589, -1.3602138552, 0.0 ],
+ *********************/
+
+          // convert input as a list of lists into an assoc array
+          this.ef_data   = [];
+          this.wt_groups = [ ];
+          this.xLabels   = [ ];
+//console.log("eeeeeeeeeeeeee");
+//console.log(chart_args);
+//console.log(chart_args.ef_data.data);
+//console.log(chart_args.ef_data.data[1]);
+//console.log("fffffffffffff");
+
+          for(var k = 0; k < chart_args.ef_data.data.length; k++) {
+//console.log("k="+k);
+//console.log(chart_args.ef_data.data[k][0]);
+              // collect chart data for contents
+              var item = { 'arr_qh'  : chart_args.ef_data.data[k][0].substr(5,11),
+                           "ne_flw"  : chart_args.ef_data.data[k][1],
+                           "se_flw"  : chart_args.ef_data.data[k][2],
+                           "sw_flw"  : chart_args.ef_data.data[k][3],
+                           "nw_flw"  : chart_args.ef_data.data[k][4] }
+
+                        //'corner'      : chart_args.ef_data[k][2],
+                        //'b4_dep_dist' : chart_args.ef_data[k][3],
+                        //'b4_ent_dist' : chart_args.ef_data[k][4],
+                        //'flw_dist'    : chart_args.ef_data[k][5] };
+                this.ef_data.push(item);
+
+                // collect grouping elements and x-axis data/labels
+                this.wt_groups.push(chart_args.ef_data.data[k][0].substr(5,11));
+                this.xLabels  .push(chart_args.ef_data.data[k][0].substr(5,11));
           }
 
-console.log("fe data currently:");
-console.log(ndata);
-console.log("ate data currently:");
-console.log(ate_data);
-console.log("wt_groups:");
-console.log(wt_groups);
-console.log("xLabels:");
-console.log(xLabels);
+//console.log("ef data currently:");
+//console.log(this.ef_data);
+//console.log("wt_groups:");
+//console.log(this.wt_groups);
+//console.log("xLabels:");
+//console.log(this.xLabels);
 
-          this.displayGData(ndata, ate_data, wt_groups, ymin, ymax, xLabels);
+          this.display_EF_Data(this.ef_data, 1, this.wt_groups, this.ymin, this.ymax, this.xLabels);
+      }),
+
+      this.$root.$on('chart_slider_vals', (chart_ef_args) => {
+console.log("ef_slider");
+          //this.ymin = chart_ef_args.slider_vals[0] * 100;
+          //this.ymax = chart_ef_args.slider_vals[1] * 100;
+
+          this.display_EF_Data(this.ef_data, 1, this.wt_groups, this.ymin, this.ymax, this.xLabels);
       })
+
   },
 
     /**************** Charts ***************/
@@ -119,8 +170,9 @@ console.log(xLabels);
 //            return x(d.data.arr_qh);
 //        },
 
-        displayGData : function(ndata, ate_data, wt_groups, y_min, y_max, xLabels) {
+        display_EF_Data : function(ef_data, ate_data, wt_groups, y_min, y_max, xLabels) {
 
+console.log("EF_Data:"+y_max);
     // =========================== my edits
     // =========================== my edits - end
 
@@ -171,7 +223,7 @@ console.log(xLabels);
     .call(d3.axisLeft(y));
 
   // ---- stack the data? --> stack per subgroup
-  var stackedData = d3.stack().keys(wt_subgroups)(ndata)
+  var stackedData = d3.stack().keys(wt_subgroups)(ef_data)
 
   // ---- color palette = one color per subgroup
   let color = d3.scaleOrdinal()
@@ -223,57 +275,10 @@ console.log(xLabels);
            tooltip.style("opacity", 0);
        });
 
-            /***********************
-    .on("mouseenter", function(d) {
-      // https://github.com/d3/d3-format/blob/master/README.md#format
-      const format = d3.format(",");
-
-      d3
-        .select(this)
-        .attr("fill", "rgba(0, 0, 0, .5)")
-        .attr("stroke", "rgba(255, 255, 255, .5)");
-
-      tooltip
-        .append("div")
-        .text("9999")
-        .attr("class", "tt-region");
-
-      //tooltip
-      //  .append("div")
-      //  .text(d.data.key)
-      //  .attr("class", "tt-country");
-
-      //tooltip
-      //  .append("div")
-      //  .text(format(d.value))
-      //  .attr("class", "tt-population");
-
-      //help: const tooltipElement = tooltip.node().getBoundingClientRect();
-      //help: const tooltipElement = tooltip.getBoundingClientRect();
-      //help: const { height: elementHeight } = tooltipElement;
-
-      tooltip
-        .style("opacity", 1)
-        // https://github.com/d3/d3-selection/blob/master/README.md#event
-        //HELP: .style("left", `${d3.event.pageX}px`)
-        //HELP: .style("top", `${d3.event.pageY - elementHeight}px`);
-    })
-    .on("mouseout", function() {
-      d3
-        .select(this)
-        .attr("fill", "rgba(0, 0, 0, .1)")
-        .attr("stroke", "rgba(255, 255, 255, .25)");
-
-      tooltip
-        .style("opacity", 0)
-        .selectAll("div")
-        .remove();
-    });
-    ****************/
-
 
     // from: https://www.d3-graph-gallery.com/graph/area_lineDot.html
     // Add the dots
+          /*************
     svg.selectAll("myCircles")
       .data(ate_data)
       .enter()
@@ -283,8 +288,9 @@ console.log(xLabels);
         .attr("cx", function(d) { return x(d.arr_qh)+2 }) // +10 is my own fudge offset
         .attr("cy", function(d) { return y(d.at_ent_dist) })
         .attr("r", 2)
+           ***********/
 
-// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% legend
 //  https://www.d3-graph-gallery.com/graph/custom_legend.html
 
 // Add one square in the legend area for each color
@@ -305,7 +311,7 @@ svg.selectAll("leg_text")
   .append("text")
     .attr("x", function(d,j){ return legend_x + j*(leg_size+25) + (leg_size+3)})
     .attr("y", legend_y + leg_size*0.8)
-    .text(function(d){ return String(d)})
+    .text(function(d){ return String(d).substr(0,2)})
     .attr("text-anchor", "left")
     .style("alignment-baseline", "middle")
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
