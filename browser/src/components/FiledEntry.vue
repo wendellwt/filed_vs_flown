@@ -53,12 +53,12 @@ export default {
     data() {
       return {
 
-        ef_data   : [],          // the data to draw
-        the_date  : new Date(),  // in header/title
-        wt_groups : [],
-        xLabels   : [],
-        ymin      : 0,
-        ymax      : 6000
+        ef_data    : [],          // the data to draw
+        the_date   : new Date(),  // in header/title
+        arr_qh_set : [],
+        xLabels    : [],
+        ymin       : 0,
+        ymax       : 6000
       }
     },
 
@@ -89,9 +89,9 @@ export default {
 
           // convert input as a list of lists into an assoc array
 
-          this.ef_data   = [];
-          this.wt_groups = [ ];
-          this.xLabels   = [ ];
+          this.ef_data    = [];
+          this.arr_qh_set = [ ];
+          this.xLabels    = [ ];
 
           for(var k = 0; k < chart_args.ef_data.data.length; k++) {
 
@@ -104,11 +104,11 @@ export default {
                 this.ef_data.push(item);
 
                 // collect grouping elements and x-axis data/labels
-                this.wt_groups.push(chart_args.ef_data.data[k][0].substr(5,11));
+                this.arr_qh_set.push(chart_args.ef_data.data[k][0].substr(5,11));
                 this.xLabels  .push(chart_args.ef_data.data[k][0].substr(5,11));
           }
 
-          this.display_EF_Data(this.ef_data, 1, this.wt_groups, this.ymin, this.ymax, this.xLabels);
+          this.display_EF_Data(this.ef_data, 1, this.arr_qh_set, this.ymin, this.ymax, this.xLabels);
       }),
 
       this.$root.$on('chart_slider_vals', (chart_ef_args) => {
@@ -116,7 +116,7 @@ export default {
           // BROKEN: this.ymin = chart_ef_args.slider_vals[0] * 100;
           this.ymax = chart_ef_args.slider_vals[1] * 100;
 
-          this.display_EF_Data(this.ef_data, 1, this.wt_groups, this.ymin, this.ymax, this.xLabels);
+          this.display_EF_Data(this.ef_data, 1, this.arr_qh_set, this.ymin, this.ymax, this.xLabels);
       })
 
   },
@@ -142,7 +142,7 @@ export default {
 
         /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
 
-        display_EF_Data : function(ef_data, ate_data, wt_groups, y_min, y_max, xLabels) {
+        display_EF_Data : function(ef_data, ate_data, arr_qh_set, y_min, y_max, xLabels) {
 
 
   // set the dimensions and margins of the graph
@@ -165,7 +165,7 @@ export default {
 
   // ---- Add X axis
   let xScale = d3.scaleBand()  // function named xScale in other examples
-      .domain(wt_groups)
+      .domain(arr_qh_set)
       .range([0, width])
       .padding([0.2])
 
@@ -192,12 +192,14 @@ export default {
 
   // ---- stack the data? --> stack per subgroup
 
-  // good reading: http://using-d3js.com/05_06_stacks.html
+  // VERY important reading: http://using-d3js.com/05_06_stacks.html
   // api def: d3.stack() - returns a stack generator.
   // which creates the generator using wt_subgroups as the keys
   // then _invoke_ the generator passing it the data to use
+  // NOTE: this is where the actual y-values are generated/assigned
+  // (i.e., where the d[1], d[0] stuff is generated that is used later)
 
-  var stackedData = d3.stack().keys(wt_subgroups)(ef_data)
+  var stackedData = d3.stack().keys(wt_subgroups)(ef_data);
 
 console.log("stackedData");
 console.log(stackedData);
@@ -220,9 +222,9 @@ console.log(stackedData);
       // enter a second time = loop over subgroups to add all rectangles
       .data(function(d) { return d; })
       .enter().append("rect")
-        .attr("x",      function(d) { return xScale(d.data.arr_qh);       })
-        .attr("y",      function(d) { return yScale(d[1]);                })
-        .attr("height", function(d) { return yScale(d[0]) - yScale(d[1]); })
+        .attr("x",      (d) => xScale(d.data.arr_qh)       )
+        .attr("y",      (d) => yScale(d[1])                )
+        .attr("height", (d) => yScale(d[0]) - yScale(d[1]) )
         .attr("width",xScale.bandwidth())
 
         // https://bl.ocks.org/d3noob/a22c42db65eb00d4e369
@@ -253,20 +255,20 @@ svg.selectAll("leg_dots")
   .data(wt_subgroups)
   .enter()
   .append("rect")
-    .attr("x", function(d,j){ return legend_x + j*(leg_size+25)})
+    .attr("x", (d,j) => legend_x + j*(leg_size+25) )
     .attr("y", legend_y)
-    .attr("width", leg_size)
+    .attr("width",  leg_size)
     .attr("height", leg_size)
-    .style("fill", function(d){ return colorScale(d)})
+    .style("fill",  (d) => colorScale(d) )
 
 // Add one text element in the legend area for each subgroup
 svg.selectAll("leg_text")
   .data(wt_subgroups)
   .enter()
   .append("text")
-    .attr("x", function(d,j){ return legend_x + j*(leg_size+25) + (leg_size+3)})
+    .attr("x", (d,j) => legend_x + j*(leg_size+25) + (leg_size+3) )
     .attr("y", legend_y + leg_size*0.8)
-    .text(function(d){ return String(d).substr(0,2)})
+    .text( (d) => String(d).substr(0,2) )
     .attr("text-anchor", "left")
     .style("alignment-baseline", "middle")
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
