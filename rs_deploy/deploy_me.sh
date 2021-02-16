@@ -57,7 +57,7 @@ cp ../analysis/get_feb.py      copied/
 STATIC_FILES=`find static/ -type f | grep -v index.html`
 
 # ok, here goes...
-echo rsconnect deploy api --title $APP_TITLE --server http://172.26.21.40:3939 --api-key OV9jvi1YVE6WPYnSi09tX6i4UJvlciJc . \
+rsconnect deploy api --title $APP_TITLE --server http://172.26.21.40:3939 --api-key OV9jvi1YVE6WPYnSi09tX6i4UJvlciJc . \
      copied/fvf_by_artcc.py \
      copied/everything.py \
      copied/get_paths.py \
