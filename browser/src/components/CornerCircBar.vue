@@ -2,7 +2,7 @@
 
     <vl-overlay :id="'ovrly_'+corner_data.ident" :position="corner_data.coords"
                 positioning='center-center' >
-        <div :id="'svg_div_'+corner_data.ident" 
+        <div :id="'svg_div_'+corner_data.ident"
               style="width: 150px; height: 150px;  background-color:#80808040">
           {{corner_data.ident}}
         </div>
@@ -169,7 +169,7 @@ svg {
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;            
+  height: 100%;
   position: absolute;
 }
 </style>
