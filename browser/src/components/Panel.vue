@@ -148,14 +148,14 @@ export default {
 
         arr_selected    : "DEN",
         center_selected : "ZDV",
-        date_selected   : new Date('March 2, 2020 14:00:00'),  // start???
+        date_selected   : new Date('January 10, 2020 14:00:00'),  // start???
 
         airportlist : [ "DEN", "DFW" ],  // the only ones we've run so far
         tierlist    : zdv_tiers,
 
         slider_vals       : [0,70],
         hour_selected     : 5,             // from ui chooser
-        y_m_d_h_m         : new Date(Date.UTC(2020,3-1,2,15,0,0)),
+        y_m_d_h_m         : new Date(Date.UTC(2020,1-1,10,15,0,0)),
         go_button_loading : false,
         use_pickle        : false
    }
@@ -197,6 +197,7 @@ export default {
                            center    : this.center_selected,
                            pickle    : this.use_pickle   };
 
+      this.go_button_loading = true;  // turn spin button on (==spin)
         this.$root.$emit('fetch_data', (fetch_args) );
     },
     // ---------------------------------------
