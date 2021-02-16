@@ -42,17 +42,19 @@ export default {
   mounted: function() {
 
       this.$root.$on('new_barchart_data', (chart_args) => {
+
+          this.the_date = chart_args.title_date
+
           // convert input as a list of lists into an assoc array
           this.cadata = [];
           for(var k = 0; k < chart_args.cdata.data.length; k++) {
-            var item = { 'arr_qh'       : chart_args.cdata.data[k][1].substr(0,16),
-                          'corner'      : chart_args.cdata.data[k][2],
-                          'b4_dep_dist' : chart_args.cdata.data[k][3],
-                          'b4_ent_dist' : chart_args.cdata.data[k][4],
-                          'flw_dist'    : chart_args.cdata.data[k][5] };
+            var item = { 'arr_qh'      : chart_args.cdata.data[k][1].substr(0,16),
+                         'corner'      : chart_args.cdata.data[k][2],
+                         'b4_dep_dist' : chart_args.cdata.data[k][3],
+                         'b4_ent_dist' : chart_args.cdata.data[k][4],
+                         'flw_dist'    : chart_args.cdata.data[k][5] };
               this.cadata.push(item);
           }
-          this.the_date = chart_args.title_date
 
           this.displayGData(this.cadata, this.ymin, this.ymax);
       }),
@@ -73,7 +75,8 @@ export default {
 
     methods: {
         displayGData : function(ndata, y_min, y_max) {
-
+console.log("ndata:");
+console.log(ndata);
   // set the dimensions and margins of the graph
   let margin = {top: 10, right: 30, bottom: 20, left: 50},
       width  = 460 - margin.left - margin.right,    // WIDTH is fixed!!!
