@@ -232,6 +232,7 @@ const methods = {
       //new_fvf:
       this.populate_datalist(flts_to_disp);
 
+      this.$refs.map.updateSize()   // when map is in a tab, do this
     }
 
 }
@@ -359,13 +360,14 @@ export default {
     })
 
     this.$root.$on('new_hour_slider', (map_args) => {
-//console.log("on:hour_slider:"+map_args.hour);
+
         this.hour_to_disp =  map_args.hour.getUTCFullYear() + '-' +
                     String(map_args.hour.getUTCMonth()+1).padStart(2,'0') + '-' +
                     String(map_args.hour.getUTCDate()   ).padStart(2,'0') + 'T' +
                     String(map_args.hour.getUTCHours()  ).padStart(2,'0');
-//console.log("new_hour_slider hour_to_disp:"+this.hour_to_disp)
+
       this.help_display_model_data();
+
     })
 
   } // ---- mounted
