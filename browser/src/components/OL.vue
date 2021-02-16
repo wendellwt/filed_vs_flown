@@ -186,7 +186,7 @@ const methods = {
 
        // and send to DataPos list component
 //console.log(sortedlist);
-       //HELP:: 
+       //HELP::
        this.$root.$emit('dlist', (sortedlist) );
    },
    // ==========================================================
@@ -214,7 +214,7 @@ const methods = {
                (this.model_data.features[k].geometry.type == "MultiLineString")) {
 //console.log(this.hour_to_disp)
 //console.log(this.model_data.features[k].properties.arr_time.substr(0,13));
-               if (this.model_data.features[k].properties.arr_time.substr(0,13) == 
+               if (this.model_data.features[k].properties.arr_time.substr(0,13) ==
                                                            this.hour_to_disp) {
 
                   // TODO: COMBINE this with DataPos generation!!!
@@ -258,7 +258,7 @@ export default {
         model_data: [],     // model data from source
         display_data: [],   // hour data selected for display
 
-        hour_to_disp: '2020_03_02T16',
+        hour_to_disp: '2020_01_10T16',
 
         highlightedFeat_flw : 0,   // the current (old) item that may need to be turned off
         highlightedFeat_sch : 0,   // the current (old) item that may need to be turned off
