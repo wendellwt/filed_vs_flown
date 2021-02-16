@@ -22,13 +22,13 @@
          </b-tab-item>
 
          <!-- ============= bar chart tab ============== -->
-         <b-tab-item label="Charts"> <Charts /> </b-tab-item>
+         <!-- OLD: b-tab-item label="Charts"> <Charts /> </b-tab-item -->
 
          <!-- ============= stacked chart tab ============== -->
          <!-- b-tab-item label="Stacked"> <Stacked /> </b-tab-item -->
 
          <!-- ============= circular chart tab ============== -->
-         <b-tab-item label="Circular"> <Circular /> </b-tab-item>
+         <!-- old: b-tab-item label="Circular"> <Circular /> </b-tab-item -->
 
          <!-- ============= table tab ==============
          <b-tab-item label="Table"><mytable /></b-tab-item> -->
