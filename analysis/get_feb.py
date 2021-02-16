@@ -185,8 +185,8 @@ def get_details(lgr, gdate, ctr, verbose=False):
 flw_dist,  b4_ent_dist, b4_dep_dist, dep_time, arr_time
 FROM fvf_%s
 WHERE artcc = '%s'
--- AND arr_time >= to_timestamp('%s 15:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
--- AND arr_time <  to_timestamp('%s 19:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
+AND arr_time >= to_timestamp('%s 00:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
+AND arr_time <  to_timestamp('%s 23:59:59+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
 """ % (y_m, ctr, yhmhd, yhmhd)
 
     if verbose: print(sql)
@@ -228,9 +228,84 @@ def get_chart_from_details(lgr, details_df, ctr):
 
     # ---- 3. get corner data for charts
 
-    sch_cnr_sum_df = details_df.groupby(["arr_qh", "corner"]) [["b4_dep_dist"]].sum()
+    #unused: sch_cnr_sum_df = details_df.groupby(["arr_qh", "corner"]) [["b4_dep_dist"]].sum()
     ate_cnr_sum_df = details_df.groupby(["arr_qh", "corner"]) [["b4_ent_dist"]].sum()
     flw_cnr_sum_df = details_df.groupby(["arr_qh", "corner"]) [["flw_dist"   ]].sum()
+
+    flw_by_cnr_and_qh = flw_cnr_sum_df.reset_index() \
+                                      .pivot(index='arr_qh', columns='corner', values='flw_dist')
+
+#                         flw_dist
+# corner                        ne           nw           se           sw
+# arr_qh
+# 2020-01-10 05:00:00   228.924232   173.239156   474.044326   332.111915
+# 2020-01-10 05:15:00   456.887751          NaN   357.576098   331.772044
+# 2020-01-10 05:30:00   391.423476   146.364984   136.074262  1039.217549
+# 2020-01-10 05:45:00          NaN   340.448476   348.360392   599.284942
+
+    flw_by_cnr_and_qh.rename({
+                 'ne' : "ne_flw",
+                 'se' : "se_flw",
+                 'sw' : "sw_flw",
+                 'nw' : "nw_flw"}, inplace=True, axis=1)
+
+    flw_by_cnr_and_qh.fillna(0, inplace=True)
+    flw_by_cnr_and_qh.reset_index(inplace=True)
+
+    # code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    ate_by_cnr_and_qh = ate_cnr_sum_df.reset_index() \
+                                      .pivot(index='arr_qh', columns='corner', values='b4_ent_dist')
+
+    ate_by_cnr_and_qh.rename({
+                 'ne' : "ne_ate",
+                 'se' : "se_ate",
+                 'sw' : "sw_ate",
+                 'nw' : "nw_ate"}, inplace=True, axis=1)
+
+    ate_by_cnr_and_qh.fillna(0, inplace=True)
+    ate_by_cnr_and_qh.reset_index(inplace=True)
+
+    both_cq_df = pd.merge(flw_by_cnr_and_qh, ate_by_cnr_and_qh, on='arr_qh')
+
+    both_cq_df.reset_index(inplace=True)  # not sure why...  just because
+
+    #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    both_cq_df['ne_diff'] = both_cq_df['ne_flw'] - both_cq_df['ne_ate']
+    both_cq_df['se_diff'] = both_cq_df['se_flw'] - both_cq_df['se_ate']
+    both_cq_df['sw_diff'] = both_cq_df['sw_flw'] - both_cq_df['sw_ate']
+    both_cq_df['nw_diff'] = both_cq_df['nw_flw'] - both_cq_df['nw_ate']
+
+    # need to make sure columns are in specified order to make
+    # it easier for javascript to put back into an assoc array
+    # (because orient=split drops the name)
+    both_ordr_cq_df = both_cq_df[[ 'arr_qh',
+                 'ne_flw',  'se_flw',  'sw_flw',  'nw_flw',
+                 'ne_ate',  'se_ate',  'sw_ate',  'nw_ate',
+                 'ne_diff', 'se_diff', 'sw_diff', 'nw_diff' ]]
+
+    #print(both_cq_df)
+    #print(both_ordr_cq_df)
+    #print(both_cq_df.columns)
+    #print(both_ordr_cq_df.columns)
+
+    #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    #print(both_cq_df)
+
+    both_dct = my_df_to_dict( both_ordr_cq_df )
+
+    #print(both_dct)
+
+    return ( 1, 2, both_dct)
+
+# $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+def OLD_CODE():
+    sch_cnr_sum_df = None
+    ate_cnr_sum_df = None
+    flw_cnr_sum_df = None
+    details_df = None
 
     chart_df = pd.merge(sch_cnr_sum_df, ate_cnr_sum_df, on=["arr_qh", "corner"])
     chart_df = pd.merge(chart_df,       flw_cnr_sum_df, on=["arr_qh", "corner"])
@@ -263,7 +338,7 @@ def get_chart_from_details(lgr, details_df, ctr):
     lgr.debug("chart_dct")
     #pprint(chart_dct)
 
-    # code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     #if args.elapsed: cc.end("form chart:" + ctr)
 
@@ -271,7 +346,7 @@ def get_chart_from_details(lgr, details_df, ctr):
 
 #############################################################################
 
-def get_postg_data_from_asdidb(lgr, gdate):
+def get_postg_data_from_asdidb(lgr, gdate, ctr):
 
     lgr.info("get_postg starting")
 
@@ -280,31 +355,34 @@ def get_postg_data_from_asdidb(lgr, gdate):
                     'details_data' : {} }
 
     lgr.info("ma")
-    for ctr in den_artccs:
+    # OLD: for ctr in den_artccs:
 
-        lgr.info("mb")
-        lgr.info(ctr)
+    lgr.info("mb")
+    lgr.info(ctr)
 
-        # -------------- part 1: get map geojson
+    # -------------- part 1: get map geojson
 
-        map_dct = retrieve_path_center_geojson(lgr, gdate, ctr, args_verbose)
+    map_dct = retrieve_path_center_geojson(lgr, gdate, ctr, args_verbose)
 
-        lgr.info("have map_dct")
+    lgr.info("have map_dct")
 
-        main_output['map_data'][ctr] = map_dct
+    #MULTI: main_output['map_data'][ctr] = map_dct
+    main_output['map_data'] = map_dct
 
-        # -------------- part 2: get details
+    # -------------- part 2: get details
 
-        details_df, details_dct = get_details(lgr, gdate, ctr, args_verbose)
+    details_df, details_dct = get_details(lgr, gdate, ctr, args_verbose)
 
-        main_output['details_data'][ctr] = details_dct
+    #MULTI: main_output['details_data'][ctr] = details_dct
+    main_output['details_data'] = details_dct
 
-        # -------------- part 3: chart details (the MAIN part)
+    # -------------- part 3: chart details (the MAIN part)
 
-        ate_cnr_dct, flw_cnr_dct, chart_dct = get_chart_from_details(
-                                                    lgr, details_df, ctr)
+    ate_cnr_dct, flw_cnr_dct, chart_dct = get_chart_from_details(
+                                                lgr, details_df, ctr)
 
-        main_output['chart_data'][ctr] = chart_dct  # AND FLOWN AND CHART???
+    # MULTI: main_output['chart_data'][ctr] = chart_dct  # AND FLOWN AND CHART???
+    main_output['chart_data'] = chart_dct  # AND FLOWN AND CHART???
 
     lgr.info("get_postg finished")
 
@@ -343,6 +421,9 @@ if __name__ == "__main__":
     parser.add_argument('-a', '--airport', type=str,
             help="arrival airport", default="DEN")
 
+    parser.add_argument('-c', '--center', type=str,
+            help="artcc to use", default="ZDV")
+
     parser.add_argument('-v', '--verbose', action='store_const', const=True,
             help="verbosity", default=False )
 
@@ -359,7 +440,7 @@ if __name__ == "__main__":
 
     # ==================================================================
 
-    main_output = get_postg_data_from_asdidb(lgr, args.date)
+    main_output = get_postg_data_from_asdidb(lgr, args.date, args.center)
 
     # nice format
     if args.output == 'p':
