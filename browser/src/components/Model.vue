@@ -56,10 +56,10 @@ export default {
 
         // ---- tell Map component
 
-//        let map_args = { mdata: new_data.map_data,
-//                         hour : this.y_m_d_h_m };
-//console.log("emit:"+this.y_m_d_h_m);
-//        this.$root.$emit('new_model_data', (map_args) );
+        let map_args = { mdata: new_data.map_data,
+                         hour : this.y_m_d_h_m };
+console.log("emit:"+this.y_m_d_h_m);
+        this.$root.$emit('new_model_data', (map_args) );
 
         // =========== ef chart details ==============
         let chart_args = { ef_data     : new_data.chart_data,
