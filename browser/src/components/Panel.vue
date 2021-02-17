@@ -80,17 +80,16 @@
         </div>
         <div class="panel-block">
 
-          <b-button type="is-danger is-light"
+          <!-- b-button type="is-danger is-light"
                     size="is-small"
                     rounded
                     v-on:click="CallAFunction_draw_circle()"
-                    >draw_circle()</b-button>
+                    >draw_circle()</b-button -->
           <!-- b-button type="is-danger is-light"
                     size="is-small"
                     rounded
                     v-on:click="CallAFunction_fvf_geojson()"
                     >fvf_geojson()</b-button -->
-
         </div>
 
   <p class="panel-heading">
