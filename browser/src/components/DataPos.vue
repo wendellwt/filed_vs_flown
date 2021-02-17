@@ -112,7 +112,7 @@ li.datalist {
 }
 
 ul.scrolling {
-        max-height: 400px;
+        max-height: 500px;
         overflow: scroll;
 }
 
