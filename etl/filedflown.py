@@ -303,6 +303,7 @@ def output_to_oracle_flight_level(center_df, tier):
     ora_output_df = center_df.drop([ 'FID', 'b4_dep_path',
                                     'b4_ent_path', 'flw_path',
                                     'b4_dep_up_to_path', 'flw_up_to_path',
+                                    'ACFT_TYPE_x',
                                     ], axis=1)
 
     ora_output_df['ARTCC_LEVEL'] = tier
@@ -423,20 +424,21 @@ def merge_everything(last_b4_dep_df, at_entry_df, flown_ls_df):
 
     # clean up columns
     b4_dep_ready_df = last_b4_dep_df.drop([
-                    'FLIGHT_INDEX', 'ACFT_TYPE',
-                    'WAYPOINTS', 'SOURCE_TYPE', 'ORIG_TIME',
+                    'FLIGHT_INDEX', 'WAYPOINTS', 'SOURCE_TYPE', 'ORIG_TIME',
                     'sched_path'], axis=1)
 
     at_entry_ready_df = at_entry_df.drop([
            'FLIGHT_INDEX_x', 'ACID_x', 'POSIT_TIME', 'position', 'ACID_y',
            'FLIGHT_INDEX_y', 'ORIG_TIME', 'SOURCE_TYPE', 'DEP_TIME', 'ARR_TIME',
-           'DEPT_APRT', 'ARR_APRT', 'ACFT_TYPE', 'WAYPOINTS',
+           'DEPT_APRT', 'ARR_APRT', 'WAYPOINTS',
            'sched_path'], axis=1)
 
     flown_ready_df = flown_ls_df.drop('flown_path', axis=1)
 
     center_df = pd.merge(b4_dep_ready_df, at_entry_ready_df, on='FID', how='inner')
     center_df = pd.merge(center_df,  flown_ready_df,     on='FID', how='inner')
+
+    center_df.drop(['ACFT_TYPE_y'], axis=1, inplace=True)
 
     return(center_df)
 
@@ -545,11 +547,11 @@ def output_postgis(ctr_df, ctr_name, center_minus_tracon_shp):
         'ARR_APRT'    : 'arr_apt',
 
         # q: need to explicitly make lower case?
-        'FID'      : 'fid',
-        'ACID'     : 'acid',
-        'ACID'     : 'acid',
-        'DEP_TIME' : 'dep_time',
-        'ARR_TIME' : 'arr_time',
+        'FID'         : 'fid',
+        'ACID'        : 'acid',
+        'ACFT_TYPE_x' : 'ac_type',
+        'DEP_TIME'    : 'dep_time',
+        'ARR_TIME'    : 'arr_time',
         }, axis=1, inplace=True)
 
     ctr_df['artcc'] = ctr_name
@@ -677,6 +679,7 @@ for ctr, tier in artccs:
     # FIXED DATES used here: output_json_to_file(center_df, ctr, center_minus_tracon_shp)
 
     #if args.write_postigs:
+    #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     output_postgis(center_df, ctr, center_minus_tracon_shp)
 
     #ectr.end("end of:" + ctr)

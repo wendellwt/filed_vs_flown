@@ -7,6 +7,7 @@
 #  filedflown.py and (the now ole and superceeded) oracle2postg.py
 
 import io
+import sys
 import psycopg2
 import geopandas as gpd
 
@@ -132,7 +133,6 @@ WHERE ident IN """ + corners + ";"
 
 # ==========================================================================
 
-
 def sq(s):
     return ("'" + s + "'")
 
@@ -176,7 +176,6 @@ def drop_cre8_sched(sch_tbl):
     pg_csr.execute(fixme)
 
     pg_conn.commit()           # commit both of them
-
 
 # --------------------------------------------------------------------
 
@@ -610,8 +609,6 @@ VALUES (""" + \
 
 # ==================================================================
 
-import sys
-
 cssi_username = os.environ.get('CSSI_USER')
 cssi_password = os.environ.get('CSSI_PASSWORD')
 cssi_database = os.environ.get('CSSI_DATABASE')
@@ -619,17 +616,48 @@ cssi_host     = os.environ.get('CSSI_HOST')
 
 # the CSSI sqlalchemy way:
 cssi_engine = create_engine('postgresql://' + \
-            cssi_username + ':' + cssi_password + '@' + cssi_host + ':5432/' + cssi_database)
+            cssi_username + ':' + cssi_password + '@' + cssi_host + \
+                            ':5432/' + cssi_database)
 
+# ==================================================================
+
+cre8_fvf = """ CREATE TABLE IF NOT EXISTS %s (
+    acid          text,
+    fid           bigint,
+    corner        text,
+    artcc         text,
+    dep_apt       text,
+    arr_apt       text,
+    ac_type       text,
+    flw_dist      float,
+    b4_ent_dist   float,
+    b4_dep_dist   float,
+
+    b4_dep_up_to_dist  float,
+    flw_up_to_dist     float,
+
+    dep_time          timestamptz,
+    arr_time          timestamptz,
+    opsday            date,
+    flw_geog          Geography,
+    b4_ent_geog       Geography,
+    b4_dep_geog       Geography,
+
+    b4_dep_up_to_geog Geography,
+    flw_up_to_geog    Geography
+);"""
+
+# ==================================================================
 #from geoalchemy2 import Geography, WKTElement
 
 # write pandas df WITH MULTIPLE GEOGRAPHY COLUMNS out to postgis
 
 def write_ff_to_postgis_cssi(fvf_tbl, ctr_df, ctr_name_HELP):
 
-    #print(" >>>>>>>> CSSI")
+    cre8_sql = cre8_fvf % fvf_tbl
+    #print(cre8_sql)
 
-    # code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    cssi_engine.execute(cre8_sql)
 
     ctr_df.rename( {
         'flw_path'          : 'flw_geog',
