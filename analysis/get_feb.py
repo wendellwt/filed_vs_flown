@@ -346,6 +346,47 @@ def OLD_CODE():
 
 #############################################################################
 
+def help_get_corner(c_df, corner):
+
+    xx_data_slice = c_df[c_df['corner']==corner]
+    xx_data  = xx_data_slice.drop(['corner'], axis=1)
+    xx_jsn = xx_data.to_json(orient='split')
+    xx_dct = json.loads(xx_jsn)
+    return(xx_dct)
+
+# ===================================================================
+
+def get_circle_from_details(lgr, details_df, ctr):
+
+    # get landing hour
+
+    details_df['arr_hour'] = details_df['arr_time'].apply(lambda dt: dt.hour)
+
+    # ---- get corner data for circle
+
+    circ_df = details_df.groupby(["corner", "arr_hour"]) [["flw_dist"]].sum()
+
+    circ_df.reset_index(inplace=True)
+
+    # PROB. could be much better!!!
+    ne_dct = help_get_corner(circ_df, 'ne')
+    se_dct = help_get_corner(circ_df, 'se')
+    sw_dct = help_get_corner(circ_df, 'sw')
+    nw_dct = help_get_corner(circ_df, 'nw')
+
+    circ_dct = { 'ne' : ne_dct,
+                 'se' : se_dct,
+                 'sw' : sw_dct,
+                 'nw' : nw_dct }
+
+    #pprint(circ_dct)
+
+    #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    return(circ_dct)
+
+#############################################################################
+
 def get_postg_data_from_asdidb(lgr, gdate, ctr):
 
     lgr.info("get_postg starting")
@@ -366,14 +407,12 @@ def get_postg_data_from_asdidb(lgr, gdate, ctr):
 
     lgr.info("have map_dct")
 
-    #MULTI: main_output['map_data'][ctr] = map_dct
     main_output['map_data'] = map_dct
 
     # -------------- part 2: get details
 
     details_df, details_dct = get_details(lgr, gdate, ctr, args_verbose)
 
-    #MULTI: main_output['details_data'][ctr] = details_dct
     main_output['details_data'] = details_dct
 
     # -------------- part 3: chart details (the MAIN part)
@@ -381,8 +420,15 @@ def get_postg_data_from_asdidb(lgr, gdate, ctr):
     ate_cnr_dct, flw_cnr_dct, chart_dct = get_chart_from_details(
                                                 lgr, details_df, ctr)
 
-    # MULTI: main_output['chart_data'][ctr] = chart_dct  # AND FLOWN AND CHART???
     main_output['chart_data'] = chart_dct  # AND FLOWN AND CHART???
+
+    # -------------- part 3: chart details (the MAIN part)
+
+    circle_dct = get_circle_from_details(lgr, details_df, ctr)
+
+    main_output['circle_data'] = circle_dct
+
+    # -------------- part 99: the end.
 
     lgr.info("get_postg finished")
 
