@@ -591,8 +591,7 @@ cn.end("find all corners")
 for ctr, tier in artccs:
 
     print("==== ", ctr, tier)
-
-    #ectr = elapsed.Elapsed()
+    ce = elapsed.Elapsed()
 
     # ==== f. get ARTCC polygon of interest
 
@@ -673,16 +672,17 @@ for ctr, tier in artccs:
                  .replace(hour=0,minute=0,second=0)
                  .replace(tzinfo=pytz.UTC))
 
+    # ==== m. output
+
+    ce.end("center calculations")
+
     if not args.skip_oracle:
         output_to_oracle_flight_level(center_df, tier)
 
     # FIXED DATES used here: output_json_to_file(center_df, ctr, center_minus_tracon_shp)
 
     #if args.write_postigs:
-    #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     output_postgis(center_df, ctr, center_minus_tracon_shp)
-
-    #ectr.end("end of:" + ctr)
 
 all.end("finished " +  args.airport + ' ' +  args.date.strftime('%Y-%m-%d'))
 
