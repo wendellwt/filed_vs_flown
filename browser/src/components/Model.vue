@@ -6,9 +6,115 @@
 
 <script>
 
+/********************************/
+
+var proposed_circ_data = {
+    'ne': [ { 'arr_hr' :  0, 'dist' : 10 },
+            { 'arr_hr' :  1, 'dist' : 40 },
+            { 'arr_hr' :  2, 'dist' : 30 },
+            { 'arr_hr' :  3, 'dist' : 50 },
+            { 'arr_hr' :  4, 'dist' : 40 },
+            { 'arr_hr' :  5, 'dist' : 10 },
+            { 'arr_hr' :  6, 'dist' : 30 },
+            { 'arr_hr' :  7, 'dist' : 20 },
+            { 'arr_hr' :  8, 'dist' : 30 },
+            { 'arr_hr' :  9, 'dist' : 20 },
+            { 'arr_hr' : 10, 'dist' : 40 },
+            { 'arr_hr' : 11, 'dist' : 20 },
+            { 'arr_hr' : 12, 'dist' : 10 },
+            { 'arr_hr' : 13, 'dist' : 20 },
+            { 'arr_hr' : 14, 'dist' : 30 },
+            { 'arr_hr' : 15, 'dist' : 50 },
+            { 'arr_hr' : 16, 'dist' : 40 },
+            { 'arr_hr' : 17, 'dist' : 30 },
+            { 'arr_hr' : 18, 'dist' : 10 },
+            { 'arr_hr' : 19, 'dist' : 20 },
+            { 'arr_hr' : 20, 'dist' : 10 },
+            { 'arr_hr' : 21, 'dist' : 30 },
+            { 'arr_hr' : 22, 'dist' : 20 },
+            { 'arr_hr' : 23, 'dist' : 10 } ],
+
+    'se': [ { 'arr_hr' :  0, 'dist' : 10 },
+            { 'arr_hr' :  1, 'dist' : 40 },
+            { 'arr_hr' :  2, 'dist' : 30 },
+            { 'arr_hr' :  3, 'dist' : 50 },
+            { 'arr_hr' :  4, 'dist' : 40 },
+            { 'arr_hr' :  5, 'dist' : 10 },
+            { 'arr_hr' :  6, 'dist' : 30 },
+            { 'arr_hr' :  7, 'dist' : 20 },
+            { 'arr_hr' :  8, 'dist' : 30 },
+            { 'arr_hr' :  9, 'dist' : 20 },
+            { 'arr_hr' : 10, 'dist' : 40 },
+            { 'arr_hr' : 11, 'dist' : 20 },
+            { 'arr_hr' : 12, 'dist' : 10 },
+            { 'arr_hr' : 13, 'dist' : 20 },
+            { 'arr_hr' : 14, 'dist' : 30 },
+            { 'arr_hr' : 15, 'dist' : 50 },
+            { 'arr_hr' : 16, 'dist' : 40 },
+            { 'arr_hr' : 17, 'dist' : 30 },
+            { 'arr_hr' : 18, 'dist' : 10 },
+            { 'arr_hr' : 19, 'dist' : 20 },
+            { 'arr_hr' : 20, 'dist' : 10 },
+            { 'arr_hr' : 21, 'dist' : 30 },
+            { 'arr_hr' : 22, 'dist' : 20 },
+            { 'arr_hr' : 23, 'dist' : 10 } ],
+
+    'sw': [ { 'arr_hr' :  0, 'dist' : 10 },
+            { 'arr_hr' :  1, 'dist' : 40 },
+            { 'arr_hr' :  2, 'dist' : 30 },
+            { 'arr_hr' :  3, 'dist' : 50 },
+            { 'arr_hr' :  4, 'dist' : 40 },
+            { 'arr_hr' :  5, 'dist' : 10 },
+            { 'arr_hr' :  6, 'dist' : 30 },
+            { 'arr_hr' :  7, 'dist' : 20 },
+            { 'arr_hr' :  8, 'dist' : 30 },
+            { 'arr_hr' :  9, 'dist' : 20 },
+            { 'arr_hr' : 10, 'dist' : 40 },
+            { 'arr_hr' : 11, 'dist' : 20 },
+            { 'arr_hr' : 12, 'dist' : 10 },
+            { 'arr_hr' : 13, 'dist' : 20 },
+            { 'arr_hr' : 14, 'dist' : 30 },
+            { 'arr_hr' : 15, 'dist' : 50 },
+            { 'arr_hr' : 16, 'dist' : 40 },
+            { 'arr_hr' : 17, 'dist' : 30 },
+            { 'arr_hr' : 18, 'dist' : 10 },
+            { 'arr_hr' : 19, 'dist' : 20 },
+            { 'arr_hr' : 20, 'dist' : 10 },
+            { 'arr_hr' : 21, 'dist' : 30 },
+            { 'arr_hr' : 22, 'dist' : 20 },
+            { 'arr_hr' : 23, 'dist' : 10 } ],
+
+    'nw': [ { 'arr_hr' :  0, 'dist' : 10 },
+            { 'arr_hr' :  1, 'dist' : 40 },
+            { 'arr_hr' :  2, 'dist' : 30 },
+            { 'arr_hr' :  3, 'dist' : 50 },
+            { 'arr_hr' :  4, 'dist' : 40 },
+            { 'arr_hr' :  5, 'dist' : 10 },
+            { 'arr_hr' :  6, 'dist' : 30 },
+            { 'arr_hr' :  7, 'dist' : 20 },
+            { 'arr_hr' :  8, 'dist' : 30 },
+            { 'arr_hr' :  9, 'dist' : 20 },
+            { 'arr_hr' : 10, 'dist' : 40 },
+            { 'arr_hr' : 11, 'dist' : 20 },
+            { 'arr_hr' : 12, 'dist' : 10 },
+            { 'arr_hr' : 13, 'dist' : 20 },
+            { 'arr_hr' : 14, 'dist' : 30 },
+            { 'arr_hr' : 15, 'dist' : 50 },
+            { 'arr_hr' : 16, 'dist' : 40 },
+            { 'arr_hr' : 17, 'dist' : 30 },
+            { 'arr_hr' : 18, 'dist' : 10 },
+            { 'arr_hr' : 19, 'dist' : 20 },
+            { 'arr_hr' : 20, 'dist' : 10 },
+            { 'arr_hr' : 21, 'dist' : 30 },
+            { 'arr_hr' : 22, 'dist' : 20 },
+            { 'arr_hr' : 23, 'dist' : 10 } ]
+};
+
+/********************************/
+
 // a file captured from ./everything.py over on rserver:
 // TODO: for FLASK, when publishing, make this a very small valid json file!
-import e_feb from "./files/j_2020-01-10.json";    // set to empty file for flask
+import e_feb from "./files/k_2020-01-10.json";    // set to empty file for flask
 
 export default {
   name: 'model',
@@ -66,19 +172,20 @@ console.log("emit:"+this.y_m_d_h_m);
                            title_date  : "put date/time here"   };
         this.$root.$emit('new_ef_data', (chart_args) );
 
-
         /*** OLD =========== chart details ==============
         let chart_args = { cdata: new_data.chart_data.ZDV,  // FIXME <<<<<<<<
                          title_date  : this.y_m_dd_val   };
         this.$root.$emit('new_barchart_data', (chart_args) );
       ***/
-        
-        //this.set_and_show_hourly_data();
 
         // =========== table details ==============
 
         this.$root.$emit('new_details_data', (new_data.details_data) ); // FIXME <<<<<
 
+        // =========== corner circle chart ==============
+        let corner_args = { corner_data : new_data.circle_data,
+                            title_date  : "put date/time here"   };
+        this.$root.$emit('new_corner_data', (corner_args) );
     },
 
   },

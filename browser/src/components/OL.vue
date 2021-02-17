@@ -41,10 +41,12 @@
     </vl-overlay>
 
            <!-- ========== svg container layers ========= -->
-      <!--csv: CornerCircBar v-for="corner in corners"
-                     v-bind:key="corner.ident"
-                     v-bind:corner_data="corner" >
-      </CornerCircBar -->
+           <div v-if="draw_circles">
+              <CornerCircBar v-for="corner in corners"
+                             v-bind:key="corner.ident"
+                             v-bind:corner_data="corner" >
+              </CornerCircBar>
+           <div/>
 
       <!-- ========== end layers ========= -->
     </vl-map>
@@ -54,11 +56,17 @@
     <div class="legend">
 flown: <input type="text" class="flown"/>
 sched: <input type="text" class="at_entry"/>
-<b-button type="is-warning is-light"
+&nbsp; &nbsp; &nbsp;
+    <b-checkbox type="is-info"
+                        size="is-small"
+                        v-model="draw_circles">draw_circles</b-checkbox>
+
+<!-- b-button type="is-warning is-light"
                     size="is-small"
                     rounded
                     v-on:click="do_some_d3()"
-                    >do_some_d3</b-button>
+                    >do_some_d3</b-button -->
+
     </div>
 
   </div>
@@ -76,7 +84,7 @@ import Style      from 'ol/style/Style'
 
 import { Vector as VectorLayer } from 'ol/layer'
 
-//csv: import CornerCircBar from './CornerCircBar'
+import CornerCircBar from './CornerCircBar'
 
 // ==========================================================
 
@@ -255,7 +263,7 @@ var KDEN = [-104.6731667, 39.8616667];
 export default {
     methods,
     components: {
-      //csv: CornerCircBar
+        CornerCircBar
     },
     data () {
       return {
@@ -268,15 +276,17 @@ export default {
         model_data: [],     // model data from source
         display_data: [],   // hour data selected for display
 
+        draw_circles : false,
+
         hour_to_disp: '2020_01_10T16',
 
         highlightedFeat_flw : 0,   // the current (old) item that may need to be turned off
         highlightedFeat_sch : 0,   // the current (old) item that may need to be turned off
         corners: [
-          { dir: "ne", ident: 'LANDR', coords: [-104.002963888889, 40.3575722222222], colr: 'green'  },
-          { dir: "se", ident: 'DANDD', coords: [-103.939133333333, 39.3970944444444], colr: 'blue'   },
-          { dir: "sw", ident: 'LARKS', coords: [-105.305161111111, 39.2573972222222], colr: 'orange' },
-          { dir: "nw", ident: 'RAMMS', coords: [-105.238811111111, 40.49355],         colr: 'magenta'},
+          { dir: "ne", ident: 'LANDR', coords: [-104.002963888889, 40.3575722222222], colr: '#002664' },
+          { dir: "se", ident: 'DANDD', coords: [-103.939133333333, 39.3970944444444], colr: '#007934' },
+          { dir: "sw", ident: 'LARKS', coords: [-105.305161111111, 39.2573972222222], colr: '#AB8422' },
+          { dir: "nw", ident: 'RAMMS', coords: [-105.238811111111, 40.49355],         colr: '#5E6A71' },
         ]
 
       }

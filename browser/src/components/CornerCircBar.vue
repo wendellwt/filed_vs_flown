@@ -1,8 +1,8 @@
 <template>
 
-    <vl-overlay :id="'ovrly_'+corner_data.ident" :position="corner_data.coords"
+    <vl-overlay :id="'ovrly_'+corner_data.dir" :position="corner_data.coords"
                 positioning='center-center' >
-        <div :id="'svg_div_'+corner_data.ident"
+        <div :id="'svg_div_'+corner_data.dir"
               style="width: 150px; height: 150px;  background-color:#80808040">
           {{corner_data.ident}}
         </div>
@@ -22,16 +22,27 @@ var chart_height = 150;
 export default {
   name: "CornerCircBar",
   props: {
+    // { dir: "ne", ident: 'LANDR', coords: [-104.002963888889, 40.3575722222222], colr: 'green'  },
     corner_data: Object
   },
     data () {
       return {
-        foo : 1
+        my_corner_orig : [ ],
+        my_corner_data : [ ]
       }
     },
     /********************************************************** */
     methods: {
-        displayCircularData : function(cdata, y_max) {
+        get_my_color : function() {
+            if (this.corner_data.dir == 'ne') { return '#002664';}   // RGB (0, 38, 100)
+            if (this.corner_data.dir == 'se') { return '#007934';}   // RGB (0, 121, 52)
+            if (this.corner_data.dir == 'sw') { return '#AB8422';}   // RGB (171, 132, 34)
+            if (this.corner_data.dir == 'nw') { return '#5E6A71';}   // RGB (94, 106, 113)
+            return('red');
+        },
+
+    /********************************************************** */
+        displayCircularData : function(cdata, y_max, corner_color) {
 
   // set the dimensions and margins of the graph
             // bottom margin of 80 leaves room for x-axis label rotated
@@ -43,7 +54,7 @@ export default {
 console.log("do something with this:"+y_max);
 
       //get the vector layer div element
-  let my_div = "#svg_div_"+this.corner_data.ident;
+  let my_div = "#svg_div_"+this.corner_data.dir;
 
   // ---- remove previous sub-components, if any
   d3.select(my_div).selectAll("svg").remove();
@@ -85,7 +96,9 @@ var   outerRadius = Math.min(width, height) / 2;
     .enter()
     .append("path")
       //.attr("fill", "green")
-      .attr("fill", function(d) {return d['dist']==30 ? "orange" : "green"})
+      //.attr("fill", function(d) {return d['dist']==30 ? "orange" : "green"})
+      //.attr("fill", function(d) {return this.get_my_color(); })
+      .attr("fill", corner_color)
       .attr("d", d3.arc()     // imagine your doing a part of a donut plot
           .innerRadius(innerRadius)
           .outerRadius(function(d) { return y(d['dist']); })
@@ -105,11 +118,12 @@ var   outerRadius = Math.min(width, height) / 2;
 
   mounted () {
 
+/********************* DRAW A DOT >>>>>> OLD <<<<< ***************/
     this.$root.$on('draw_this_corner', (corner_datax) => {
       console.log("about to do some d3!");
       console.log(this.corner_data);
-      console.log("ident:");
-      console.log(this.corner_data.ident);
+      console.log("dir:");
+      console.log(this.corner_data.dir);
       let stupid_color = this.corner_data.colr;
       console.log("sc:");
       console.log(stupid_color);
@@ -138,23 +152,56 @@ var   outerRadius = Math.min(width, height) / 2;
  console.log("part done.");
    }),
 /*************************************************************/
-      this.$root.$on('draw_circ_chart', (chart_args) => {
-console.log("draw_circ_chart:"+this.corner_data.ident);
-          let cdata     = chart_args.cdata;
-          let ymax      = chart_args.slider_vals[1];
-          this.the_date = chart_args.title_date
+      this.$root.$on('new_corner_data', (corner_args) => {
 
-          let wt_groups = [ ];
-          for (let k = 0; k < cdata.length; k++ ) {
-                  wt_groups.push(cdata[k].arr_hr);
+          this.my_corner_orig = corner_args.corner_data[this.corner_data.dir].data;
+// console.log("my data is:");
+// console.log(this.my_corner_data);
+
+/*****************************
+        "ne": {
+            "columns": [ "arr_hour", "flw_dist" ],
+            "data": [
+                [ 0, 4614.9540688637 ],
+                [ 1, 1769.4923150382 ],
+                [ 2, 2804.1062837474 ],
+        ...
+                [ 23, 4880.1052169843 ]
+            ],
+"index": [ 0, 1, 2, 3, 4, 5, ...
+        },
+"nw": {
+            "columns": [ "arr_hour", "flw_dist" ],
+            "data": [
+                [ 0, 846.185468761 ],
+                [ 1, 2197.651969371 ],
+                [ 2, 2619.7360797493 ],
+                [ 3, 225.2490231881 ],
+                [ 4, 1099.8194817083 ],
+*****************************/
+          // convert input as a list of lists into an assoc array
+          this.my_corner_data = [];
+          for(var k = 0; k < this.my_corner_orig.length; k++) {
+            var item = { 'arr_hr' : this.my_corner_orig[k][0],
+                         'dist'   : this.my_corner_orig[k][1] }
+              this.my_corner_data.push(item);
           }
 
-console.log("circ cdata currently:");
-console.log(cdata);
-console.log("wt_groups:");
-console.log(wt_groups);
+          this.the_date       = corner_args.title_date; // arb, prob. useless
 
-          this.displayCircularData(cdata, ymax);
+          let wt_groups = [ ];
+          for (let k = 0; k < this.my_corner_data.length; k++ ) {
+                  wt_groups.push(this.my_corner_data[k].arr_hr);
+          }
+
+// console.log("circ data currently:");
+// console.log(this.my_corner_data);
+// console.log("wt_groups:");
+// console.log(wt_groups);
+
+          let ymax = 5000; // ????
+
+          this.displayCircularData(this.my_corner_data, ymax, this.corner_data.colr);
       })
 
   } // ---- mounted???
