@@ -31,6 +31,8 @@ export default {
         my_corner_data : [ ]
       }
     },
+
+    methods: {
         displayCircularData : function(cdata, y_max, corner_color) {
 
   // set the dimensions and margins of the graph
