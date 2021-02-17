@@ -47,6 +47,9 @@ parser.add_argument('-p', '--pickle', action='store_const', const=True,
 parser.add_argument('-s', '--skip_oracle', action='store_const', const=True,
             help="skip writing to oracle", default=False )
 
+parser.add_argument('-w', '--write_postigs', action='store_const', const=True,
+            help="write to postigs", default=False )
+
 args = parser.parse_args()
 
 y_m   = args.date.strftime("%Y_%m")
@@ -94,14 +97,13 @@ def get_sched_data_from_oracle(act_date, arr_apt):
     ro = elapsed.Elapsed()
 
     if args.pickle:
-        arrivals_df = pickle.load( open( "p_filed_" + y_m_d + "_df.p", "rb" ) )
+        arrivals_df = pickle.load( open(
+                                  "files/p_filed_" + y_m_d + "_df.p", "rb" ))
     else:
         arrivals_df = foracle.read_ops_day_data(act_date, arr_apt, args.verbose)
 
-        #all_df = foracle.read_ops_day_data(act_date, arr_apt, args.verbose)
-        # done in foracle: arrivals_df = all_df.loc[all_df['ARR_APRT'] == args.airport]  # redundant?
-
-        pickle.dump( arrivals_df, open( "p_filed_" + y_m_d + "_df.p","wb" ) )
+        pickle.dump( arrivals_df, open(
+                                  "files/p_filed_" + y_m_d + "_df.p","wb" ))
 
     # ---- 2. get distinct flight id's
 
@@ -180,7 +182,7 @@ def read_artcc_and_tracon(ctr):
 
     center_minus_tracon_shape = ctr_shape.difference(tracon_shape)
 
-    return(center_minus_tracon_shape)
+    return(center_minus_tracon_shape, tracon_shape)
 
 # =========================================================================
 
@@ -366,13 +368,16 @@ def get_flown_data(just_fids):
     # ---- c.1) fetch all FIDs from Oracle/TFMS
 
     if args.pickle:
-        full_tz_df = pickle.load( open( "p_full_tz_" + y_m_d + "_df.p", "rb" ) )
+        full_tz_df = pickle.load( open(
+                                  "files/p_full_tz_" + y_m_d + "_df.p", "rb" ))
     else:
 
-        # NOT SORTED BY POSIT_TIME !!!!!!!!!!!!!!
-        full_tz_df = foracle.get_all_tz_using_temp(args.date, just_fids, args.verbose)
+        # NOT SORTED BY POSIT_TIME !!
+        full_tz_df = foracle.get_all_tz_using_temp(args.date, just_fids,
+                                                   args.verbose)
 
-        pickle.dump( full_tz_df, open( "p_full_tz_" + y_m_d + "_df.p","wb" ) )
+        pickle.dump( full_tz_df, open(
+                                 "files/p_full_tz_" + y_m_d + "_df.p","wb" ))
 
     # ---- remove duplicated time fields
 
@@ -589,7 +594,7 @@ for ctr, tier in artccs:
 
     # ==== f. get ARTCC polygon of interest
 
-    center_minus_tracon_shp = read_artcc_and_tracon(ctr)
+    center_minus_tracon_shp, tracon_shp = read_artcc_and_tracon(ctr)
 
     # ==== g. before depart paths intersected by that poly
 
@@ -605,8 +610,9 @@ for ctr, tier in artccs:
     # ==== g2. before depart paths up to that poly
 
     # get a linestring (possibly mulitlinestring) of the geospatial difference
-    last_b4_dep_df['b4_dep_up_to_path'] = \
-        last_b4_dep_df['sched_path'].apply( lambda ls: ls.difference(center_minus_tracon_shp))
+    last_b4_dep_df['b4_dep_up_to_path'] = last_b4_dep_df['sched_path'].apply(
+                                 lambda ls: ls.difference(tracon_shp))
+        # not what cp wanted: lambda ls: ls.difference(center_minus_tracon_shp))
 
     # and if it is a MultiLineString, take the first one
     last_b4_dep_df['b4_dep_up_to_path'] = last_b4_dep_df['b4_dep_up_to_path'].apply(
@@ -644,7 +650,9 @@ for ctr, tier in artccs:
 
     # get a linestring (possibly mulitlinestring) of the geospatial difference
     flown_ls_df['flw_up_to_path'] = flown_ls_df['flown_path'].apply(
-                     lambda ls: ls.difference(center_minus_tracon_shp))
+                     lambda ls: ls.difference(tracon_shp))
+
+                     # not what cp wanted: lambda ls: ls.difference(center_minus_tracon_shp))
 
     # and if it is a MultiLineString, take the first one
     flown_ls_df['flw_up_to_path'] = flown_ls_df['flw_up_to_path'].apply(
@@ -668,6 +676,7 @@ for ctr, tier in artccs:
 
     # FIXED DATES used here: output_json_to_file(center_df, ctr, center_minus_tracon_shp)
 
+    #if args.write_postigs:
     output_postgis(center_df, ctr, center_minus_tracon_shp)
 
     #ectr.end("end of:" + ctr)
