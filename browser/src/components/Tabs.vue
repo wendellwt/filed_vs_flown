@@ -1,13 +1,13 @@
 <template>
     <section>
-        <b-tabs position="is-centered" class="block">
-
-         <!-- ============= filed & at_entry chart tab ============== -->
-         <b-tab-item label="Filed vs At Entry"> <FiledEntry /> </b-tab-item>
+        <b-tabs position="is-centered" class="block"
+                                       @input="tabChanged"
+            >
 
          <!-- ============= map tab ============== -->
+         <!-- PROBLEM: if map is in some other tab, then it REQUIRES resize to get itself drawn!!! -->
 
-         <b-tab-item label="Map">
+         <b-tab-item label="Map" value="map">
 
              <!-- FiledEntry / --> <!-- looks better here, but uses too much real estate -->
 
@@ -20,6 +20,9 @@
               </div>
             </div>
          </b-tab-item>
+
+         <!-- ============= filed & at_entry chart tab ============== -->
+         <b-tab-item label="Filed vs At Entry" value="chart"> <FiledEntry /> </b-tab-item>
 
          <!-- ============= bar chart tab ============== -->
          <!-- OLD: b-tab-item label="Charts"> <Charts /> </b-tab-item -->
@@ -34,10 +37,10 @@
          <b-tab-item label="Table"><mytable /></b-tab-item> -->
 
          <!-- ============= details tab ============== -->
-         <b-tab-item label="Details"><Details /></b-tab-item>
+         <b-tab-item label="Details" value="details"><Details /></b-tab-item>
 
          <!-- ============= about tab ============== -->
-         <b-tab-item label="About"><About /></b-tab-item>
+         <b-tab-item label="About" value="about"><About /></b-tab-item>
 
         </b-tabs>
         <Model />  <!-- pointless??? -->
@@ -77,11 +80,22 @@ export default {
   props: {
     msg: String
   },
+/****************************************/
     data() {
       return {
           foo : 1
       };
     },
+/****************************************/
+    methods: {
+        tabChanged: function(index) {
+console.log("tabChanged:"+index);
+            if (index == "map") {
+                this.$root.$emit('map_tab_entered', (true) );
+            }
+        }
+    }
+/****************************************/
 }
 </script>
 

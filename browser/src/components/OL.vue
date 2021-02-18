@@ -108,6 +108,8 @@ const src_a_style = new Style({ stroke: new Stroke({ color: wt_map_colors[1], wi
 const src_f_style = new Style({ stroke: new Stroke({ color: wt_map_colors[2], width: 2.0 }) })
 
 // ==================================================================================
+//document.addEventListener('resize', <yourfunction>);
+// ==================================================================================
 
 const methods = {
 
@@ -118,9 +120,17 @@ const methods = {
         new ScaleLine( { units: 'nautical'} ),
         new ZoomSlider(),
       ]);
-      this.$refs.map.updateSize()   // when map is in a tab, do this
+      this.$refs.map.updateSize();   // when map is in a tab, do this
     },
 
+    // ==========================================================
+    // worked, but made no difference in initial display...
+  myEventHandler(e) {
+      this.$refs.map.updateSize();
+console.log("RESIZE event");
+  },
+
+   // ------------ everything paths have color in them
    // ------------ everything paths have color in them
 
    everythStyleFactory() {
@@ -178,30 +188,6 @@ const methods = {
        }
 
        // ---------------------------------
-       /******************** sort by diff ***********/
-       // but need floats, not strings!
-       const sortedlist = dlist.sort(function(a, b) {
-           let a_diff = parseFloat(a.flw_dist_n);
-           let b_diff = parseFloat(b.flw_dist_n);
-           if (a_diff < b_diff) {
-                return -1; //a comes first
-           }
-           if (a_diff > b_diff) {
-                return 1; // b comes first
-           }
-           return 0;  // names must be equal
-       });
-       /******************** sort by acid
-       const sortedlist = dlist.sort(function(a, b) {
-           if (a.acid < b.acid) {
-                return -1; //nameA comes first
-           }
-           if (a.acid > b.acid) {
-                return 1; // nameB comes first
-           }
-           return 0;  // names must be equal
-       });
-       ********************/
 
        // and send to DataPos list component
 //console.log(sortedlist);
@@ -250,7 +236,7 @@ const methods = {
       //new_fvf:
       this.populate_datalist(flts_to_disp);
 
-      this.$refs.map.updateSize()   // when map is in a tab, do this
+      this.$refs.map.updateSize();  // when map is in a tab, do this
     }
 
 }
@@ -293,6 +279,14 @@ export default {
       }
     },
 
+// ==========================================================
+
+created() {
+  window.addEventListener("resize", this.myEventHandler);
+},
+destroyed() {
+  window.removeEventListener("resize", this.myEventHandler);
+},
 // ==========================================================
 
   mounted () {
@@ -366,6 +360,11 @@ export default {
     }),
 
     // ================================
+    this.$root.$on('map_tab_entered', (bogus) => {
+// HELP -- did not work!!!      this.$refs.map.updateSize();   // when map is in a tab, do this
+// HELP -- did not work!!!console.log("map tab entered; updateSize");
+    }),
+    // ================================
 
     // called from Model because new dataset received or hour changed
     // NEW feb13: this is ALL of the data, and it is not kept elsewhere, btw
@@ -377,7 +376,7 @@ export default {
       this.hour_to_disp = map_args.hour;
 
       this.help_display_model_data();
-    })
+    }),
 
     this.$root.$on('new_hour_slider', (map_args) => {
 
