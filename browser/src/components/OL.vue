@@ -41,10 +41,11 @@
     </vl-overlay>
 
            <!-- ========== svg container layers ========= -->
-           <div v-if="draw_circles">
+           <div>
               <CornerCircBar v-for="corner in corners"
                              v-bind:key="corner.ident"
-                             v-bind:corner_data="corner" >
+                             v-bind:corner_data="corner"
+                             v-bind:show_yourself="draw_circles" >
               </CornerCircBar>
            <div/>
 

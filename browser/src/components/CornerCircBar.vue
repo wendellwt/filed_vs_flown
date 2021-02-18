@@ -3,7 +3,7 @@
     <vl-overlay :id="'ovrly_'+corner_data.dir" :position="corner_data.coords"
                 positioning='center-center' >
         <div :id="'svg_div_'+corner_data.dir"
-              style="width: 150px; height: 150px;  background-color:#80808040">
+              style="width: 150px; height: 150px;  background-color:transparent">
           {{corner_data.ident}}
         </div>
     </vl-overlay>
@@ -22,8 +22,9 @@ var chart_height = 150;
 export default {
   name: "CornerCircBar",
   props: {
-    corner_data: Object
+    corner_data: Object,
     // { dir: "ne", ident: 'LANDR', coords: [-104.00, 40.35], colr: 'green' },
+    show_yourself: false
   },
 /*************************************************/
     data () {
@@ -35,11 +36,23 @@ export default {
     },
 
 /*************************************************/
+  watch: {
+      show_yourself: function() {
+
+// console.log("watch@corner circle:"+this.corner_data.dir+" hour:"+ this.hour_to_highlight+" show:"+this.show_yourself);
+
+          let ymax = 5000; // ????
+          this.displayCircularData(this.my_corner_data, ymax, this.corner_data.colr,
+                                   this.hour_to_highlight, this.show_yourself);
+      }
+  },
+/*************************************************/
     methods: {
 
         // $$$$$$$$$$$$$$$$$   the main event   $$$$$$$$$$$$$$$$$$$$$$$$$$$
 
-        displayCircularData : function(cdata, y_max, corner_color, high_hour) {
+        // apparently, 'this.' is not defined inside d3 functions...
+        displayCircularData : function(cdata, y_max, corner_color, high_hour, show_myself) {
 
   // set the dimensions and margins of the graph
   let margin = {top: 0, right: 0, bottom: 0, left: 0},
@@ -52,6 +65,8 @@ export default {
 
   // ---- remove previous sub-components, if any
   d3.select(my_div).selectAll("svg").remove();
+
+  if (show_myself == false) { return; }  //  does this work???
 
   // ---- define the main div of the chart
   let svg = d3.select(my_div)
@@ -126,7 +141,8 @@ var   outerRadius = Math.min(width, height) / 2;
 
           let ymax = 5000; // ????
 
-          this.displayCircularData(this.my_corner_data, ymax, this.corner_data.colr, this.hour_to_highlight);
+          this.displayCircularData(this.my_corner_data, ymax, this.corner_data.colr,
+                                   this.hour_to_highlight, this.show_yourself);
       }),
 
 /************************************************/
@@ -134,10 +150,11 @@ var   outerRadius = Math.min(width, height) / 2;
 
         this.hour_to_highlight = String(map_args.hour.getUTCHours()  ).padStart(2,'0');
 
-//console.log("corner circle:"+this.corner_data.dir+" hour:"+ this.hour_to_highlight);
+// console.log("corner circle:"+this.corner_data.dir+" hour:"+ this.hour_to_highlight+" show:"+this.show_yourself);
 
           let ymax = 5000; // ????
-          this.displayCircularData(this.my_corner_data, ymax, this.corner_data.colr, this.hour_to_highlight);
+          this.displayCircularData(this.my_corner_data, ymax, this.corner_data.colr,
+                                   this.hour_to_highlight, this.show_yourself);
     })
 /************************************************/
   } // ---- mounted???
