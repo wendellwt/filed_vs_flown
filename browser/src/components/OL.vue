@@ -165,10 +165,12 @@ const methods = {
                       fid:      features_list[k].properties.fid,
                       corner:   features_list[k].properties.corner,
                       dep_apt:  features_list[k].properties.dep_apt,
-
+                      arr_time: features_list[k].properties.arr_time,
+                      flw_dist_f: parseFloat(features_list[k].properties.flw_dist).toFixed(1),
                       diff:     (parseFloat(features_list[k].properties.b4_ent_dist) -
                                  parseFloat(features_list[k].properties.flw_dist)
-                                ).toFixed(1)
+                                ).toFixed(1),
+                      flw_dist_n: features_list[k].properties.flw_dist
                       };
                   dlist.push(elem);
               }
@@ -179,8 +181,8 @@ const methods = {
        /******************** sort by diff ***********/
        // but need floats, not strings!
        const sortedlist = dlist.sort(function(a, b) {
-           let a_diff = parseFloat(a.diff);
-           let b_diff = parseFloat(b.diff);
+           let a_diff = parseFloat(a.flw_dist_n);
+           let b_diff = parseFloat(b.flw_dist_n);
            if (a_diff < b_diff) {
                 return -1; //a comes first
            }
@@ -204,7 +206,7 @@ const methods = {
        // and send to DataPos list component
 //console.log(sortedlist);
        //HELP::
-       this.$root.$emit('dlist', (sortedlist) );
+       this.$root.$emit('dlist', (dlist) );
    },
    // ==========================================================
 
@@ -229,14 +231,13 @@ const methods = {
           // i.e., don't do the artcc polygon!
           if ( (this.model_data.features[k].geometry.type == "LineString") ||
                (this.model_data.features[k].geometry.type == "MultiLineString")) {
-//console.log(this.hour_to_disp)
-//console.log(this.model_data.features[k].properties.arr_time.substr(0,13));
-               if (this.model_data.features[k].properties.arr_time.substr(0,13) ==
+               if (this.model_data.features[k].id < HELPME_OFFSET) {
+                   if (this.model_data.features[k].properties.arr_time.substr(0,13) ==
                                                            this.hour_to_disp) {
-
                   // TODO: COMBINE this with DataPos generation!!!
                   // (maybe not so bad; DataPos list is constructed from this list)
                   flts_to_disp.push(this.model_data.features[k]);
+                 }
                }
            } else {
 
