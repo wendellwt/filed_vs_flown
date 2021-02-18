@@ -37,18 +37,17 @@
             ({{ item.diff     }})
          </div>
 
-         <!-- NOPE: div>
-             MAYBE should have used SPAN instead of DIV ???
-           <div class="dblft">{{ item.acid       }}</div>
-           <div class="dbctr">{{ item.corner     }}</div>
-           <div class="dbrgt">{{ item.flw_dist_f }}</div>
-         </div>
+       <!-- BAD li SIZE:  div>
+           <span class="dblft">{{ item.acid       }}</span>
+           <span class="dbctr">{{ item.corner     }}</span>
+           <span class="dbrgt">{{ item.flw_dist_f }}</span>
          <br/>
          <div class="dbsmall">
-            <div class="dblft">{{ item.dep_apt  }}</div>
-            <div class="dbctr">{{ item.arr_time }}</div>
-            <div class="dbrgt">({{ item.diff     }})</div>
-         </div -->
+            <span class="dblft">{{ item.dep_apt  }}</span>
+            <span class="dbctr">{{ item.arr_time }}</span>
+            <span class="dbrgt">({{ item.diff     }})</span>
+         </div>
+        </div -->
 
     </li>
   </ul>
@@ -186,9 +185,9 @@ li.datalist {
     margin-bottom: 2px;
 }
 
-div.dblft { float: left; width: 33.333%; text-align: left  ; }
-div.dbctr { float: left; width: 33.333%; text-align: center; }
-div.dbrgt { float: left; width: 33.333%; text-align: right ; }
+span.dblft { float: left; width: 33.333%; text-align: left  ; }
+span.dbctr { float: left; width: 33.333%; text-align: center; }
+span.dbrgt { float: left; width: 33.333%; text-align: right ; }
 
 ul.scrolling {
         max-height: 500px;
