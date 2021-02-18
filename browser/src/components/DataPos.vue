@@ -95,12 +95,12 @@ export default {
 
           if (this.sort_selected == "flown in artcc") {
               this.datablocks = this.sort_by_flown_dist(dlist);
-              console.log("by dist");
+              //console.log("by dist");
           }
 
           if (this.sort_selected == "arr time") {
               this.datablocks = this.sort_by_arr_time(dlist);
-              console.log("by time");
+              //console.log("by time");
           }
     })
   },
@@ -112,12 +112,12 @@ export default {
 
           if (this.sort_selected == "flown in artcc") {
               this.datablocks = this.sort_by_flown_dist(this.datablocks);
-              console.log("by dist");
+              //console.log("by dist");
           }
 
           if (this.sort_selected == "arr time") {
               this.datablocks = this.sort_by_arr_time(this.datablocks);
-              console.log("by time");
+              //console.log("by time");
           }
       }
   },
