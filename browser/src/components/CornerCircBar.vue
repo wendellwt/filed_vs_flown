@@ -25,15 +25,21 @@ export default {
     corner_data: Object
     // { dir: "ne", ident: 'LANDR', coords: [-104.00, 40.35], colr: 'green' },
   },
+/*************************************************/
     data () {
       return {
-        my_corner_orig : [ ],
-        my_corner_data : [ ]
+        my_corner_orig    : [ ],
+        my_corner_data    : [ ],
+        hour_to_highlight : 0
       }
     },
 
+/*************************************************/
     methods: {
-        displayCircularData : function(cdata, y_max, corner_color) {
+
+        // $$$$$$$$$$$$$$$$$   the main event   $$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+        displayCircularData : function(cdata, y_max, corner_color, high_hour) {
 
   // set the dimensions and margins of the graph
   let margin = {top: 0, right: 0, bottom: 0, left: 0},
@@ -79,7 +85,8 @@ var   outerRadius = Math.min(width, height) / 2;
     .enter()
     .append("path")
       //.attr("fill", function(d) {return d['dist']==30 ? "orange" : "green"})
-      .attr("fill", corner_color)
+      //.attr("fill", corner_color)
+      .attr("fill", function(d) { return d.arr_hr == high_hour ? "orange" : corner_color} )
       .attr("d", d3.arc()     // imagine your doing a part of a donut plot
         .innerRadius(innerRadius)
         .outerRadius( (d) => yScale(d['dist']) )
@@ -97,6 +104,7 @@ var   outerRadius = Math.min(width, height) / 2;
 
   mounted () {
 
+/************************************************/
       this.$root.$on('new_corner_data', (corner_args) => {
 
           this.my_corner_orig = corner_args.corner_data[this.corner_data.dir].data;
@@ -118,8 +126,20 @@ var   outerRadius = Math.min(width, height) / 2;
 
           let ymax = 5000; // ????
 
-          this.displayCircularData(this.my_corner_data, ymax, this.corner_data.colr);
-      })
+          this.displayCircularData(this.my_corner_data, ymax, this.corner_data.colr, this.hour_to_highlight);
+      }),
+
+/************************************************/
+    this.$root.$on('new_hour_slider', (map_args) => {
+
+        this.hour_to_highlight = String(map_args.hour.getUTCHours()  ).padStart(2,'0');
+
+//console.log("corner circle:"+this.corner_data.dir+" hour:"+ this.hour_to_highlight);
+
+          let ymax = 5000; // ????
+          this.displayCircularData(this.my_corner_data, ymax, this.corner_data.colr, this.hour_to_highlight);
+    })
+/************************************************/
   } // ---- mounted???
 }
 
