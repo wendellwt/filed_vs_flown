@@ -196,7 +196,9 @@ export default {
                            center    : this.center_selected,
                            pickle    : this.use_pickle   };
 
-      this.go_button_loading = true;  // turn spin button on (==spin)
+        if (this.use_pickle==false) {  // don't spin it if just reading local file
+            this.go_button_loading = true;  // turn spin button on (==spin)
+        }
         this.$root.$emit('fetch_data', (fetch_args) );
     },
     // ---------------------------------------
