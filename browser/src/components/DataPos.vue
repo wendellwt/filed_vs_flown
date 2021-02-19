@@ -1,9 +1,9 @@
 <template>
   <div class="datacolumn">
 
-<h3>Data Position List</h3>
+<b>Data Position List</b>
 <!-- div class="timestamp">{{last_rcvd}}</div> TOO LONG -->
-
+&nbsp; &nbsp; &nbsp;
     <b-dropdown :triggers="['hover']"
                 aria-role="list"
                 v-model="sort_selected" >
