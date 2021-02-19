@@ -97,7 +97,7 @@
   </p>
         <!-- ========== hour slider ========= -->
         <div class="panel-block">
-          <b-field label="Hour of map">
+          <b-field label="UTC arrival hour">
               <b-slider size="is-medium" :min="0" :max="23"
                             type="is-info"
                             v-model="hour_selected"
@@ -107,7 +107,7 @@
        </div>
         <!-- ========== max/min slider ========= -->
         <div class="panel-block">
-          <b-field label="min/max chart y-axis">
+          <b-field label="max chart y-axis">
               <b-slider size="is-medium" :min="0" :max="70"
                             type="is-info"
                             v-model="slider_vals"
