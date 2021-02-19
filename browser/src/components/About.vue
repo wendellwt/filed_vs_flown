@@ -31,6 +31,9 @@ content: `
 
 This is a very nice application.
 
+Note: I haven't updated this description page in a couple of weeks.
+It may or may not be accurately reflect the latest updates.
+
 ## Left selector panel
 
 This section contains the selectors and buttons used to construct an
