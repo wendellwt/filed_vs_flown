@@ -272,12 +272,34 @@ def get_chart_from_details(lgr, details_df, ctr):
 
     both_cq_df.reset_index(inplace=True)  # not sure why...  just because
 
-    #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    # code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-    both_cq_df['ne_diff'] = both_cq_df['ne_flw'] - both_cq_df['ne_ate']
-    both_cq_df['se_diff'] = both_cq_df['se_flw'] - both_cq_df['se_ate']
-    both_cq_df['sw_diff'] = both_cq_df['sw_flw'] - both_cq_df['sw_ate']
-    both_cq_df['nw_diff'] = both_cq_df['nw_flw'] - both_cq_df['nw_ate']
+    try:
+        both_cq_df['ne_diff'] = both_cq_df['ne_flw'] - both_cq_df['ne_ate']
+    except:
+        both_cq_df['ne_flw' ] = 0
+        both_cq_df['ne_ate' ] = 0
+        both_cq_df['ne_diff'] = 0
+    try:
+        both_cq_df['se_diff'] = both_cq_df['se_flw'] - both_cq_df['se_ate']
+    except:
+        both_cq_df['se_flw' ] = 0
+        both_cq_df['se_ate' ] = 0
+        both_cq_df['se_diff'] = 0
+    try:
+        both_cq_df['sw_diff'] = both_cq_df['sw_flw'] - both_cq_df['sw_ate']
+    except:
+        both_cq_df['sw_flw' ] = 0
+        both_cq_df['sw_ate' ] = 0
+        both_cq_df['sw_diff'] = 0
+    try:
+        both_cq_df['nw_diff'] = both_cq_df['nw_flw'] - both_cq_df['nw_ate']
+    except:
+        both_cq_df['nw_flw' ] = 0
+        both_cq_df['nw_ate' ] = 0
+        both_cq_df['nw_diff'] = 0
+
+    # code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     # need to make sure columns are in specified order to make
     # it easier for javascript to put back into an assoc array
@@ -286,6 +308,8 @@ def get_chart_from_details(lgr, details_df, ctr):
                  'ne_flw',  'se_flw',  'sw_flw',  'nw_flw',
                  'ne_ate',  'se_ate',  'sw_ate',  'nw_ate',
                  'ne_diff', 'se_diff', 'sw_diff', 'nw_diff' ]]
+
+    # code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     #print(both_cq_df)
     #print(both_ordr_cq_df)
