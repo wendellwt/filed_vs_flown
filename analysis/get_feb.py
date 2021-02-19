@@ -122,7 +122,9 @@ SELECT ST_Difference(
 
     # ============  everything together
 
-    sql = """ SELECT jsonb_build_object (
+    # WARNING: pd.read_sql fixes timezones for us, plain SELECT does NOT!!!
+    sql = """SET TIME ZONE 'UTC';
+    SELECT jsonb_build_object (
     'type',     'FeatureCollection',
     'features', jsonb_agg(features.feature)
 )
@@ -197,7 +199,7 @@ AND arr_time <  to_timestamp('%s 23:59:59+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
     if verbose: print(details_df)
     lgr.debug(details_df)
 
-    #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    # code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     # make smaller if testing
     details_df = details_df[2:4] if verbose else details_df
@@ -379,9 +381,10 @@ def get_circle_from_details(lgr, details_df, ctr):
                  'sw' : sw_dct,
                  'nw' : nw_dct }
 
-    #pprint(circ_dct)
+    # print(circ_df)
+    # pprint(nw_dct)
 
-    #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    # code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     return(circ_dct)
 
