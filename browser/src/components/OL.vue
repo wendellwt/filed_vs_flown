@@ -175,8 +175,12 @@ console.log("RESIZE event");
                       acid:     features_list[k].properties.acid,
                       fid:      features_list[k].properties.fid,
                       corner:   features_list[k].properties.corner,
+                      ac_type:  features_list[k].properties.ac_type,
                       dep_apt:  features_list[k].properties.dep_apt,
-                      arr_time: features_list[k].properties.arr_time,
+                      // reformat date here to make it look nice on datablock
+                      // because it was too hard to do it later
+                      arr_time: features_list[k].properties.arr_time.substr(8,2) + '-' +
+                                features_list[k].properties.arr_time.substr(11,8),
                       flw_dist_f: parseFloat(features_list[k].properties.flw_dist).toFixed(1),
                       diff:     (parseFloat(features_list[k].properties.b4_ent_dist) -
                                  parseFloat(features_list[k].properties.flw_dist)
@@ -219,8 +223,18 @@ console.log("RESIZE event");
           if ( (this.model_data.features[k].geometry.type == "LineString") ||
                (this.model_data.features[k].geometry.type == "MultiLineString")) {
                if (this.model_data.features[k].id < HELPME_OFFSET) {
-                   if (this.model_data.features[k].properties.arr_time.substr(0,13) ==
-                                                           this.hour_to_disp) {
+
+//console.log("++++"+this.model_data.features[k].properties.arr_time);
+let land_mins = parseInt(this.model_data.features[k].properties.arr_time.substr(14,2));
+//console.log("lm:"+land_mins);
+let mins_qh = String(Math.floor(land_mins/15)*15).padStart(2,'0');
+//console.log(mins_qh);
+let land_qh = this.model_data.features[k].properties.arr_time.substr(0,13)+':'+mins_qh;
+//console.log("lq:"+land_qh);
+//console.log("re:"+this.hour_to_disp);
+
+                   if (land_qh == this.hour_to_disp) {
+
                   // TODO: COMBINE this with DataPos generation!!!
                   // (maybe not so bad; DataPos list is constructed from this list)
                   flts_to_disp.push(this.model_data.features[k]);
@@ -382,9 +396,12 @@ destroyed() {
     this.$root.$on('new_hour_slider', (map_args) => {
 
         this.hour_to_disp =  map_args.hour.getUTCFullYear() + '-' +
-                    String(map_args.hour.getUTCMonth()+1).padStart(2,'0') + '-' +
-                    String(map_args.hour.getUTCDate()   ).padStart(2,'0') + 'T' +
-                    String(map_args.hour.getUTCHours()  ).padStart(2,'0');
+                      String(map_args.hour.getUTCMonth()+1).padStart(2,'0') + '-' +
+                      String(map_args.hour.getUTCDate()   ).padStart(2,'0') + 'T' +
+                      String(map_args.hour.getUTCHours()  ).padStart(2,'0') + ':' +
+                      String(map_args.hour.getUTCMinutes()).padStart(2,'0');
+
+console.log("OL: hour_to_disp="+this.hour_to_disp);
 
       this.help_display_model_data();
     })

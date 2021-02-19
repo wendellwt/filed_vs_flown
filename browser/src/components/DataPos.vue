@@ -19,8 +19,11 @@
 
 <ul id="example-1" class="scrolling" >
 
+    <!-- ====================================================== -->
+
     <!-- create a datablock within the li for each aircraft -->
-    <li  class="datalist"
+    <li    class="datalist"
+           v-bind:class="item.corner"
            v-for="item in datablocks"
            :key="item.flt_ndx"
            @click="datablockclicked(item)" >
@@ -32,8 +35,10 @@
          <br/>
          <div class="dbsmall">
             {{ item.dep_apt  }} &nbsp; &nbsp;
-           <span v-if="sort_selected=='flown in artcc'">{{ item.arr_time }}</span>
+           <span v-if="sort_selected=='flown in artcc'">{{    item.arr_time }}</span>
            <span v-if="sort_selected=='arr time'"      ><b>{{ item.arr_time }}</b></span>
+            &nbsp; &nbsp;
+            {{ item.ac_type   }} &nbsp; &nbsp;
             ({{ item.diff     }})
          </div>
 
@@ -48,8 +53,8 @@
             <span class="dbrgt">({{ item.diff     }})</span>
          </div>
         </div -->
-
     </li>
+    <!-- ====================================================== -->
   </ul>
 
   </div>
@@ -177,13 +182,17 @@ div.timestamp  { font-size: 70%; }
 div.dbsmall    { font-size: 70%; }
 
 li.datalist {
-    border-style: solid;
-    border-color: brown;
+    border-style:     solid;
     background-color: #e6ffcc;
 
-    margin-top: 2px;
+    margin-top:    2px;
     margin-bottom: 2px;
 }
+
+li.ne { border-color:  #002664; }
+li.se { border-color:  #007934; }
+li.sw { border-color:  #AB8422; }
+li.nw { border-color:  #5E6A71; }
 
 span.dblft { float: left; width: 33.333%; text-align: left  ; }
 span.dbctr { float: left; width: 33.333%; text-align: center; }

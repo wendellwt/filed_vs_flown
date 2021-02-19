@@ -97,10 +97,12 @@
   </p>
         <!-- ========== hour slider ========= -->
         <div class="panel-block">
-          <b-field label="UTC arrival hour">
-              <b-slider size="is-medium" :min="0" :max="23"
+          <b-field label="opsday quarter hour">
+              <b-slider size="is-medium" :min="0" :max="24*4-1"
+                            indicator
                             type="is-info"
-                            v-model="hour_selected"
+                            v-model="hour_slider_val"
+                            :custom-formatter="val => opsday(val)"
                   >
               </b-slider>
           </b-field>
@@ -153,7 +155,7 @@ export default {
         tierlist    : zdv_tiers,
 
         slider_vals       : [0,70],
-        hour_selected     : 5,             // from ui chooser
+        hour_slider_val   : 15*4,             // from ui chooser
         y_m_d_h_m         : new Date(Date.UTC(2020,1-1,10,15,0,0)),
         go_button_loading : false,
         use_pickle        : false
@@ -169,18 +171,21 @@ export default {
         },
 
         // hour selector changed, CALC NEW chart and map data
-        hour_selected: function() {
+        hour_slider_val: function() {
+
+            let sval = parseInt(this.hour_slider_val);
+            let od = Math.floor(sval/64) + this.date_selected.getUTCDate();
+            let oh = Math.floor((sval + 32)/ 4) % 24;
+            let om = (sval % 4) * 15;
 
             this.y_m_d_h_m =  new Date(Date.UTC(
-                              this.date_selected.getUTCFullYear(),
+                              this.date_selected.getUTCFullYear(),  // PROB. with WRAP
                               this.date_selected.getUTCMonth(),
-                              this.date_selected.getUTCDate(),
-                              this.hour_selected,   // HOUR is from slider
-                              0, 0));   // MINUTE is zero!
+                              od, oh, om, 0));   //  watch out!!!
 
             // ---- tell Map component
             let hour_args = { hour : this.y_m_d_h_m };
-//console.log("new_hour_slider:emit:"+this.y_m_d_h_m);
+console.log("new_hour_slider:emit:"+this.y_m_d_h_m.toISOString());
             this.$root.$emit('new_hour_slider', (hour_args) );
 
         }
@@ -189,6 +194,22 @@ export default {
     // -----------------------------------------------
     methods: {
 
+        opsday(val) {
+            let sval = parseInt(val);
+
+            let od = Math.floor(sval/64) + this.date_selected.getUTCDate();
+            let oh = Math.floor((sval + 32)/ 4) % 24;
+            let om = (sval % 4) * 15;
+
+            // couldn't make font smaller; and "dy-" made it too big to fit
+            // let dv = ('0' + parseInt(od)).slice(-2) + '-' +
+            let dv = ('0' + parseInt(oh)).slice(-2) + ':' +
+                     ('0' + parseInt(om)).slice(-2);
+
+            return(dv)
+        },
+
+/*************************************************/
     GoEverything_feb() {
 
         let fetch_args = { sel_date  : this.date_selected,
