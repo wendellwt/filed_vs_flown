@@ -46,7 +46,7 @@ all_cols = """ acid, fid, corner, dep_apt, flw_dist,
 b4_ent_dist, b4_dep_dist, dep_time, arr_time,
 flw_geog, b4_ent_geog, b4_dep_geog """
 
-flw_cols = """ acid, fid, corner, dep_apt, flw_dist,
+flw_cols = """ acid, fid, corner, dep_apt, ac_type, flw_dist,
 b4_ent_dist, b4_dep_dist, dep_time, arr_time,
 flw_geog """
 
@@ -64,6 +64,11 @@ def retrieve_path_center_geojson(lgr, gdate, ctr, verbose=False):
     y_m   = gdate.strftime("%Y_%m")
     yhmhd = gdate.strftime("%Y-%m-%d")
 
+    # tomorrow : FIXME PROBLEM -- month wrap-around needs next table!!!
+    # tomorrow : FIXME PROBLEM -- month wrap-around needs next table!!!
+
+    yhmhd_tom = (gdate + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+
     limit = "LIMIT 3" if verbose else ""
 
     # ============ flown paths
@@ -79,10 +84,10 @@ def retrieve_path_center_geojson(lgr, gdate, ctr, verbose=False):
     SELECT %s, 'flw' as ptype
     FROM fvf_%s
     WHERE artcc = '%s'
-    AND   arr_time >= to_timestamp('%s 00:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
-    AND   arr_time <  to_timestamp('%s 23:59:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
+    AND   arr_time >= to_timestamp('%s 08:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
+    AND   arr_time <  to_timestamp('%s 08:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
     %s
-) inputs_flw """ % ( flw_cols, y_m, ctr, yhmhd, yhmhd, limit )
+) inputs_flw """ % ( flw_cols, y_m, ctr, yhmhd, yhmhd_tom, limit )
 
     # ============ at entry paths
     # need geojson id, but it _must_ be unique
@@ -98,10 +103,10 @@ def retrieve_path_center_geojson(lgr, gdate, ctr, verbose=False):
     SELECT %s, 'ate' as ptype, fid+%d as fidx
     FROM fvf_%s
     WHERE artcc = '%s'
-    AND   arr_time >= to_timestamp('%s 00:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
-    AND   arr_time <  to_timestamp('%s 23:59:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
+    AND   arr_time >= to_timestamp('%s 08:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
+    AND   arr_time <  to_timestamp('%s 08:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
     %s
-) inputs_ate """ % ( ate_cols, fid_offset, y_m, ctr, yhmhd, yhmhd, limit )
+) inputs_ate """ % ( ate_cols, fid_offset, y_m, ctr, yhmhd, yhmhd_tom, limit )
 
     # ============ artcc
     # note: no properties, boundary only
@@ -183,13 +188,18 @@ def get_details(lgr, gdate, ctr, verbose=False):
     y_m   = gdate.strftime("%Y_%m")
     yhmhd = gdate.strftime("%Y-%m-%d")
 
+    # tomorrow : FIXME PROBLEM -- month wrap-around needs next table!!!
+    # tomorrow : FIXME PROBLEM -- month wrap-around needs next table!!!
+
+    yhmhd_tom = (gdate + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+
     sql = """SELECT  acid, fid, corner, artcc, dep_apt, arr_apt,
 flw_dist,  b4_ent_dist, b4_dep_dist, dep_time, arr_time
 FROM fvf_%s
 WHERE artcc = '%s'
-AND arr_time >= to_timestamp('%s 00:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
-AND arr_time <  to_timestamp('%s 23:59:59+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
-""" % (y_m, ctr, yhmhd, yhmhd)
+AND arr_time >= to_timestamp('%s 08:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
+AND arr_time <  to_timestamp('%s 08:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
+""" % (y_m, ctr, yhmhd, yhmhd_tom)
 
     if verbose: print(sql)
     lgr.debug(sql)

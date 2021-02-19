@@ -8,7 +8,7 @@
 
 // a file captured from ./everything.py over on rserver:
 // CONSIDER: for FLASK, when publishing, make this a very small valid json file!
-import e_feb from "./files/m_2020-01-10.json";    // set to empty file for flask
+import e_feb from "./files/n_2020-01-10.json";    // set to empty file for flask
 
 export default {
   name: 'model',
