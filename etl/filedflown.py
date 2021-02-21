@@ -31,7 +31,7 @@ import code                     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 parser = argparse.ArgumentParser(description=descr)
 
 # for TESTING, use different date:
-parser.add_argument('-d', '--date', default = datetime.date(2020, 3, 2),
+parser.add_argument('-d', '--date', default = datetime.date(2020, 1, 10),
             type=lambda d: datetime.datetime.strptime(d, '%Y-%m-%d').date(),
                     help='start date yyyy-mm-dd')
 
@@ -65,6 +65,7 @@ adapt = toml.load("adaptation.toml")
 
 tracon_shp_dir = "/home/data/wturner/shapefiles/"
 tracon_shapefile = tracon_shp_dir + adapt[args.airport]['tracon']
+conus_shapefile  = tracon_shp_dir + "conus.shp"
 
 # ---- make table of corners
 
@@ -79,9 +80,14 @@ corners = {
 
 # ---- make list of artcc's
 
-artccs = [ (adapt[args.airport]['parent'], 'parent'),         ] + \
-         [ (c, '1sttier') for c in adapt[args.airport]['1sttier'] ] + \
-         [ (c, '2ndtier') for c in adapt[args.airport]['2ndtier'] ]
+artccs = [ (adapt[args.airport]['parent'], 'parent'),             ] + \
+         [ ('ZZZ', 'full')                                        ] + \
+         [ (c, '1sttier') for c in adapt[args.airport]['1sttier'] ] # + \
+
+#artccs = [ (adapt[args.airport]['parent'], 'parent'),             ]
+#artccs = [ ('ZZZ', 'full') ]
+
+# not yet:[ (c, '2ndtier') for c in adapt[args.airport]['2ndtier'] ]
 
 # ####################################################################### #
 #                 schedule path processing routines                       #
@@ -158,21 +164,35 @@ import shapefile
 from shapely import wkb
 from shapely.geometry import mapping
 
+# feb20: if ctr = ZZZ, then return ??? and tracon shapefile
+
 def read_artcc_and_tracon(ctr):
 
     # 1) read shapefile using with PyShp
     # https://gis.stackexchange.com/questions/113799/how-to-read-a-shapefile-in-python
 
-    tracon_shape = shapefile.Reader(tracon_shapefile)
+    tracon_esri = shapefile.Reader(tracon_shapefile)
 
     # first feature of the shapefile
-    tracon_feature = tracon_shape.shapeRecords()[0]
+    tracon_feature = tracon_esri.shapeRecords()[0]
 
     tracon_geom = tracon_feature.shape.__geo_interface__
 
     # 2) conversion to Shapely geometry (with the shape function)
 
     tracon_shape = shape(tracon_geom)
+
+    if ctr == 'ZZZ':   # special check for full flight
+
+        # pretend artcc is entire conus
+
+        conus_esri = shapefile.Reader(conus_shapefile)
+        conus_feature = conus_esri.shapeRecords()[0]
+        conus_geom = conus_feature.shape.__geo_interface__
+        conus_shape = shape(conus_geom)
+        conus_minus_tracon_shape = conus_shape.difference(tracon_shape)
+
+        return(conus_minus_tracon_shape, tracon_shape)   # feb20
 
     ctr_wkb = fpostg.get_shape_of_ctr(ctr, args_verbose=False)
 
@@ -296,7 +316,6 @@ import pytz
 
 def output_to_oracle_flight_level(center_df, tier):
 
-    #import code                     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     # drop cols CP doesn't want
@@ -330,35 +349,120 @@ def output_to_oracle_flight_level(center_df, tier):
 
     foracle.write_to_flight_level(ora_output_df, args.verbose)
 
-    #import code                     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 # ========================================================================
 
-def make_b4_depart_ls(sched_df):
+# old/current: get the (one) path before departure and call it sched_path
 
-    #bb = elapsed.Elapsed()
+# feb20: form xxx_path for:
+#    * scheduled    === first record with source_type='S'
+#    * first_filed  === first record with source_type='F'
+#    * last_filed   === latest record (any type) with orig_time < dep_time
 
-    # b1. get just schedules with ORIG_TIME before departure
+def make_all_scheds(sched_df):
 
-    all_sch_b4_dep_df = sched_df.loc[sched_df['ORIG_TIME'] >= sched_df['DEP_TIME']]
+    bb = elapsed.Elapsed()
+
+    # +++++++++++++++++++++++ scheduled_path +++++++++++++++++++++++++++
+
+    # b1. get just schedules with record type 'S'
+
+    print(sched_df.columns)
+    all_scheduled_df = sched_df.loc[sched_df['SOURCE_TYPE'] == 'S']
 
     # b2. get the one with a max orig_time
 
-    last_b4_dep_df = all_sch_b4_dep_df.sort_values("ORIG_TIME").groupby("FID", as_index=False).first()
+    first_scheduled_df = all_scheduled_df.sort_values("ORIG_TIME").groupby("FID", as_index=False).first()
 
     # b3. and make a linestring of it while we're here
 
-    last_b4_dep_df['sched_path'] = last_b4_dep_df.apply( lambda row: form_linestring(row, False), axis=1)
+    first_scheduled_df['scheduled_path'] = first_scheduled_df.apply( lambda row: form_linestring(row, False), axis=1)
+    first_scheduled_df.dropna(inplace=True)
+
+    # +++++++++++++++++++++++ first_filed_path +++++++++++++++++++++++++++
+
+    # b1. get just schedules with ORIG_TIME before departure
+
+    all_filed_df = sched_df.loc[sched_df['SOURCE_TYPE'] == 'F']
+
+    # b2. get the one with a max orig_time
+
+    first_filed_df = all_filed_df.sort_values("ORIG_TIME").groupby("FID", as_index=False).first()
+
+    # b3. and make a linestring of it while we're here
+
+    first_filed_df['first_filed_path'] = first_filed_df.apply( lambda row: form_linestring(row, False), axis=1)
+    first_filed_df.dropna(inplace=True)
+
+    # +++++++++++++++++++++++ last_filed_path +++++++++++++++++++++++++++
+
+    # b1. get just schedules with ORIG_TIME before departure
+
+    all_b4_dep_df = sched_df.loc[sched_df['ORIG_TIME'] >= sched_df['DEP_TIME']]
+
+    # b2. get the one with a max orig_time
+
+    last_b4_dep_df = all_b4_dep_df.sort_values("ORIG_TIME").groupby("FID", as_index=False).first()
+
+    # b3. and make a linestring of it while we're here
+
+    last_b4_dep_df['last_filed_path'] = last_b4_dep_df.apply( lambda row: form_linestring(row, False), axis=1)
     last_b4_dep_df.dropna(inplace=True)
 
-    #bb.end("paths before depart")
+    # +++++++++++++++++++++++
 
-    if args.verbose: print("last_b4_dep_df")
-    if args.verbose: print(last_b4_dep_df)
-    if args.verbose: print(last_b4_dep_df.columns)
+    bb.end("paths before depart")
 
-    return(last_b4_dep_df)
+   #feb20  code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    # FIXME: does this DROP all flights that DON'T HAVE ALL TYPES OF FLIGHTS???
+    # FIXME: does this DROP all flights that DON'T HAVE ALL TYPES OF FLIGHTS???
+
+    all_scheds_df = pd.merge(first_scheduled_df, first_filed_df, on='FID', how='inner')
+    all_scheds_df = pd.merge(all_scheds_df, last_b4_dep_df, on='FID', how='inner')
+
+   #feb20  code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    all_scheds_df.drop([
+        'ACID_x',
+        'FLIGHT_INDEX_x',
+        'SOURCE_TYPE_x',
+        'DEP_TIME_x',
+        'ARR_TIME_x',
+        'DEPT_APRT_x',
+        'ARR_APRT_x',
+        'ACFT_TYPE_x',
+        'WAYPOINTS_x',
+        'ORIG_TIME_x',
+
+        'ACID_y',
+        'FLIGHT_INDEX_y',
+        'SOURCE_TYPE_y',
+        'DEP_TIME_y',
+        'ARR_TIME_y',
+        'DEPT_APRT_y',
+        'ARR_APRT_y',
+        'ACFT_TYPE_y',
+        'WAYPOINTS_y',
+        'ORIG_TIME_y',
+
+        'SOURCE_TYPE', # possibly useful if kept around on a per-path basis
+        'FLIGHT_INDEX',# Q: is this useful later on???
+
+        #'ORIG_TIME',   # at_entry is going to need this
+        #'WAYPOINTS',   # at_entry is going to need this
+
+    ], axis=1, inplace=True)
+
+
+    if args.verbose: print("all_scheds_df")
+    if args.verbose: print(all_scheds_df)
+    if args.verbose: print(all_scheds_df.columns)
+
+    #feb20 code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    return(all_scheds_df)
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -458,7 +562,6 @@ def output_json_to_file(center_df, ctr, artcc_shp):
     help_output_corner(trim_df, 'sw', ctr, artcc_shp)
     help_output_corner(trim_df, 'nw', ctr, artcc_shp)
 
-    #import code                     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 # =========================================================================
@@ -542,23 +645,40 @@ def form_feature_collection(flts_df, artcc_shp):
 
 def output_postgis(ctr_df, ctr_name, center_minus_tracon_shp):
 
+    # q: need to explicitly make lower case?
     ctr_df.rename( {
-        'DEPT_APRT'   : 'dep_apt',
-        'ARR_APRT'    : 'arr_apt',
-
-        # q: need to explicitly make lower case?
         'FID'         : 'fid',
         'ACID'        : 'acid',
-        'ACFT_TYPE_x' : 'ac_type',
+        'ACFT_TYPE_x' : 'ac_type',   # HELP: is this right
+        'ACFT_TYPE'   : 'ac_type',   # HELP: why is this needed???
         'DEP_TIME'    : 'dep_time',
         'ARR_TIME'    : 'arr_time',
+        'DEPT_APRT'   : 'dep_apt',
+        'ARR_APRT'    : 'arr_apt',
         }, axis=1, inplace=True)
 
-    ctr_df['artcc'] = ctr_name
+    ctr_df['artcc'] = ctr_name   # and all of this data gets this artcc
 
-    tbl = "fvf_" + y_m
+    fpostg.write_ff_to_postgis_cssi(y_m, ctr_df)
 
-    fpostg.write_ff_to_postgis_cssi(tbl, ctr_df, ctr_name)
+# ++++++++++++++++++++++++++++++++++++++++++++
+
+# WARNING: what shape to use here???
+
+def do_intersect(path_ls):
+    int_path = path_ls.intersection(center_minus_tracon_shp)
+    int_path = int_path[0] if int_path.geom_type == "MultiLineString" else int_path
+    return int_path
+
+# ++++++++++++++++++++++++++++++++++++++++++++
+
+# WARNING: what shape to use here???
+
+def do_difference(path_ls):
+
+    int_path = path_ls.difference(center_minus_tracon_shp)
+    int_path = int_path[0] if int_path.geom_type == "MultiLineString" else int_path
+    return int_path
 
 # ####################################################################### #
 #                                  main                                   #
@@ -572,7 +692,7 @@ sched_df, just_fids = get_sched_data_from_oracle(args.date, args.airport)
 
 # ==== b. get scheduled paths before departure
 
-last_b4_dep_df = make_b4_depart_ls(sched_df)
+all_scheds_df = make_all_scheds(sched_df)
 
 # ==== c. retrieve TZ (flown) data from oracle
 
@@ -586,6 +706,22 @@ flown_ls_df['corner'] = flown_ls_df['flown_path'].apply(
 
 cn.end("find all corners")
 
+# %%%%%%%%%%%%%%%%%%%%%%%%%% Summary feb20 %%%%%%%%%%%%%%%%%%%%%%%%%%
+# all_scheds_df:
+#    * scheduled    === first record with source_type='S'
+#    * first_filed  === first record with source_type='F'
+#    * last_filed   === latest record (any type) with orig_time < dep_time
+# flown_ls_df:
+#    * flown_path   === path of TZ records
+#    * corner       === closest flown corner
+# at_entry_df:  (to be added later, if doing an individual artcc)
+#    * b4_ent_path  === latest record (any type) with orig_time < posit_time of
+#                       first TZ point inside artcc
+# %%%%%%%%%%%%%%%%%%%%%%%%%%         %%%%%%%%%%%%%%%%%%%%%%%%%%
+
+print("end of setup")
+#feb20 code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
 # >>>>>>>>>>>>>>>>>>>> begin loop on artccs <<<<<<<<<<<<<<<<<<<<<<<<<
 
 for ctr, tier in artccs:
@@ -593,81 +729,165 @@ for ctr, tier in artccs:
     print("==== ", ctr, tier)
     ce = elapsed.Elapsed()
 
-    # ==== f. get ARTCC polygon of interest
+    # ==== a. form base of this center output df
+
+    ctr_df = pd.merge(all_scheds_df, flown_ls_df, on='FID', how='inner')
+
+    print(ctr_df)
+    print(ctr_df.columns)
+    print("CHECK ctr_df columns")
+   #feb20  code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    # ==== b. get ARTCC polygon of interest
 
     center_minus_tracon_shp, tracon_shp = read_artcc_and_tracon(ctr)
 
-    # ==== g. before depart paths intersected by that poly
+    print("have ctr and tracon shapes")
+
+    # ==== ==== ====
 
     #  and get an intersection column
     # NOTE: is is not a GeoPandas df, but a Pandas df with a geometry column
 
-    last_b4_dep_df['b4_dep_path'] = last_b4_dep_df['sched_path'].apply(
-                     lambda ls: ls.intersection(center_minus_tracon_shp))
+    # ==== ==== ==== each path INTERSECTED with artcc shape
+    # NOTE: if artcc is real, these are the WITHIN,
+    #       if artcc is zzz, these are the FULL (but still without the tracon)
 
-    last_b4_dep_df['b4_dep_dist'] = last_b4_dep_df['b4_dep_path'].apply(
-                                          lambda ls: gc_length(ls) )
+    ctr_df['scheduled_within_path'] = ctr_df['scheduled_path'       ].apply(lambda p: do_intersect(p))
+    ctr_df['scheduled_within_dist'] = ctr_df['scheduled_within_path'].apply(lambda p: gc_length(p))
 
-    # ==== g2. before depart paths up to that poly
+    ctr_df['first_filed_within_path'] = ctr_df['first_filed_path'       ].apply(lambda p: do_intersect(p))
+    ctr_df['first_filed_within_dist'] = ctr_df['first_filed_within_path'].apply(lambda p: gc_length(p))
 
-    # get a linestring (possibly mulitlinestring) of the geospatial difference
-    last_b4_dep_df['b4_dep_up_to_path'] = last_b4_dep_df['sched_path'].apply(
-                                 lambda ls: ls.difference(tracon_shp))
-        # not what cp wanted: lambda ls: ls.difference(center_minus_tracon_shp))
+    ctr_df['last_filed_within_path'] = ctr_df['last_filed_path'       ].apply(lambda p: do_intersect(p))
+    ctr_df['last_filed_within_dist'] = ctr_df['last_filed_within_path'].apply(lambda p: gc_length(p))
 
-    # and if it is a MultiLineString, take the first one
-    last_b4_dep_df['b4_dep_up_to_path'] = last_b4_dep_df['b4_dep_up_to_path'].apply(
-        lambda ls: ls[0] if ls.geom_type == "MultiLineString" else ls)
+    ctr_df['flown_within_path'] = ctr_df['flown_path'       ].apply(lambda p: do_intersect(p))
+    ctr_df['flown_within_dist'] = ctr_df['flown_within_path'].apply(lambda p: gc_length(p))
 
-    last_b4_dep_df['b4_dep_up_to_dist'] = \
-          last_b4_dep_df['b4_dep_up_to_path'].apply(lambda ls: gc_length(ls) )
+    print(ctr_df)
+    print(ctr_df.columns)
+    print("all within paths")
+    #feb20#feb20  code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-    # ==== h. before entry paths intersected by that poly
-    # get df of rows from sched_df having orig_time last one before artcc entry
+    # ==== ==== ==== (cp wants these) each path DIFFERENCE with tracon
 
-    at_entry_df = get_at_entry_sch_paths(sched_df, flown_pts_df,
+    ctr_df['scheduled_upto_path'] = ctr_df['scheduled_path'     ].apply(lambda p: do_difference(p))
+    ctr_df['scheduled_upto_dist'] = ctr_df['scheduled_upto_path'].apply(lambda p: gc_length(p))
+
+    ctr_df['first_filed_upto_path'] = ctr_df['first_filed_path'     ].apply(lambda p: do_difference(p))
+    ctr_df['first_filed_upto_dist'] = ctr_df['first_filed_upto_path'].apply(lambda p: gc_length(p))
+
+    ctr_df['last_filed_upto_path'] = ctr_df['last_filed_path'     ].apply(lambda p: do_difference(p))
+    ctr_df['last_filed_upto_dist'] = ctr_df['last_filed_upto_path'].apply(lambda p: gc_length(p))
+
+    ctr_df['flown_upto_path'] = ctr_df['flown_path'     ].apply(lambda p: do_difference(p))
+    ctr_df['flown_upto_dist'] = ctr_df['flown_upto_path'].apply(lambda p: gc_length(p))
+
+    print(ctr_df)
+    print(ctr_df.columns)
+    print("all upto paths")
+   #feb20  code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    # ==== ==== ==== h. before entry paths intersected by that poly
+    # note: for artcc == real, this is the _one_ schedule before entry
+
+    if ctr != 'ZZZ':
+        # get df of rows from sched_df having orig_time last one before artcc entry
+
+        at_entry_df = get_at_entry_sch_paths(all_scheds_df, flown_pts_df,
                                          center_minus_tracon_shp)
 
-    # and make a linestring of those waypoints, and get dist
+        print("at_entry_df")
+        print(at_entry_df)
+        #feb20 code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-    at_entry_df['sched_path'] = at_entry_df.apply( lambda row:
+        # and make a linestring of those waypoints, and get dist
+
+        at_entry_df['at_entry_path'] = at_entry_df.apply( lambda row:
                                     form_linestring(row, False), axis=1)
 
-    at_entry_df['b4_ent_path'] = at_entry_df['sched_path'].apply(
-                     lambda ls: ls.intersection(center_minus_tracon_shp))
+        print("at_entry_df + linestrings")
+        print(at_entry_df)
+        #feb 20 code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-    at_entry_df['b4_ent_dist'] = at_entry_df['b4_ent_path'].apply(
-                                          lambda ls: gc_length(ls) )
+        at_entry_df['at_entry_within_path'] = at_entry_df['at_entry_path'       ].apply(lambda p: do_difference(p))
+        at_entry_df['at_entry_within_dist'] = at_entry_df['at_entry_within_path'].apply(lambda p: gc_length(p))
 
-    # ==== j. flown path within artcc
+        both_df = pd.merge(ctr_df, at_entry_df, on='FID', how='inner')
 
-    flown_ls_df['flw_path'] = flown_ls_df['flown_path'].apply(
-                     lambda ls: ls.intersection(center_minus_tracon_shp))
+        ctr_df = both_df.drop([
+'at_entry_path',
+'scheduled_path_x',
+'first_filed_path_x',
+'ORIG_TIME_x',
+'WAYPOINTS_x',
+'last_filed_path_x',
+'ACID_x',
+'scheduled_path_y',
+'first_filed_path_y',
+'ACID_y',
+'ORIG_TIME_y',
+'DEP_TIME_y',
+'ARR_TIME_y',
+'DEPT_APRT_y',
+'ARR_APRT_y',
+'ACFT_TYPE_y',
+'WAYPOINTS_y',
+'last_filed_path_y',
 
-    flown_ls_df['flw_dist'] = flown_ls_df['flw_path'].apply(
-                                          lambda ls: gc_length(ls) )
+'POSIT_TIME', 'position'
+        ], axis=1)
 
-    # ==== j2. flown path up to artcc
+        ctr_df.rename( {
+            'DEP_TIME_x'  : 'DEP_TIME',
+            'ARR_TIME_x'  : 'ARR_TIME',
+            'DEPT_APRT_x' : 'DEPT_APRT',
+            'ARR_APRT_x'  : 'ARR_APRT',
+            'ACFT_TYPE_x' : 'ACFT_TYPE',
+        }, axis=1, inplace=True)
 
-    # get a linestring (possibly mulitlinestring) of the geospatial difference
-    flown_ls_df['flw_up_to_path'] = flown_ls_df['flown_path'].apply(
-                     lambda ls: ls.difference(tracon_shp))
+        print(ctr_df)
+        print("new ctr_df with at_entry_within != ZZZ")
+        #print(ctr_df.columns)
 
-                     # not what cp wanted: lambda ls: ls.difference(center_minus_tracon_shp))
+        for C in ctr_df.columns.tolist():
+            print(C, "     ", type(ctr_df[C][0]))
 
-    # and if it is a MultiLineString, take the first one
-    flown_ls_df['flw_up_to_path'] = flown_ls_df['flw_up_to_path'].apply(
-        lambda ls: ls[0] if ls.geom_type == "MultiLineString" else ls)
+       #feb20  code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-    flown_ls_df['flw_up_to_dist'] = flown_ls_df['flw_up_to_path'].apply(
-                                          lambda ls: gc_length(ls) )
+    else:
+
+        ctr_df['at_entry_within_path'] = LineString()
+        ctr_df['at_entry_within_dist'] = 0
+
+        ctr_df['FLIGHT_INDEX'] = 0  ## HELP <<<<<<<<<<<<<<
+
+        ctr_df.drop([
+                   'ORIG_TIME',
+                   'WAYPOINTS',
+                   'scheduled_path',
+                   'first_filed_path',
+                   'last_filed_path',
+                   #  'flown_path',  HELP: needs to be here to drop later
+                   # by  fpostg
+                         ], axis=1, inplace=True)
+
+        print(ctr_df)
+        print("new ctr_df with at_entry_within = ZZZ")
+        #print(ctr_df.columns)
+
+        for C in ctr_df.columns.tolist():
+            print(C, "     ", type(ctr_df[C][0]))
+
+        #feb20 code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     # ==== k. assemble data elements into output frame
 
-    center_df = merge_everything( last_b4_dep_df, at_entry_df, flown_ls_df)
+    #OLD: center_df = merge_everything( ctr_df, at_entry_df, flown_ls_df)
 
     # put this in postgis also, just to keep them consistent...
-    center_df['OPSDAY'] = center_df['ARR_TIME'].apply(lambda dt:
+    ctr_df['OPSDAY'] = ctr_df['ARR_TIME'].apply(lambda dt:
          (dt - datetime.timedelta(hours=8))
                  .replace(hour=0,minute=0,second=0)
                  .replace(tzinfo=pytz.UTC))
@@ -676,13 +896,19 @@ for ctr, tier in artccs:
 
     ce.end("center calculations")
 
-    if not args.skip_oracle:
-        output_to_oracle_flight_level(center_df, tier)
+    #FIXME: if not args.skip_oracle:
+    #FIXME:     output_to_oracle_flight_level(center_df, tier)
 
     # FIXED DATES used here: output_json_to_file(center_df, ctr, center_minus_tracon_shp)
 
+    print(ctr_df)
+    print(ctr_df.columns)
+    print("about to write to postgis")
+    #feb20 code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
     #if args.write_postigs:
-    output_postgis(center_df, ctr, center_minus_tracon_shp)
+    output_postgis(ctr_df, ctr, center_minus_tracon_shp)
 
 all.end("finished " +  args.airport + ' ' +  args.date.strftime('%Y-%m-%d'))
+
 

@@ -621,30 +621,56 @@ cssi_engine = create_engine('postgresql://' + \
 
 # ==================================================================
 
+# feb20 - add all paths
+
 cre8_fvf = """ CREATE TABLE IF NOT EXISTS %s (
     acid          text,
     fid           bigint,
     corner        text,
     artcc         text,
+    ac_type       text,
+
     dep_apt       text,
     arr_apt       text,
-    ac_type       text,
-    flw_dist      float,
-    b4_ent_dist   float,
-    b4_dep_dist   float,
+    dep_time      timestamptz,
+    arr_time      timestamptz,
 
-    b4_dep_up_to_dist  float,
-    flw_up_to_dist     float,
+    opsday        date,
 
-    dep_time          timestamptz,
-    arr_time          timestamptz,
-    opsday            date,
-    flw_geog          Geography,
-    b4_ent_geog       Geography,
-    b4_dep_geog       Geography,
+    -- all 5 paths & distances (actually within for real, full if zzz)
+    scheduled_within_dist  float,
+    scheduled_within_geog  Geography,
 
-    b4_dep_up_to_geog Geography,
-    flw_up_to_geog    Geography
+    first_filed_within_dist  float,
+    first_filed_within_geog  Geography,
+
+    last_filed_within_dist  float,
+    last_filed_within_geog  Geography,
+
+    flown_within_dist  float,
+    flown_within_geog  Geography,
+
+    -- this is used for real artcc, but not used for zzz
+    at_entry_within_dist  float,
+    at_entry_within_geog  Geography,
+
+    -- all 5 paths & distances
+    scheduled_upto_dist  float,
+    scheduled_upto_geog  Geography,
+
+    first_filed_upto_dist  float,
+    first_filed_upto_geog  Geography,
+
+    last_filed_upto_dist  float,
+    last_filed_upto_geog  Geography,
+
+    flown_upto_dist  float,
+    flown_upto_geog  Geography
+
+    -- not used for full or upto
+    --at_entry_upto_dist  float,
+    --at_entry_upto_geog  Geography,
+
 );"""
 
 # ==================================================================
@@ -652,98 +678,97 @@ cre8_fvf = """ CREATE TABLE IF NOT EXISTS %s (
 
 # write pandas df WITH MULTIPLE GEOGRAPHY COLUMNS out to postgis
 
-def write_ff_to_postgis_cssi(fvf_tbl, ctr_df, ctr_name_HELP):
+def write_ff_to_postgis_cssi(y_m, ctr_df):
+
+    fvf_tbl = "fvfb_" + y_m   # feb20: 'b' added
+
+    cssi = elapsed.Elapsed()
 
     cre8_sql = cre8_fvf % fvf_tbl
     #print(cre8_sql)
 
     cssi_engine.execute(cre8_sql)
 
-    ctr_df.rename( {
-        'flw_path'          : 'flw_geog',
-        'b4_ent_path'       : 'b4_ent_geog',
-        'b4_dep_path'       : 'b4_dep_geog',
-        'b4_dep_up_to_path' : 'b4_dep_up_to_geog',  # feb 11
-        'flw_up_to_path'    : 'flw_up_to_geog',
-        }, axis=1, inplace=True)
+    ctr_df.rename( { 'OPSDAY' : 'opsday'},  axis=1, inplace=True)
 
-    ctr_gf = gpd.GeoDataFrame(ctr_df, geometry='flw_geog')
+    ctr_gf = gpd.GeoDataFrame(ctr_df, geometry='flown_path')
 
     # ---- 1) convert each geom from shapely to wkt
 
-    # .buffer(0) on ch is prob. redundant
-    # but it does make polygon a valid one
-
-    ctr_gf.set_geometry('flw_geog', inplace=True)  # so .buffer() will work
-
-    ctr_gf['flw_geog_wkt'] = ctr_gf['flw_geog'] \
-                        .apply(lambda x: WKTElement(x.wkt, srid=4326))
-
-    ctr_gf.set_geometry('b4_ent_geog', inplace=True)
-
-    ctr_gf['b4_ent_geog_wkt'] = ctr_gf['b4_ent_geog'] \
-                        .apply(lambda x: WKTElement(x.wkt, srid=4326))
-
-    ctr_gf.set_geometry('b4_dep_geog', inplace=True)
-
-    ctr_gf['b4_dep_geog_wkt'] = ctr_gf['b4_dep_geog'] \
-                        .apply(lambda x: WKTElement(x.wkt, srid=4326))
-
-    # feb 11
-    ctr_gf['flw_up_to_geog_wkt'] = ctr_gf['flw_up_to_geog'] \
-                        .apply(lambda x: WKTElement(x.wkt, srid=4326))
-
-    ctr_gf['b4_dep_up_to_geog_wkt'] = ctr_gf['b4_dep_up_to_geog'] \
-                        .apply(lambda x: WKTElement(x.wkt, srid=4326))
+    ctr_gf['scheduled_within_geog_wkt'  ] = ctr_gf['scheduled_within_path'  ].apply(lambda x: WKTElement(x.wkt, srid=4326))
+    ctr_gf['first_filed_within_geog_wkt'] = ctr_gf['first_filed_within_path'].apply(lambda x: WKTElement(x.wkt, srid=4326))
+    ctr_gf['last_filed_within_geog_wkt' ] = ctr_gf['last_filed_within_path' ].apply(lambda x: WKTElement(x.wkt, srid=4326))
+    ctr_gf['flown_within_geog_wkt'      ] = ctr_gf['flown_within_path'      ].apply(lambda x: WKTElement(x.wkt, srid=4326))
+    ctr_gf['at_entry_within_geog_wkt'   ] = ctr_gf['at_entry_within_path'   ].apply(lambda x: WKTElement(x.wkt, srid=4326))
+    ctr_gf['scheduled_upto_geog_wkt'    ] = ctr_gf['scheduled_upto_path'    ].apply(lambda x: WKTElement(x.wkt, srid=4326))
+    ctr_gf['first_filed_upto_geog_wkt'  ] = ctr_gf['first_filed_upto_path'  ].apply(lambda x: WKTElement(x.wkt, srid=4326))
+    ctr_gf['last_filed_upto_geog_wkt'   ] = ctr_gf['last_filed_upto_path'   ].apply(lambda x: WKTElement(x.wkt, srid=4326))
+    ctr_gf['flown_upto_geog_wkt'        ] = ctr_gf['flown_upto_path'        ].apply(lambda x: WKTElement(x.wkt, srid=4326))
 
     # ---- 2) drop the shapely columns
 
-    ctr_gf.drop(['flw_geog', 'b4_ent_geog', 'b4_dep_geog',
-                 'flw_up_to_geog', 'b4_dep_up_to_geog'    ],  axis=1,
-                                                           inplace=True)
+    ctr_gf.drop([ 'scheduled_within_path',
+                  'first_filed_within_path',
+                  'last_filed_within_path',
+                  'flown_within_path',
+                  'at_entry_within_path',
+                  'scheduled_upto_path',
+                  'first_filed_upto_path',
+                  'last_filed_upto_path',
+                  'flown_upto_path',
+                  'flown_path',      # <<<< HELP:  why was this left in??
+                  'FLIGHT_INDEX',    # <<<< HELP:  why was this left in??
+                 ],  axis=1, inplace=True)
 
-    # ---- 3) rename wkt columns to match PostGIS
+    # ---- 3) rename wkt columns back to 'good' names to match PostGIS
 
     ctr_gf.rename( {
-        'OPSDAY'          : 'opsday',   # wtf???
-        'flw_geog_wkt'    : 'flw_geog',
-        'b4_ent_geog_wkt' : 'b4_ent_geog',
-        'b4_dep_geog_wkt' : 'b4_dep_geog',
-
-        'b4_dep_up_to_geog_wkt' : 'b4_dep_up_to_geog',
-        'flw_up_to_geog_wkt'    : 'flw_up_to_geog',
-        }, axis=1, inplace=True)
+        'scheduled_within_geog_wkt'   : 'scheduled_within_geog',
+        'first_filed_within_geog_wkt' : 'first_filed_within_geog',
+        'last_filed_within_geog_wkt'  : 'last_filed_within_geog',
+        'flown_within_geog_wkt'       : 'flown_within_geog',
+        'at_entry_within_geog_wkt'    : 'at_entry_within_geog',
+        'scheduled_upto_geog_wkt'     : 'scheduled_upto_geog',
+        'first_filed_upto_geog_wkt'   : 'first_filed_upto_geog',
+        'last_filed_upto_geog_wkt'    : 'last_filed_upto_geog',
+        'flown_upto_geog_wkt'         : 'flown_upto_geog',
+                                            }, axis=1, inplace=True)
 
     # ---- 4) finish off to ensure it is a proper geodataframe
+    ctr_gf.set_geometry('flown_within_geog', inplace=True)  # so .crs() will work
     ctr_gf.crs = {'init' :'epsg:4326'}
 
-    #HELP: ctr_gf.to_csv(fvf_tbl + '_' + ctr_name_HELP + ".csv")  # <<<<<<< HELP <
+    # ---- 5) setup for .to_sql() via sqlalchemy
+    pg_dtype = {
+        'scheduled_within_geog'   : Geography(),
+        'first_filed_within_geog' : Geography(),
+        'last_filed_within_geog'  : Geography(),
+        'flown_within_geog'       : Geography(),
+        'at_entry_within_geog'    : Geography(),
 
-    # note: flw_geom column is now _not_ a (shapely) geometry column,
-    #  but a wkt that looks like one
-    #wrong: ctr_gf.set_geometry('flw_geog', inplace=True)  # pointless???
+        'scheduled_upto_geog'     : Geography(),
+        'first_filed_upto_geog'   : Geography(),
+        'last_filed_upto_geog'    : Geography(),
+        'flown_upto_geog'         : Geography() }
 
-    #print(" CSSI.to_sql")
-    cssi = elapsed.Elapsed()
+    print(" $$$$ about to CSSI.to_sql")
     #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
     try:
         ctr_gf.to_sql(fvf_tbl, cssi_engine, if_exists='append', index=False,
-             dtype={'flw_geog'         : Geography(),   # use col id for type & srid(?)
-                    'b4_ent_geog'      : Geography(),
-                    'b4_dep_geog'      : Geography(),
-                    'flw_up_to_geog'   : Geography(),
-                    'b4_dep_up_to_geog': Geography()
-                    })
+                                  dtype = pg_dtype)
+
         cssi.end("wrote cssi postgis")
 
     except Exception as exc:
         #print traceback.format_exc()
         print(exc)
-        #print(">>>>>>>>>>>>> HELP!!!")
-        #print(ctr_gf)
-        #print(">>>>>>>>>>>>> HELP!!!")
-        # sys.exit(1)
+        print(">>>>>>>>>>>>> HELP!!!")
+        print(ctr_gf)
+        print(">>>>>>>>>>>>> HELP!!!")
+        sys.exit(1)
 
 
-    #print(" CSSI.finished")
+    print("CSSI.finished!!!!")
+    # code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
