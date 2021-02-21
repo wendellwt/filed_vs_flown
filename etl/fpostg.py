@@ -735,7 +735,7 @@ def write_ff_to_postgis_cssi(y_m, ctr_df):
                                             }, axis=1, inplace=True)
 
     # ---- 4) finish off to ensure it is a proper geodataframe
-    ctr_gf.set_geometry('flown_within_geog', inplace=True)  # so .crs() will work
+    #WARNING: ctr_gf.set_geometry('flown_within_geog', inplace=True)  # so .crs() will work
     ctr_gf.crs = {'init' :'epsg:4326'}
 
     # ---- 5) setup for .to_sql() via sqlalchemy

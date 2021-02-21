@@ -368,7 +368,7 @@ def make_all_scheds(sched_df):
 
     # b1. get just schedules with record type 'S'
 
-    print(sched_df.columns)
+    # print(sched_df.columns)
     all_scheduled_df = sched_df.loc[sched_df['SOURCE_TYPE'] == 'S']
 
     # b2. get the one with a max orig_time
@@ -733,16 +733,16 @@ for ctr, tier in artccs:
 
     ctr_df = pd.merge(all_scheds_df, flown_ls_df, on='FID', how='inner')
 
-    print(ctr_df)
-    print(ctr_df.columns)
-    print("CHECK ctr_df columns")
-   #feb20  code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    #print(ctr_df)
+    #print(ctr_df.columns)
+    #print("CHECK ctr_df columns")
+    #feb20  code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     # ==== b. get ARTCC polygon of interest
 
     center_minus_tracon_shp, tracon_shp = read_artcc_and_tracon(ctr)
 
-    print("have ctr and tracon shapes")
+    # print("have ctr and tracon shapes")
 
     # ==== ==== ====
 
@@ -765,9 +765,9 @@ for ctr, tier in artccs:
     ctr_df['flown_within_path'] = ctr_df['flown_path'       ].apply(lambda p: do_intersect(p))
     ctr_df['flown_within_dist'] = ctr_df['flown_within_path'].apply(lambda p: gc_length(p))
 
-    print(ctr_df)
-    print(ctr_df.columns)
-    print("all within paths")
+    # print(ctr_df)
+    # print(ctr_df.columns)
+    # print("all within paths")
     #feb20#feb20  code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     # ==== ==== ==== (cp wants these) each path DIFFERENCE with tracon
@@ -784,10 +784,10 @@ for ctr, tier in artccs:
     ctr_df['flown_upto_path'] = ctr_df['flown_path'     ].apply(lambda p: do_difference(p))
     ctr_df['flown_upto_dist'] = ctr_df['flown_upto_path'].apply(lambda p: gc_length(p))
 
-    print(ctr_df)
-    print(ctr_df.columns)
-    print("all upto paths")
-   #feb20  code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    # print(ctr_df)
+    # print(ctr_df.columns)
+    # print("all upto paths")
+    #feb20  code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     # ==== ==== ==== h. before entry paths intersected by that poly
     # note: for artcc == real, this is the _one_ schedule before entry
@@ -798,8 +798,8 @@ for ctr, tier in artccs:
         at_entry_df = get_at_entry_sch_paths(all_scheds_df, flown_pts_df,
                                          center_minus_tracon_shp)
 
-        print("at_entry_df")
-        print(at_entry_df)
+        # print("at_entry_df")
+        # print(at_entry_df)
         #feb20 code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
         # and make a linestring of those waypoints, and get dist
@@ -807,8 +807,8 @@ for ctr, tier in artccs:
         at_entry_df['at_entry_path'] = at_entry_df.apply( lambda row:
                                     form_linestring(row, False), axis=1)
 
-        print("at_entry_df + linestrings")
-        print(at_entry_df)
+        # print("at_entry_df + linestrings")
+        # print(at_entry_df)
         #feb 20 code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
         at_entry_df['at_entry_within_path'] = at_entry_df['at_entry_path'       ].apply(lambda p: do_difference(p))
@@ -847,14 +847,14 @@ for ctr, tier in artccs:
             'ACFT_TYPE_x' : 'ACFT_TYPE',
         }, axis=1, inplace=True)
 
-        print(ctr_df)
-        print("new ctr_df with at_entry_within != ZZZ")
+        # print(ctr_df)
+        # print("new ctr_df with at_entry_within != ZZZ")
         #print(ctr_df.columns)
 
-        for C in ctr_df.columns.tolist():
-            print(C, "     ", type(ctr_df[C][0]))
+        #for C in ctr_df.columns.tolist():
+        #    print(C, "     ", type(ctr_df[C][0]))
 
-       #feb20  code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        #feb20  code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     else:
 
@@ -873,12 +873,12 @@ for ctr, tier in artccs:
                    # by  fpostg
                          ], axis=1, inplace=True)
 
-        print(ctr_df)
-        print("new ctr_df with at_entry_within = ZZZ")
+        # print(ctr_df)
+        # print("new ctr_df with at_entry_within = ZZZ")
         #print(ctr_df.columns)
 
-        for C in ctr_df.columns.tolist():
-            print(C, "     ", type(ctr_df[C][0]))
+        #for C in ctr_df.columns.tolist():
+        #    print(C, "     ", type(ctr_df[C][0]))
 
         #feb20 code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -901,9 +901,9 @@ for ctr, tier in artccs:
 
     # FIXED DATES used here: output_json_to_file(center_df, ctr, center_minus_tracon_shp)
 
-    print(ctr_df)
-    print(ctr_df.columns)
-    print("about to write to postgis")
+    # print(ctr_df)
+    # print(ctr_df.columns)
+    # print("about to write to postgis")
     #feb20 code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     #if args.write_postigs:
