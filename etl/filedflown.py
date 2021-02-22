@@ -571,9 +571,17 @@ def output_postgis(ctr_df, ctr_name):
 
 # ++++++++++++++++++++++++++++++++++++++++++++
 
+# mon am: special check -- if ctr == ZZZ then just take tracon diff,
+#                                        else do real intersection
+
 def do_w_intersect(path_ls):
-    int_path = path_ls.intersection(center_minus_tracon_shp)
-    int_path = int_path[0] if int_path.geom_type == "MultiLineString" else int_path
+
+    if ctr != 'ZZZ':
+        int_path = path_ls.intersection(center_minus_tracon_shp)
+        int_path = int_path[0] if int_path.geom_type == "MultiLineString" else int_path
+    else:
+        int_path = path_ls.difference(tracon_shp)
+        int_path = int_path[0] if int_path.geom_type == "MultiLineString" else int_path
     return int_path
 
 # ++++++++++++++++++++++++++++++++++++++++++++
