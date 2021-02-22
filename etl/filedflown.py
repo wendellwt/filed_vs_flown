@@ -16,13 +16,12 @@ import argparse
 import datetime
 import geopandas as gpd
 from shapely.geometry import shape, Point, LineString
+import code           # <<<<<<<<<<<
 
 # our own:
 import foracle
 import fpostg
 import elapsed
-
-import code                     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 # ####################################################################### #
 #                               argparse                                  #
@@ -165,8 +164,12 @@ from shapely import wkb
 from shapely.geometry import mapping
 
 # feb20: if ctr = ZZZ, then return ??? and tracon shapefile
+# feb22: wanted for path type:
+#     -        within        ;  upto       ;   full
+#     - center minus tracon  ; center      ; tracon
+#     - intersect            ; difference  ; difference
 
-def read_artcc_and_tracon(ctr):
+def read_masking_shapes(ctr):
 
     # 1) read shapefile using with PyShp
     # https://gis.stackexchange.com/questions/113799/how-to-read-a-shapefile-in-python
@@ -182,33 +185,32 @@ def read_artcc_and_tracon(ctr):
 
     tracon_shape = shape(tracon_geom)
 
-    if ctr == 'ZZZ':   # special check for full flight
+    if ctr == 'ZZZ':
 
-        # pretend artcc is entire conus
+         # pretend artcc is entire conus ???
 
-        conus_esri = shapefile.Reader(conus_shapefile)
-        conus_feature = conus_esri.shapeRecords()[0]
-        conus_geom = conus_feature.shape.__geo_interface__
-        conus_shape = shape(conus_geom)
-        conus_minus_tracon_shape = conus_shape.difference(tracon_shape)
+         conus_esri = shapefile.Reader(conus_shapefile)
+         conus_feature = conus_esri.shapeRecords()[0]
+         conus_geom = conus_feature.shape.__geo_interface__
+         center_shape = shape(conus_geom)
 
-        return(conus_minus_tracon_shape, tracon_shape)   # feb20
+    else:  # else it is a real artcc
 
-    ctr_wkb = fpostg.get_shape_of_ctr(ctr, args_verbose=False)
+        ctr_wkb = fpostg.get_shape_of_ctr(ctr, args_verbose=False)
 
-    ctr_shape = wkb.loads(ctr_wkb[0][0], hex=True)
+        center_shape = wkb.loads(ctr_wkb[0][0], hex=True)
 
     # and have _shapely_ take the difference:
 
-    center_minus_tracon_shape = ctr_shape.difference(tracon_shape)
+    center_minus_tracon_shape = center_shape.difference(tracon_shape)
 
-    return(center_minus_tracon_shape, tracon_shape)
+    return(center_minus_tracon_shape, center_shape, tracon_shape)
 
 # =========================================================================
 
 from geopy import distance
 
-# @@@@@@@@@@@@@  calc G.C. DISTANCE (length) of one linestring
+# ---- ---- calc G.C. DISTANCE (length) of one linestring
 
 def gc_length(ls_path):
 
@@ -229,13 +231,14 @@ def gc_length(ls_path):
             return(sum)
 
         else:
-            print("HELP: don't know how to handle:", ls_path.geom_type)
+            print("HELP: don't know how to measure distance of:", ls_path.geom_type)
             # print(ls_path) # (see below)
             return(0)
             #sys.exit(1)
 
     return(0)  # ???
 
+# sometimes there is:
 # GEOMETRYCOLLECTION (POINT (-94.05 36.75), LINESTRING (-86.64 34.13, ...
 # -----------------------------------------------------------------
 
@@ -548,102 +551,7 @@ def merge_everything(last_b4_dep_df, at_entry_df, flown_ls_df):
 
 # ========================================================================
 
-def output_json_to_file(center_df, ctr, artcc_shp):
-
-    # for TESTING, get rid of large columns...
-    # and keep JUST ONE geom column
-    trim_df = center_df.drop(['FID', 'DEP_TIME',
-                    'b4_dep_path', 'b4_dep_dist',
-                    #'b4_ent_path', 'b4_ent_dist'
-                              ], axis=1)
-
-    help_output_corner(trim_df, 'ne', ctr, artcc_shp)
-    help_output_corner(trim_df, 'se', ctr, artcc_shp)
-    help_output_corner(trim_df, 'sw', ctr, artcc_shp)
-    help_output_corner(trim_df, 'nw', ctr, artcc_shp)
-
-    #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-# =========================================================================
-
-def help_output_corner(trim_df, cnr, ctr, artcc_shp):
-
-    ne_df = trim_df.loc[trim_df['corner']==cnr]
-
-    # HELP >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    ne_15z_df = ne_df.loc[ne_df['ARR_TIME'] >= datetime.datetime(2020,3,2,15,0,0)]
-
-    # ==== method 1. write GeoDataFrame to disk (meaning paths only)
-    # <<<<<<<<<<<<<<<<<<< LAME
-    # ne_15z_gf = gpd.GeoDataFrame( ne_15z_df, geometry='flw_path')
-    # ne_15z_gf.rename( {'geometry' : 'flw_path'}, axis=1, inplace=True)
-    # fn = "cnr_" + cnr + ".gjsn"
-    # ne_15z_gf.to_file(fn, driver="GeoJSON")
-    # print("fn=", fn)
-    # <<<<<<<<<<<<<<<<<<< LAME
-
-    # ==== method 2. add colors, and FC including artcc
-
-    if len(ne_15z_df) == 0:   # empty === uninteresting
-        return
-
-    paths_gj = form_feature_collection(ne_15z_df, artcc_shp)
-
-    fn = "files/fc_" + cnr + '_' + ctr + '_' + y_m_d + ".gjsn"
-
-    with open(fn, "w") as fd:
-        fd.write( json.dumps(paths_gj) )
-
-    #print("fn=", fn)
-
-# ====================================================================
-
-from geojson import Feature, FeatureCollection
-
-# note: input is a df, not a gf
-
-def form_feature_collection(flts_df, artcc_shp):
-
-    features = [ Feature(geometry   = mapping(artcc_shp),
-                         id         = 1,
-                         properties = { "name" : 'ARTCC'}
-                        ), ]
-    help_id = 4
-
-    for index, row in flts_df.iterrows():
-
-        # http://geojson.tools/ shows colors from properties:
-
-        flw_feat = Feature(geometry   = mapping(row['flw_path']),
-                           id         = help_id,
-                           properties =
-                                 { "acid"    : row['ACID'],
-                                   "corner"  : row['corner'],
-                                   "color"   : "magenta",
-                                   #"arr_time" : row['arr_time'].replace(' ','T'),
-                                 })
-
-        features.append(flw_feat)
-        help_id += 1
-
-        ate_feat = Feature(geometry   = mapping(row['b4_ent_path']),
-                           id         = help_id,
-                           properties =
-                                 { "acid"    : row['ACID'],
-                                   "corner"  : row['corner'],
-                                   "color"   : "blue",
-                                   #"arr_time" : row['arr_time'].replace(' ','T'),
-                                 })
-
-        features.append(ate_feat)
-        help_id += 1
-
-    feature_collection = FeatureCollection(features)
-    return(feature_collection)
-
-# ==========================================================================
-
-def output_postgis(ctr_df, ctr_name, center_minus_tracon_shp):
+def output_postgis(ctr_df, ctr_name):
 
     # q: need to explicitly make lower case?
     ctr_df.rename( {
@@ -663,20 +571,24 @@ def output_postgis(ctr_df, ctr_name, center_minus_tracon_shp):
 
 # ++++++++++++++++++++++++++++++++++++++++++++
 
-# WARNING: what shape to use here???
-
-def do_intersect(path_ls):
+def do_w_intersect(path_ls):
     int_path = path_ls.intersection(center_minus_tracon_shp)
     int_path = int_path[0] if int_path.geom_type == "MultiLineString" else int_path
     return int_path
 
 # ++++++++++++++++++++++++++++++++++++++++++++
 
-# WARNING: what shape to use here???
+def do_u_difference(path_ls):
 
-def do_difference(path_ls):
+    int_path = path_ls.difference(center_shp)
+    int_path = int_path[0] if int_path.geom_type == "MultiLineString" else int_path
+    return int_path
 
-    int_path = path_ls.difference(center_minus_tracon_shp)
+# ++++++++++++++++++++++++++++++++++++++++++++
+
+def do_f_difference(path_ls):
+
+    int_path = path_ls.difference(tracon_shp)
     int_path = int_path[0] if int_path.geom_type == "MultiLineString" else int_path
     return int_path
 
@@ -740,7 +652,7 @@ for ctr, tier in artccs:
 
     # ==== b. get ARTCC polygon of interest
 
-    center_minus_tracon_shp, tracon_shp = read_artcc_and_tracon(ctr)
+    center_minus_tracon_shp, center_shp, tracon_shp = read_masking_shapes(ctr)
 
     # print("have ctr and tracon shapes")
 
@@ -753,16 +665,16 @@ for ctr, tier in artccs:
     # NOTE: if artcc is real, these are the WITHIN,
     #       if artcc is zzz, these are the FULL (but still without the tracon)
 
-    ctr_df['scheduled_within_path'] = ctr_df['scheduled_path'       ].apply(lambda p: do_intersect(p))
+    ctr_df['scheduled_within_path'] = ctr_df['scheduled_path'       ].apply(lambda p: do_w_intersect(p))
     ctr_df['scheduled_within_dist'] = ctr_df['scheduled_within_path'].apply(lambda p: gc_length(p))
 
-    ctr_df['first_filed_within_path'] = ctr_df['first_filed_path'       ].apply(lambda p: do_intersect(p))
+    ctr_df['first_filed_within_path'] = ctr_df['first_filed_path'       ].apply(lambda p: do_w_intersect(p))
     ctr_df['first_filed_within_dist'] = ctr_df['first_filed_within_path'].apply(lambda p: gc_length(p))
 
-    ctr_df['last_filed_within_path'] = ctr_df['last_filed_path'       ].apply(lambda p: do_intersect(p))
+    ctr_df['last_filed_within_path'] = ctr_df['last_filed_path'       ].apply(lambda p: do_w_intersect(p))
     ctr_df['last_filed_within_dist'] = ctr_df['last_filed_within_path'].apply(lambda p: gc_length(p))
 
-    ctr_df['flown_within_path'] = ctr_df['flown_path'       ].apply(lambda p: do_intersect(p))
+    ctr_df['flown_within_path'] = ctr_df['flown_path'       ].apply(lambda p: do_w_intersect(p))
     ctr_df['flown_within_dist'] = ctr_df['flown_within_path'].apply(lambda p: gc_length(p))
 
     # print(ctr_df)
@@ -772,16 +684,16 @@ for ctr, tier in artccs:
 
     # ==== ==== ==== (cp wants these) each path DIFFERENCE with tracon
 
-    ctr_df['scheduled_upto_path'] = ctr_df['scheduled_path'     ].apply(lambda p: do_difference(p))
+    ctr_df['scheduled_upto_path'] = ctr_df['scheduled_path'     ].apply(lambda p: do_u_difference(p))
     ctr_df['scheduled_upto_dist'] = ctr_df['scheduled_upto_path'].apply(lambda p: gc_length(p))
 
-    ctr_df['first_filed_upto_path'] = ctr_df['first_filed_path'     ].apply(lambda p: do_difference(p))
+    ctr_df['first_filed_upto_path'] = ctr_df['first_filed_path'     ].apply(lambda p: do_u_difference(p))
     ctr_df['first_filed_upto_dist'] = ctr_df['first_filed_upto_path'].apply(lambda p: gc_length(p))
 
-    ctr_df['last_filed_upto_path'] = ctr_df['last_filed_path'     ].apply(lambda p: do_difference(p))
+    ctr_df['last_filed_upto_path'] = ctr_df['last_filed_path'     ].apply(lambda p: do_u_difference(p))
     ctr_df['last_filed_upto_dist'] = ctr_df['last_filed_upto_path'].apply(lambda p: gc_length(p))
 
-    ctr_df['flown_upto_path'] = ctr_df['flown_path'     ].apply(lambda p: do_difference(p))
+    ctr_df['flown_upto_path'] = ctr_df['flown_path'     ].apply(lambda p: do_u_difference(p))
     ctr_df['flown_upto_dist'] = ctr_df['flown_upto_path'].apply(lambda p: gc_length(p))
 
     # print(ctr_df)
@@ -796,7 +708,7 @@ for ctr, tier in artccs:
         # get df of rows from sched_df having orig_time last one before artcc entry
 
         at_entry_df = get_at_entry_sch_paths(all_scheds_df, flown_pts_df,
-                                         center_minus_tracon_shp)
+                                         center_shp)
 
         # print("at_entry_df")
         # print(at_entry_df)
@@ -811,7 +723,7 @@ for ctr, tier in artccs:
         # print(at_entry_df)
         #feb 20 code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-        at_entry_df['at_entry_within_path'] = at_entry_df['at_entry_path'       ].apply(lambda p: do_difference(p))
+        at_entry_df['at_entry_within_path'] = at_entry_df['at_entry_path'       ].apply(lambda p: do_f_difference(p))
         at_entry_df['at_entry_within_dist'] = at_entry_df['at_entry_within_path'].apply(lambda p: gc_length(p))
 
         both_df = pd.merge(ctr_df, at_entry_df, on='FID', how='inner')
@@ -907,7 +819,7 @@ for ctr, tier in artccs:
     #feb20 code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     #if args.write_postigs:
-    output_postgis(ctr_df, ctr, center_minus_tracon_shp)
+    output_postgis(ctr_df, ctr)
 
 all.end("finished " +  args.airport + ' ' +  args.date.strftime('%Y-%m-%d'))
 
