@@ -99,16 +99,30 @@ const HELPME_OFFSET = 30000000000000;  // if FID is larger than this it is a
 const unk_style   =new Style({ stroke: new Stroke({ color: 'grey',   width: 2.0 }) })
 
 // -------------- SAME colors as in Charts.vue
-const wt_map_colors = [
-            '#996600'    // (sched) brown
-           ,'#3399ff'    // (at entry) blue
-           ,'green' ];   // (flown)
+// const wt_map_colors = [
+//             '#996600'    // (sched) brown
+//            ,'#3399ff'    // (at entry) blue
+//            ,'green' ];   // (flown)
+//
+// const src_s_style = new Style({ stroke: new Stroke({ color: wt_map_colors[0], width: 2.0 }) })
+// const src_a_style = new Style({ stroke: new Stroke({ color: wt_map_colors[1], width: 2.0 }) })
+// const src_f_style = new Style({ stroke: new Stroke({ color: wt_map_colors[2], width: 2.0 }) })
 
-const src_s_style = new Style({ stroke: new Stroke({ color: wt_map_colors[0], width: 2.0 }) })
-const src_a_style = new Style({ stroke: new Stroke({ color: wt_map_colors[1], width: 2.0 }) })
-const src_f_style = new Style({ stroke: new Stroke({ color: wt_map_colors[2], width: 2.0 }) })
+const src_hi_style = new Style({ stroke: new Stroke({ color: 'red', width: 2.0 }) })
 
-// ==================================================================================
+const wt_corner_colors = [
+    '#002664',   // from ajr style guide
+    '#007934',
+    '#AB8422',
+    '#5E6A71'
+  ];
+
+const cnr_ne_style = new Style({ stroke: new Stroke({ color: wt_corner_colors[0], width: 2.0 }) })
+const cnr_se_style = new Style({ stroke: new Stroke({ color: wt_corner_colors[1], width: 2.0 }) })
+const cnr_sw_style = new Style({ stroke: new Stroke({ color: wt_corner_colors[2], width: 2.0 }) })
+const cnr_nw_style = new Style({ stroke: new Stroke({ color: wt_corner_colors[3], width: 2.0 }) })
+
+
 //document.addEventListener('resize', <yourfunction>);
 // ==================================================================================
 
@@ -136,10 +150,11 @@ console.log("RESIZE event");
 
    everythStyleFactory() {
       return (feature) => {
-        if (feature.get('ptype')) {
-          if (feature.get('ptype')=='flw') { return src_f_style; }
-          if (feature.get('ptype')=='ate') { return src_a_style; }
-          if (feature.get('ptype')=='sch') { return src_s_style; }
+        if (feature.get('corner')) {
+          if (feature.get('corner')=='ne') { return cnr_ne_style; }
+          if (feature.get('corner')=='se') { return cnr_se_style; }
+          if (feature.get('corner')=='sw') { return cnr_sw_style; }
+          if (feature.get('corner')=='nw') { return cnr_nw_style; }
           return unk_style;
         }
         return unk_style;
@@ -181,7 +196,7 @@ console.log("RESIZE event");
                       // because it was too hard to do it later
                       arr_time: features_list[k].properties.arr_time.substr(8,2) + '-' +
                                 features_list[k].properties.arr_time.substr(11,8),
-                                
+
                       sch_dist_f: parseFloat(features_list[k].properties.sch_dist).toFixed(1),
                       fld_dist_f: parseFloat(features_list[k].properties.fld_dist).toFixed(1),
                       dep_dist_f: parseFloat(features_list[k].properties.dep_dist).toFixed(1),
@@ -320,7 +335,7 @@ destroyed() {
       if (this.highlightedFeat_flw != 0) {
         // ------------------------------
         // need to set back to PROPER color, which is always flown, right?
-        this.highlightedFeat_flw.setStyle(src_f_style);
+        this.highlightedFeat_flw.setStyle(src_hi_style);
         this.highlightedFeat_flw = 0;
       }
 
@@ -354,7 +369,7 @@ destroyed() {
       if (this.highlightedFeat_sch != 0) {
         // ------------------------------
         // need to set back to PROPER color, which is always flown, right?
-        this.highlightedFeat_sch.setStyle(src_s_style);  // <<< DIFF
+        this.highlightedFeat_sch.setStyle(cnr_ne_style);  // WRONG
         this.highlightedFeat_sch = 0;
       }
 
