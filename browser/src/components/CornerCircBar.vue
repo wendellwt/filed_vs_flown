@@ -24,6 +24,7 @@ export default {
   props: {
     corner_data: Object,
     // { dir: "ne", ident: 'LANDR', coords: [-104.00, 40.35], colr: 'green' },
+    // eslint-disable-next-line
     show_yourself: false
   },
 /*************************************************/

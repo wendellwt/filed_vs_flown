@@ -8,7 +8,18 @@
 
 // a file captured from ./everything.py over on rserver:
 // CONSIDER: for FLASK, when publishing, make this a very small valid json file!
-import e_feb from "./files/n_2020-01-10.json";    // set to empty file for flask
+//import e_feb from "./files/n_2020-01-10.json";    // set to empty file for flask
+
+import g_at_ent_within from "./files/at_ent_within.json";
+import g_depart_upto   from "./files/depart_upto.json";
+import g_depart_within from "./files/depart_within.json";
+import g_filed_upto    from "./files/filed_upto.json";
+import g_filed_within  from "./files/filed_within.json";
+import g_flown_upto    from "./files/flown_upto.json";
+import g_flown_within  from "./files/flown_within.json";
+import g_sched_upto    from "./files/sched_upto.json";
+import g_sched_within  from "./files/sched_within.json";
+
 
 export default {
   name: 'model',
@@ -60,7 +71,7 @@ export default {
                          hour : this.y_m_d_h_m };
 console.log("emit:"+this.y_m_d_h_m);
         this.$root.$emit('new_model_data', (map_args) );
-
+/*****************
         // =========== ef chart details ==============
         let chart_args = { ef_data     : new_data.chart_data,
                            title_date  : "put date/time here"   };
@@ -70,7 +81,7 @@ console.log("emit:"+this.y_m_d_h_m);
         let chart_args = { cdata: new_data.chart_data.ZDV,  // FIXME <<<<<<<<
                          title_date  : this.y_m_dd_val   };
         this.$root.$emit('new_barchart_data', (chart_args) );
-      ***/
+      *** /
 
         // =========== table details ==============
 
@@ -80,6 +91,7 @@ console.log("emit:"+this.y_m_d_h_m);
         let corner_args = { corner_data : new_data.circle_data,
                             title_date  : "put date/time here"   };
         this.$root.$emit('new_corner_data', (corner_args) );
+        ********************/
     },
 
   },
@@ -91,9 +103,31 @@ console.log("emit:"+this.y_m_d_h_m);
     this.$root.$on('fetch_data', (fetch_args) => {
 
         if (fetch_args.pickle==true) {
+
+
           console.log("using STORED json file.")
+
+let f = "helpme";
+
+if (fetch_args.path == "within") {
+    if (fetch_args.source == "at_ent") {f= g_at_ent_within;}
+    if (fetch_args.source == "depart") {f= g_depart_within;}
+    if (fetch_args.source == "filed")  {f= g_filed_within;}
+    if (fetch_args.source == "flown")  {f= g_flown_within;}
+    if (fetch_args.source == "sched")  {f= g_sched_within;}
+    }
+
+if (fetch_args.path == "upto") {
+    //if (fetch_args.source == "at_ent") {f= g_at_ent_upto;}
+    if (fetch_args.source == "depart") {f= g_depart_upto;}
+    if (fetch_args.source == "filed")  {f= g_filed_upto;}
+    if (fetch_args.source == "flown")  {f= g_flown_upto;}
+    if (fetch_args.source == "sched")  {f= g_sched_upto;}
+}
+console.log("about to process");
+console.log(f)
           // not for flask:
-          this.process_fetch_response(e_feb);
+          this.process_fetch_response(f);
           return; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         }
         let the_query = this.form_fetch_args(fetch_args)

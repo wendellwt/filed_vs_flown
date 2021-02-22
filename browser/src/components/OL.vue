@@ -41,13 +41,13 @@
     </vl-overlay>
 
            <!-- ========== svg container layers ========= -->
-           <div>
+           <!-- was very cool, but CR didn't want it: div>
               <CornerCircBar v-for="corner in corners"
                              v-bind:key="corner.ident"
                              v-bind:corner_data="corner"
                              v-bind:show_yourself="draw_circles" >
               </CornerCircBar>
-           <div/>
+           </div -->
 
       <!-- ========== end layers ========= -->
     </vl-map>
@@ -85,7 +85,7 @@ import Style      from 'ol/style/Style'
 
 import { Vector as VectorLayer } from 'ol/layer'
 
-import CornerCircBar from './CornerCircBar'
+// cool, but not desired: import CornerCircBar from './CornerCircBar'
 
 // ==========================================================
 
@@ -126,7 +126,7 @@ const methods = {
 
     // ==========================================================
     // worked, but made no difference in initial display...
-  myEventHandler(e) {
+  myEventHandler() {   // param 'e' removed
       this.$refs.map.updateSize();
 console.log("RESIZE event");
   },
@@ -181,11 +181,11 @@ console.log("RESIZE event");
                       // because it was too hard to do it later
                       arr_time: features_list[k].properties.arr_time.substr(8,2) + '-' +
                                 features_list[k].properties.arr_time.substr(11,8),
-                      flw_dist_f: parseFloat(features_list[k].properties.flw_dist).toFixed(1),
-                      diff:     (parseFloat(features_list[k].properties.b4_ent_dist) -
-                                 parseFloat(features_list[k].properties.flw_dist)
-                                ).toFixed(1),
-                      flw_dist_n: features_list[k].properties.flw_dist
+                      flw_dist_f: 99, //parseFloat(features_list[k].properties.flw_dist).toFixed(1),
+                      diff:     1.1, //(parseFloat(features_list[k].properties.b4_ent_dist) -
+                                 //parseFloat(features_list[k].properties.flw_dist)
+                                //).toFixed(1),
+                      flw_dist_n: 33 //features_list[k].properties.flw_dist
                       };
                   dlist.push(elem);
               }
@@ -213,9 +213,12 @@ console.log("RESIZE event");
 
     help_display_model_data() {
 
+console.log("OL:help_disp");
+console.log(this.model_data);
+
       let flts_to_disp = [ ]
       for (let k = 0; k < this.model_data.features.length; k++) {
-
+//console.log("k=",k);
           // Q: should this just check for existance of an 'arr_time' property???
 
           // if it is a (Multi) LineString (i.e. flight), then check arr time
@@ -265,7 +268,7 @@ var KDEN = [-104.6731667, 39.8616667];
 export default {
     methods,
     components: {
-        CornerCircBar
+        // cool, but not wanted: CornerCircBar
     },
     data () {
       return {
@@ -375,7 +378,7 @@ destroyed() {
     }),
 
     // ================================
-    this.$root.$on('map_tab_entered', (bogus) => {
+    this.$root.$on('map_tab_entered', () => { // param 'bogus' removed
 // HELP -- did not work!!!      this.$refs.map.updateSize();   // when map is in a tab, do this
 // HELP -- did not work!!!console.log("map tab entered; updateSize");
     }),

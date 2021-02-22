@@ -22,7 +22,7 @@
         <div class="panel-block">
           <div class="columns">
             <div class="column is-three-quarters">
-              <b-dropdown :triggers="['hover']" aria-role="list"
+              <b-dropdown :triggers="['click']" aria-role="list"
                     v-model="arr_selected" >
               <button class="button is-light is-small" slot="trigger">
                 <span>Arrival</span>
@@ -37,21 +37,39 @@
             <div class="column">{{arr_selected}}</div>
           </div>
        </div>
+
+        <!-- ========== Path Type ========= -->
+        <div class="panel-block">
+          <div class="columns">
+            <div class="column is-three-quarters">
+              <b-dropdown :triggers="['click']" aria-role="list"
+                    v-model="ptype_selected" >
+              <button class="button is-light is-small" slot="trigger">
+                <span>Path type</span>
+                <b-icon icon="menu-down"></b-icon>
+              </button>
+
+              <b-dropdown-item  v-for="ptype in ptypelist"
+                          v-bind:value="ptype[0]"
+                          :key="ptype[0]">{{ ptype[1] }}</b-dropdown-item>
+              </b-dropdown>
+
+            </div>
+            <div class="column">{{ptype_selected}}</div>
+          </div>
+       </div>
+
+
         <!-- ========== center ========= -->
         <div class="panel-block">
           <div class="columns">
             <div class="column is-three-quarters">
-              <b-dropdown :triggers="['hover']" aria-role="list"
+              <b-dropdown :triggers="['click']" aria-role="list" :disabled="center_disabled"
                     v-model="center_selected" >
               <button class="button is-light is-small" slot="trigger">
                 <span>Center</span>
                 <b-icon icon="menu-down"></b-icon>
               </button>
-
-              <!-- b-dropdown-item  v-for="ctr in centerlist"
-                          v-bind:value="ctr"
-                          :key="ctr">{{ ctr }}</b-dropdown-item>
-              </b-dropdown -->
 
               <b-dropdown-item  v-for="ctr in tierlist"
                           v-bind:value="ctr[0]"
@@ -62,6 +80,27 @@
             <div class="column">{{center_selected}}</div>
           </div>
        </div>
+        <!-- ========== center ========= -->
+        <div class="panel-block">
+          <div class="columns">
+            <div class="column is-three-quarters">
+              <b-dropdown :triggers="['click']" aria-role="list"
+                    v-model="source_selected" >
+              <button class="button is-light is-small" slot="trigger">
+                <span>Source</span>
+                <b-icon icon="menu-down"></b-icon>
+              </button>
+
+              <b-dropdown-item  v-for="src in sourcelist"
+                          v-bind:value="src[0]"
+                          :key="src[0]">{{ src[1] }}</b-dropdown-item>
+              </b-dropdown>
+
+            </div>
+            <div class="column">{{source_selected}}</div>
+          </div>
+       </div>
+
 
         <!-- ========== brought over from AppUI ========= -->
 
@@ -71,7 +110,7 @@
                     size="is-small"
                     :loading.sync="go_button_loading"
                     rounded
-                    v-on:click="GoEverything_feb()"
+                    v-on:click="GoEverything_feb20()"
                     >GET DATA</b-button>
                 &nbsp; &nbsp; &nbsp;
             <b-checkbox type="is-info"
@@ -118,7 +157,33 @@
           </b-field>
         </div>
         <!-- ========== end ========= -->
+<!-- ====================== menu selector ========= -->
+     <b-field label="Grouped">
+            <b-select placeholder="Select a character" icon="account">
+                <optgroup label="Black Sails">
+                    <option value="flint">Flint</option>
+                    <option value="silver">Silver</option>
+                    <option value="vane">Vane</option>
+                    <option value="billy">Billy</option>
+                    <option value="jack">Jack</option>
+                </optgroup>
 
+                <optgroup label="Breaking Bad">
+                    <option value="heisenberg">Heisenberg</option>
+                    <option value="jesse">Jesse</option>
+                    <option value="saul">Saul</option>
+                    <option value="mike">Mike</option>
+                </optgroup>
+
+                <optgroup label="Game of Thrones">
+                    <option value="tyrion-lannister">Tyrion Lannister</option>
+                    <option value="jamie-lannister">Jamie Lannister</option>
+                    <option value="daenerys-targaryen">Daenerys Targaryen</option>
+                    <option value="jon-snow">Jon Snow</option>
+                </optgroup>
+            </b-select>
+        </b-field>
+<!-- ====================== menu selector ========= -->
   </nav>
 </template>
 
@@ -128,15 +193,31 @@ var zdv_tiers = [ ["ZDV",  "ZDV (parent)"   ],
                   ["ZMP",  "ZMP (1st tier)" ],
                   ["ZLC",  "ZLC (1st tier)" ],
                   ["ZLA",  "ZLA (1st tier)" ],
-                  ["ZAB",  "ZAB (1st tier)" ],
+                  ["ZAB",  "ZAB (1st tier)" ]  //,
 
-                  ["ZFW",  "ZFW (2nd tier)" ],
-                  ["ZME",  "ZME (2nd tier)" ],
-                  ["ZID",  "ZID (2nd tier)" ],
-                  ["ZAU",  "ZAU (2nd tier)" ],
-                  ["ZSE",  "ZSE (2nd tier)" ],
-                  ["ZOA",  "ZOA (2nd tier)" ],
-                  ["ZHU",  "ZHU (2nd tier)" ]  ];
+                  //["ZFW",  "ZFW (2nd tier)" ],
+                  //["ZME",  "ZME (2nd tier)" ],
+                  //["ZID",  "ZID (2nd tier)" ],
+                  //["ZAU",  "ZAU (2nd tier)" ],
+                  //["ZSE",  "ZSE (2nd tier)" ],
+                  //["ZOA",  "ZOA (2nd tier)" ],
+                  //["ZHU",  "ZHU (2nd tier)" ]
+                    ];
+var path_types = [ ["full",   "depart -> tracon"],
+                   ["within", "within ARTCC"],
+                   ["upto",   "upto ARTCC"] ];
+
+var source_types = [ ["sched", "scheduled"],
+                     ["filed", "first filed"],
+                     ["depart", "last file before depart"] ,
+                     ["at_ent", "active at artcc entry"],
+                     ["flown",  "flown"] ];
+
+var source_types_f = [ ["sched", "scheduled"],
+                       ["filed", "first filed"],
+                       ["depart", "last file before depart"] ,
+                       //["at ent", "meaningless if full path"],
+                       ["flown",  "flown"] ];
 
 export default {
   name: 'panel',
@@ -149,19 +230,35 @@ export default {
 
         arr_selected    : "DEN",
         center_selected : "ZDV",
+        center_disabled : false,
+        ptype_selected  : "within",
+        source_selected : "flown",
         date_selected   : new Date('January 10, 2020 14:00:00'),  // start???
 
         airportlist : [ "DEN", "DFW" ],  // the only ones we've run so far
         tierlist    : zdv_tiers,
+        ptypelist   : path_types,
+        sourcelist  : source_types,
 
         slider_vals       : [0,70],
         hour_slider_val   : 15*4,             // from ui chooser
         y_m_d_h_m         : new Date(Date.UTC(2020,1-1,10,15,0,0)),
         go_button_loading : false,
-        use_pickle        : false
+        use_pickle        : false,
+        isActive          : true  // menu TESTING
+
    }
   },
     watch: {
+        ptype_selected: function() {
+          if (this.ptype_selected == "full") {
+            this.center_disabled = true;
+            this.sourcelist = source_types_f;
+          } else {
+            this.center_disabled = false;
+            this.sourcelist = source_types;
+          }
+        },
 
         // slider vals changed; tell Chart component, but don't need to recalc hourly list
         slider_vals: function() {
@@ -197,7 +294,7 @@ console.log("new_hour_slider:emit:"+this.y_m_d_h_m.toISOString());
         opsday(val) {
             let sval = parseInt(val);
 
-            let od = Math.floor(sval/64) + this.date_selected.getUTCDate();
+            // TODO: use this:let od = Math.floor(sval/64) + this.date_selected.getUTCDate();
             let oh = Math.floor((sval + 32)/ 4) % 24;
             let om = (sval % 4) * 15;
 
@@ -210,16 +307,19 @@ console.log("new_hour_slider:emit:"+this.y_m_d_h_m.toISOString());
         },
 
 /*************************************************/
-    GoEverything_feb() {
+    GoEverything_feb20() {
 
         let fetch_args = { sel_date  : this.date_selected,
                            arr_apt   : this.arr_selected,
+                           path      : this.ptype_selected,
                            center    : this.center_selected,
+                           source    : this.source_selected,
                            pickle    : this.use_pickle   };
-
-        if (this.use_pickle==false) {  // don't spin it if just reading local file
-            this.go_button_loading = true;  // turn spin button on (==spin)
-        }
+console.log("fetch_data");
+console.log(fetch_args);
+        //if (this.use_pickle==false) {  // don't spin it if just reading local file
+        //    this.go_button_loading = true;  // turn spin button on (==spin)
+        //}
         this.$root.$emit('fetch_data', (fetch_args) );
     },
     // ---------------------------------------
