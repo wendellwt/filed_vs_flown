@@ -50,7 +50,7 @@ sed "s%cssi_star.png%/content/${APP_ID}/static/cssi_star.png%" static/index.html
 cp ../analysis/fvf_by_artcc.py copied/
 cp ../analysis/everything.py   copied/
 cp ../analysis/get_paths.py    copied/
-cp ../analysis/get_feb.py      copied/
+cp ../analysis/get_feb20.py    copied/
 
 # problem 4: npm build put files in static dir, rs deploy (or flask) want them in
 # the template dir
@@ -61,6 +61,6 @@ rsconnect deploy api --title $APP_TITLE --server http://172.26.21.40:3939 --api-
      copied/fvf_by_artcc.py \
      copied/everything.py \
      copied/get_paths.py \
-     copied/get_feb.py \
+     copied/get_feb20.py \
      templates/index.html  $STATIC_FILES
 

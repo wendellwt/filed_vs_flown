@@ -15,7 +15,7 @@ sys.path.append('copied')  # stupid git/sharing  work-around
 import get_paths
 import fvf_by_artcc
 import everything    # CATION: each of these makes a new PosgGreSQL connection
-import get_feb       # CATION: each of these makes a new PosgGreSQL connection
+import get_feb20       # CATION: each of these makes a new PosgGreSQL connection
 import web_logging
 
 # --------------------------------------------------------------------
@@ -167,12 +167,14 @@ def do_feb():
     lgr.info("get_feb - in")
 
     #airport = request.args['apt']
-    center = request.args['ctr']
+    center  = request.args['ctr']
+    path    = request.args['pth']
+    source  = request.args['src']
     gdate = datetime.datetime.strptime( request.args['date'], '%Y_%m_%d')
 
     lgr.info("get_feb - in.b:" + str(gdate))
 
-    feb_js = get_feb.get_postg_data_from_asdidb(lgr, gdate, center)
+    feb_js = get_feb20.get_postg_data_from_asdidb_f20(lgr, gdate, center, path, source)
 
     lgr.info("get_feb - out")
     #lgr.info("+++++")
