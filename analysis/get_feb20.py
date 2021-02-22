@@ -84,11 +84,13 @@ def retrieve_path_center_geojson_f20(lgr, gdate, ctr, path, source, verbose=Fals
         "at_ent" : "at_entry",
         "flown"  : "flown" }
 
-    if ctr != 'ZZZ':
+    if path != 'full':
         geo_col = "%s_%s_geog" % (src_to_col[source], path)
+        use_ctr = ctr
     else:
         # if ctr = ZZZ then path MUST be within (right?)
         geo_col = "%s_within_geog" % src_to_col[source]
+        use_ctr = 'ZZZ'
 
     # and get all distances for no particular reason...
 
@@ -127,7 +129,7 @@ at_entry_within_dist    as ent_dist """
     AND   arr_time >= to_timestamp('%s 08:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
     AND   arr_time <  to_timestamp('%s 08:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
     %s
-) inputs_flw """ % ( geo_col, geo_col, distances, geo_col, y_m, ctr, yhmhd, yhmhd_tom, limit )
+) inputs_flw """ % ( geo_col, geo_col, distances, geo_col, y_m, use_ctr, yhmhd, yhmhd_tom, limit )
 
     # ============ artcc
     # note: no properties, boundary only
@@ -191,7 +193,7 @@ UNION ALL
 
     #print(sql)
     #lgr.debug(sql)
-    #lgr.info(sql)
+    lgr.info(sql)
 
     lgr.info("calling .execute()")
 
