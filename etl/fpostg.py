@@ -758,7 +758,6 @@ def write_ff_to_postgis_cssi(y_m, ctr_df):
         ctr_gf.to_sql(fvf_tbl, cssi_engine, if_exists='append', index=False,
                                   dtype = pg_dtype)
 
-
     except Exception as exc:
         #print traceback.format_exc()
         print(exc)
