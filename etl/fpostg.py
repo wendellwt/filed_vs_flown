@@ -736,7 +736,7 @@ def write_ff_to_postgis_cssi(y_m, ctr_df):
 
     # ---- 4) finish off to ensure it is a proper geodataframe
     #WARNING: ctr_gf.set_geometry('flown_within_geog', inplace=True)  # so .crs() will work
-    ctr_gf.crs = {'init' :'epsg:4326'}
+    # HELP: is this needed???: ctr_gf.crs = {'init' :'epsg:4326'}
 
     # ---- 5) setup for .to_sql() via sqlalchemy
     pg_dtype = {
@@ -751,14 +751,13 @@ def write_ff_to_postgis_cssi(y_m, ctr_df):
         'last_filed_upto_geog'    : Geography(),
         'flown_upto_geog'         : Geography() }
 
-    print(" $$$$ about to CSSI.to_sql")
+    #print(" about to write to asdi-db")
     #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     try:
         ctr_gf.to_sql(fvf_tbl, cssi_engine, if_exists='append', index=False,
                                   dtype = pg_dtype)
 
-        cssi.end("wrote cssi postgis")
 
     except Exception as exc:
         #print traceback.format_exc()
@@ -768,7 +767,8 @@ def write_ff_to_postgis_cssi(y_m, ctr_df):
         print(">>>>>>>>>>>>> HELP!!!")
         sys.exit(1)
 
+    cssi.end("wrote cssi postgis")
 
-    print("CSSI.finished!!!!")
+    #print("write to asdi-db finished.")
     # code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
