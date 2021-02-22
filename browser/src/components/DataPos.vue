@@ -40,6 +40,13 @@
             &nbsp; &nbsp;
             {{ item.ac_type   }} &nbsp; &nbsp;
             ({{ item.diff     }})
+            <br/>
+            s:{{ item.sch_dist_f }} &nbsp;
+            f:{{ item.fld_dist_f }} &nbsp;
+            d:{{ item.dep_dist_f }} &nbsp;
+            e:{{ item.ent_dist_f }} &nbsp;
+            t:{{ item.flw_dist_f }}
+           
          </div>
 
        <!-- BAD li SIZE:  div>

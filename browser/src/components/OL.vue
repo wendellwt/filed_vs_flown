@@ -181,11 +181,13 @@ console.log("RESIZE event");
                       // because it was too hard to do it later
                       arr_time: features_list[k].properties.arr_time.substr(8,2) + '-' +
                                 features_list[k].properties.arr_time.substr(11,8),
-                      flw_dist_f: 99, //parseFloat(features_list[k].properties.flw_dist).toFixed(1),
-                      diff:     1.1, //(parseFloat(features_list[k].properties.b4_ent_dist) -
-                                 //parseFloat(features_list[k].properties.flw_dist)
-                                //).toFixed(1),
-                      flw_dist_n: 33 //features_list[k].properties.flw_dist
+                                
+                      sch_dist_f: parseFloat(features_list[k].properties.sch_dist).toFixed(1),
+                      fld_dist_f: parseFloat(features_list[k].properties.fld_dist).toFixed(1),
+                      dep_dist_f: parseFloat(features_list[k].properties.dep_dist).toFixed(1),
+                      ent_dist_f: parseFloat(features_list[k].properties.ent_dist).toFixed(1),
+                      flw_dist_f: parseFloat(features_list[k].properties.flw_dist).toFixed(1)
+
                       };
                   dlist.push(elem);
               }
@@ -213,8 +215,8 @@ console.log("RESIZE event");
 
     help_display_model_data() {
 
-console.log("OL:help_disp");
-console.log(this.model_data);
+//console.log("OL:help_disp");
+//console.log(this.model_data);
 
       let flts_to_disp = [ ]
       for (let k = 0; k < this.model_data.features.length; k++) {

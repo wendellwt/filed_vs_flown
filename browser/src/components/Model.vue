@@ -20,6 +20,12 @@ import g_flown_within  from "./files/flown_within.json";
 import g_sched_upto    from "./files/sched_upto.json";
 import g_sched_within  from "./files/sched_within.json";
 
+//nope: import z_at_ent_within from "./files/zzz_at_ent_within.json";
+import z_depart_within from "./files/zzz_depart_within.json";
+import z_filed_within  from "./files/zzz_filed_within.json";
+import z_flown_within  from "./files/zzz_flown_within.json";
+import z_sched_within  from "./files/zzz_sched_within.json";
+
 
 export default {
   name: 'model',
@@ -104,10 +110,17 @@ console.log("emit:"+this.y_m_d_h_m);
 
         if (fetch_args.pickle==true) {
 
-
-          console.log("using STORED json file.")
-
+          console.log("using STORED json file.");
+          
+console.log("path="+fetch_args.path);
 let f = "helpme";
+if (fetch_args.path == "full") {
+    //if (fetch_args.source == "at_ent") {f= g_at_ent_upto;}
+    if (fetch_args.source == "depart") {f= z_depart_within;}
+    if (fetch_args.source == "filed")  {f= z_filed_within;}
+    if (fetch_args.source == "flown")  {f= z_flown_within;}
+    if (fetch_args.source == "sched")  {f= z_sched_within;}
+} else {
 
 if (fetch_args.path == "within") {
     if (fetch_args.source == "at_ent") {f= g_at_ent_within;}
@@ -123,7 +136,7 @@ if (fetch_args.path == "upto") {
     if (fetch_args.source == "filed")  {f= g_filed_upto;}
     if (fetch_args.source == "flown")  {f= g_flown_upto;}
     if (fetch_args.source == "sched")  {f= g_sched_upto;}
-}
+} }
 console.log("about to process");
 console.log(f)
           // not for flask:
