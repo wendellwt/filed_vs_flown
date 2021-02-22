@@ -1,7 +1,8 @@
 <template>
     <div>
         <h1>Details Table {{the_date}}</h1>
-
+<!-- feb 22: "acid", "fid", "corner", "artcc", "dep_apt", "arr_apt", "dep_time", "arr_time",
+ "sch_dist", "fld_dist", "dep_dist", "flw_dist", "ent_dist" -->
          <table class="table table-bordered">
             <thead>
               <tr>
@@ -9,20 +10,22 @@
                 <th>corner</th>
                 <th>arrive time</th>
                 <th>fid</th>
-                <th>at depart dist</th>
-                <th>at entry dist</th>
-                <th>flown dist</th>
+                <th>scheduled</th>
+                <th>first filed</th>
+                <th>at depart</th>
+                <th>flown</th>
               </tr>
             </thead>
             <tbody>
                 <tr v-for="(item, idx) in detailData" :key=idx>
                     <td              >{{ item[ 0] }}</td>
                     <td              >{{ item[ 2] }}</td>
-                    <td              >{{ item[10] }}</td>
-                    <td align="right">{{ item[ 1] }}</td>
-                    <td align="right">{{ parseFloat(item[8]).toFixed(1) }}</td>
-                    <td align="right">{{ parseFloat(item[7]).toFixed(1) }}</td>
-                    <td align="right">{{ parseFloat(item[6]).toFixed(1) }}</td>
+                    <td              >{{ item[ 7] }}</td>
+                    <td              >{{ item[ 1] }}</td>
+                    <td align="right">{{ parseFloat(item[ 8]).toFixed(1) }}</td>
+                    <td align="right">{{ parseFloat(item[ 9]).toFixed(1) }}</td>
+                    <td align="right">{{ parseFloat(item[10]).toFixed(1) }}</td>
+                    <td align="right">{{ parseFloat(item[11]).toFixed(1) }}</td>
                 </tr>
             </tbody>
 

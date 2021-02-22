@@ -42,6 +42,34 @@ cssi_engine = create_engine('postgresql://' + \
 
 # ===============================================================
 
+def get_distances_for_path(path):
+
+    if path == "upto":
+        return """
+scheduled_upto_dist     as sch_dist,
+first_filed_upto_dist   as fld_dist,
+last_filed_upto_dist    as dep_dist,
+flown_upto_dist         as flw_dist,
+0 as ent_dist """
+
+    else:  # path = within or full
+
+        return """
+scheduled_within_dist   as sch_dist,
+first_filed_within_dist as fld_dist,
+last_filed_within_dist  as dep_dist,
+flown_within_dist       as flw_dist,
+at_entry_within_dist    as ent_dist """
+
+src_to_col = {
+        "sched"  : "scheduled",
+        "filed"  : "first_filed",
+        "depart" : "last_filed",
+        "at_ent" : "at_entry",
+        "flown"  : "flown" }
+
+# -----------------------------------------------------------------
+
 all_cols = """ acid, fid, corner, dep_apt, flw_dist,
 b4_ent_dist, b4_dep_dist, dep_time, arr_time,
 flw_geog, b4_ent_geog, b4_dep_geog """
@@ -64,8 +92,8 @@ def retrieve_path_center_geojson_f20(lgr, gdate, ctr, path, source, verbose=Fals
     y_m   = gdate.strftime("%Y_%m")
     yhmhd = gdate.strftime("%Y-%m-%d")
 
-    # tomorrow : FIXME PROBLEM -- month wrap-around needs next table!!!
-    # tomorrow : FIXME PROBLEM -- month wrap-around needs next table!!!
+    # tomorrow : FIXME -- month wrap-around needs JOIN on next table!!!
+    # tomorrow : FIXME -- month wrap-around needs JOIN on next table!!!
 
     yhmhd_tom = (gdate + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
 
@@ -77,13 +105,6 @@ def retrieve_path_center_geojson_f20(lgr, gdate, ctr, path, source, verbose=Fals
     # path   : ok
     # source : needs dict:
 
-    src_to_col = {
-        "sched"  : "scheduled",
-        "filed"  : "first_filed",
-        "depart" : "last_filed",
-        "at_ent" : "at_entry",
-        "flown"  : "flown" }
-
     if path != 'full':
         geo_col = "%s_%s_geog" % (src_to_col[source], path)
         use_ctr = ctr
@@ -94,23 +115,7 @@ def retrieve_path_center_geojson_f20(lgr, gdate, ctr, path, source, verbose=Fals
 
     # and get all distances for no particular reason...
 
-    if path == "upto":
-
-        distances = """
-scheduled_upto_dist     as sch_dist,
-first_filed_upto_dist   as fld_dist,
-last_filed_upto_dist    as dep_dist,
-flown_upto_dist         as flw_dist,
-0 as ent_dist """
-
-    else:  # path = within or full
-
-        distances = """
-scheduled_within_dist   as sch_dist,
-first_filed_within_dist as fld_dist,
-last_filed_within_dist  as dep_dist,
-flown_within_dist       as flw_dist,
-at_entry_within_dist    as ent_dist """
+    distances = get_distances_for_path(path)
 
     # ============ flown paths
 
@@ -193,7 +198,7 @@ UNION ALL
 
     #print(sql)
     #lgr.debug(sql)
-    lgr.info(sql)
+    #lgr.info(sql)
 
     lgr.info("calling .execute()")
 
@@ -232,25 +237,28 @@ def my_df_to_dict(xxx_df):
 
 # ===========================================================================
 
-def get_details(lgr, gdate, ctr, verbose=False):
+def get_details(lgr, gdate, ctr, path, verbose=False):
 
     #if args.elapsed: bb = elapsed.Elapsed()
 
     y_m   = gdate.strftime("%Y_%m")
     yhmhd = gdate.strftime("%Y-%m-%d")
 
-    # tomorrow : FIXME PROBLEM -- month wrap-around needs next table!!!
-    # tomorrow : FIXME PROBLEM -- month wrap-around needs next table!!!
+    # tomorrow : FIXME -- month wrap-around needs JOIN on next table!!!
+    # tomorrow : FIXME -- month wrap-around needs JOIN on next table!!!
 
     yhmhd_tom = (gdate + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
 
+    distances = get_distances_for_path(path)
+
     sql = """SELECT  acid, fid, corner, artcc, dep_apt, arr_apt,
-flw_dist,  b4_ent_dist, b4_dep_dist, dep_time, arr_time
-FROM fvf_%s
+dep_time, arr_time,
+%s
+FROM fvfb_%s
 WHERE artcc = '%s'
 AND arr_time >= to_timestamp('%s 08:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
 AND arr_time <  to_timestamp('%s 08:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
-""" % (y_m, ctr, yhmhd, yhmhd_tom)
+""" % (distances, y_m, ctr, yhmhd, yhmhd_tom)
 
     if verbose: print(sql)
     lgr.debug(sql)
@@ -273,7 +281,7 @@ AND arr_time <  to_timestamp('%s 08:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
 
 # ===========================================================================
 
-def get_chart_from_details(lgr, details_df, ctr):
+def get_chart_from_details_OLD_partially_edited(lgr, details_df, ctr, path, source):
 
     #if args.elapsed: cc = elapsed.Elapsed()
 
@@ -291,12 +299,17 @@ def get_chart_from_details(lgr, details_df, ctr):
 
     # ---- 3. get corner data for charts
 
-    #unused: sch_cnr_sum_df = details_df.groupby(["arr_qh", "corner"]) [["b4_dep_dist"]].sum()
-    ate_cnr_sum_df = details_df.groupby(["arr_qh", "corner"]) [["b4_ent_dist"]].sum()
-    flw_cnr_sum_df = details_df.groupby(["arr_qh", "corner"]) [["flw_dist"   ]].sum()
+    dist_col = "HELP_dist"
+    if source == "sched"  :  dist_col = "sch_dist"
+    if source == "filed"  :  dist_col = "fld_dist"
+    if source == "depart" :  dist_col = "dep_dist"
+    if source == "at_ent" :  dist_col = "ent_dist"
+    if source == "flown"  :  dist_col = "flw_dist"
 
-    flw_by_cnr_and_qh = flw_cnr_sum_df.reset_index() \
-                                      .pivot(index='arr_qh', columns='corner', values='flw_dist')
+    cnr_sum_df = details_df.groupby(["arr_qh", "corner"]) [[dist_col]].sum()
+
+    cnr_and_qh = cnr_sum_df.reset_index() \
+                    .pivot(index='arr_qh', columns='corner', values=dist_col)
 
 #                         flw_dist
 # corner                        ne           nw           se           sw
@@ -306,85 +319,18 @@ def get_chart_from_details(lgr, details_df, ctr):
 # 2020-01-10 05:30:00   391.423476   146.364984   136.074262  1039.217549
 # 2020-01-10 05:45:00          NaN   340.448476   348.360392   599.284942
 
-    flw_by_cnr_and_qh.rename({
-                 'ne' : "ne_flw",
-                 'se' : "se_flw",
-                 'sw' : "sw_flw",
-                 'nw' : "nw_flw"}, inplace=True, axis=1)
+    #cnr_and_qh.rename({
+    #             'ne' : "ne_flw",
+    #             'se' : "se_flw",
+    #             'sw' : "sw_flw",
+    #             'nw' : "nw_flw"}, inplace=True, axis=1)
 
-    flw_by_cnr_and_qh.fillna(0, inplace=True)
-    flw_by_cnr_and_qh.reset_index(inplace=True)
+    cnr_and_qh.fillna(0, inplace=True)
+    cnr_and_qh.reset_index(inplace=True)
 
-    # code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-    ate_by_cnr_and_qh = ate_cnr_sum_df.reset_index() \
-                                      .pivot(index='arr_qh', columns='corner', values='b4_ent_dist')
-
-    ate_by_cnr_and_qh.rename({
-                 'ne' : "ne_ate",
-                 'se' : "se_ate",
-                 'sw' : "sw_ate",
-                 'nw' : "nw_ate"}, inplace=True, axis=1)
-
-    ate_by_cnr_and_qh.fillna(0, inplace=True)
-    ate_by_cnr_and_qh.reset_index(inplace=True)
-
-    both_cq_df = pd.merge(flw_by_cnr_and_qh, ate_by_cnr_and_qh, on='arr_qh')
-
-    both_cq_df.reset_index(inplace=True)  # not sure why...  just because
-
-    # code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-    try:
-        both_cq_df['ne_diff'] = both_cq_df['ne_flw'] - both_cq_df['ne_ate']
-    except:
-        both_cq_df['ne_flw' ] = 0
-        both_cq_df['ne_ate' ] = 0
-        both_cq_df['ne_diff'] = 0
-    try:
-        both_cq_df['se_diff'] = both_cq_df['se_flw'] - both_cq_df['se_ate']
-    except:
-        both_cq_df['se_flw' ] = 0
-        both_cq_df['se_ate' ] = 0
-        both_cq_df['se_diff'] = 0
-    try:
-        both_cq_df['sw_diff'] = both_cq_df['sw_flw'] - both_cq_df['sw_ate']
-    except:
-        both_cq_df['sw_flw' ] = 0
-        both_cq_df['sw_ate' ] = 0
-        both_cq_df['sw_diff'] = 0
-    try:
-        both_cq_df['nw_diff'] = both_cq_df['nw_flw'] - both_cq_df['nw_ate']
-    except:
-        both_cq_df['nw_flw' ] = 0
-        both_cq_df['nw_ate' ] = 0
-        both_cq_df['nw_diff'] = 0
-
-    # code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-    # need to make sure columns are in specified order to make
-    # it easier for javascript to put back into an assoc array
-    # (because orient=split drops the name)
-    both_ordr_cq_df = both_cq_df[[ 'arr_qh',
-                 'ne_flw',  'se_flw',  'sw_flw',  'nw_flw',
-                 'ne_ate',  'se_ate',  'sw_ate',  'nw_ate',
-                 'ne_diff', 'se_diff', 'sw_diff', 'nw_diff' ]]
-
-    # code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-    #print(both_cq_df)
-    #print(both_ordr_cq_df)
-    #print(both_cq_df.columns)
-    #print(both_ordr_cq_df.columns)
-
-    #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    #print(both_cq_df)
-
-    both_dct = my_df_to_dict( both_ordr_cq_df )
-
-    #print(both_dct)
-
-    return ( 1, 2, both_dct)
+    return ( cnr_and_qh )
 
 # $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
@@ -433,43 +379,73 @@ def OLD_CODE():
 
 #############################################################################
 
-def help_get_corner(c_df, corner):
+def help_get_corner(c_df, corner, gdate):
 
     xx_data_slice = c_df[c_df['corner']==corner]
     xx_data  = xx_data_slice.drop(['corner'], axis=1)
-    xx_jsn = xx_data.to_json(orient='split')
-    xx_dct = json.loads(xx_jsn)
-    return(xx_dct)
+
+    # fill in missing/0 data
+    fill_strt = datetime.datetime(gdate.year, gdate.month, gdate.day, 8, 0, 0)
+    fill_step = datetime.timedelta(minutes=15)
+    qh_list   = list(xx_data['arr_qh'])
+
+    for s in range(24*4):
+
+        check = (fill_strt+s*fill_step).strftime("%Y_%m_%d_%H:%M")
+
+        if check not in qh_list:
+            # print("insert:", check)
+            xx_data.loc[len(xx_data.index)] = [check, 0]
+
+    xx_data.sort_values(by="arr_qh", inplace=True)
+    #xx_data.reset_index(inplace=True)    # any real point in this??
+    yy_data = xx_data.reset_index(drop=True)    # any real point in this??
+
+    yy_jsn = yy_data.to_json(orient='split', index=False)
+    yy_dct = json.loads(yy_jsn)
+    return(yy_dct)
 
 # ===================================================================
 
-def get_circle_from_details(lgr, details_df, ctr):
+def get_cnr_bar_from_details(lgr, details_df, gdate, ctr, path, source):
 
-    # get landing hour
+    # get the quarter-hour landing time
+    details_df['arr_qh'] = details_df['arr_time'].apply(lambda dt:
+         datetime.datetime(dt.year, dt.month, dt.day,
+                                              dt.hour,15*(dt.minute // 15)) \
+         .strftime("%Y_%m_%d_%H:%M"))
 
-    details_df['arr_hour'] = details_df['arr_time'].apply(lambda dt: dt.hour)
+    # ---- get corner data for charts
+    # CONSIDER: keep just the 'good' dist column and drop the rest?
+    # no, js doesn't use names anyway (for orient='split')
 
-    # ---- get corner data for circle
+    dist_col = "HELP_dist"
+    if source == "sched"  :  dist_col = "sch_dist"
+    if source == "filed"  :  dist_col = "fld_dist"
+    if source == "depart" :  dist_col = "dep_dist"
+    if source == "at_ent" :  dist_col = "ent_dist"
+    if source == "flown"  :  dist_col = "flw_dist"
 
-    circ_df = details_df.groupby(["corner", "arr_hour"]) [["flw_dist"]].sum()
+    cnr_qh_df = details_df.groupby(["corner", "arr_qh"]) [[dist_col]].sum()
 
-    circ_df.reset_index(inplace=True)
+    cnr_qh_df.reset_index(inplace=True)
+
+    #print(cnr_qh_df)
+    #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     # PROB. could be much better!!!
-    ne_dct = help_get_corner(circ_df, 'ne')
-    se_dct = help_get_corner(circ_df, 'se')
-    sw_dct = help_get_corner(circ_df, 'sw')
-    nw_dct = help_get_corner(circ_df, 'nw')
+    ne_dct = help_get_corner(cnr_qh_df, 'ne', gdate)
+    se_dct = help_get_corner(cnr_qh_df, 'se', gdate)
+    sw_dct = help_get_corner(cnr_qh_df, 'sw', gdate)
+    nw_dct = help_get_corner(cnr_qh_df, 'nw', gdate)
 
     circ_dct = { 'ne' : ne_dct,
                  'se' : se_dct,
                  'sw' : sw_dct,
                  'nw' : nw_dct }
 
-    # print(circ_df)
-    # pprint(nw_dct)
 
-    # code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     return(circ_dct)
 
@@ -501,26 +477,18 @@ def get_postg_data_from_asdidb_f20(lgr, gdate, ctr, path, source ):
     lgr.info("have map_dct")
 
     main_output['map_data'] = map_dct
-    return(main_output) # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     # -------------- part 2: get details
 
-    details_df, details_dct = get_details(lgr, gdate, ctr, args_verbose)
+    details_df, details_dct = get_details(lgr, gdate, ctr, path, args_verbose)
 
     main_output['details_data'] = details_dct
 
     # -------------- part 3: chart details (the MAIN part)
 
-    ate_cnr_dct, flw_cnr_dct, chart_dct = get_chart_from_details(
-                                                lgr, details_df, ctr)
+    cnr_qh_dct = get_cnr_bar_from_details(lgr, details_df, gdate, ctr, path, source)
 
-    main_output['chart_data'] = chart_dct  # AND FLOWN AND CHART???
-
-    # -------------- part 3: chart details (the MAIN part)
-
-    circle_dct = get_circle_from_details(lgr, details_df, ctr)
-
-    main_output['circle_data'] = circle_dct
+    main_output['chart_data'] = cnr_qh_dct
 
     # -------------- part 99: the end.
 

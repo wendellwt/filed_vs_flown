@@ -10,7 +10,7 @@
 // CONSIDER: for FLASK, when publishing, make this a very small valid json file!
 //import e_feb from "./files/n_2020-01-10.json";    // set to empty file for flask
 
-/***************** vscode
+/***************** vscode */
 import g_at_ent_within from "./files/at_ent_within.json";
 import g_depart_upto   from "./files/depart_upto.json";
 import g_depart_within from "./files/depart_within.json";
@@ -26,7 +26,7 @@ import z_depart_within from "./files/zzz_depart_within.json";
 import z_filed_within  from "./files/zzz_filed_within.json";
 import z_flown_within  from "./files/zzz_flown_within.json";
 import z_sched_within  from "./files/zzz_sched_within.json";
-***************** vscode */
+/***************** vscode */
 
 
 export default {
@@ -81,6 +81,11 @@ export default {
                          hour : this.y_m_d_h_m };
 console.log("emit:"+this.y_m_d_h_m);
         this.$root.$emit('new_model_data', (map_args) );
+
+// =========== table details ==============
+
+        this.$root.$emit('new_details_data', (new_data.details_data) );
+
 /*****************
         // =========== ef chart details ==============
         let chart_args = { ef_data     : new_data.chart_data,
@@ -92,10 +97,6 @@ console.log("emit:"+this.y_m_d_h_m);
                          title_date  : this.y_m_dd_val   };
         this.$root.$emit('new_barchart_data', (chart_args) );
       *** /
-
-        // =========== table details ==============
-
-        this.$root.$emit('new_details_data', (new_data.details_data) ); // FIXME <<<<<
 
         // =========== corner circle chart ==============
         let corner_args = { corner_data : new_data.circle_data,
@@ -118,7 +119,7 @@ console.log("emit:"+this.y_m_d_h_m);
 
 console.log("path="+fetch_args.path);
 let f = "helpme";
-/*************** vscode
+/*************** vscode */
 if (fetch_args.path == "full") {
     //if (fetch_args.source == "at_ent") {f= g_at_ent_upto;}
     if (fetch_args.source == "depart") {f= z_depart_within;}
@@ -142,11 +143,12 @@ if (fetch_args.path == "upto") {
     if (fetch_args.source == "flown")  {f= g_flown_upto;}
     if (fetch_args.source == "sched")  {f= g_sched_upto;}
 } }
-******************* vscode */
+/******************* vscode */
 
 console.log("about to process");
 console.log(f)
-          // not for flask: this.process_fetch_response(f);
+          // use the next line for vscode: 
+          this.process_fetch_response(f);  //use this for vscode
           return; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         }
         let the_query = this.form_fetch_args(fetch_args)
