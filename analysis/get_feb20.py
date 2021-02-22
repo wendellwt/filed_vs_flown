@@ -84,10 +84,34 @@ def retrieve_path_center_geojson_f20(lgr, gdate, ctr, path, source, verbose=Fals
         "at_ent" : "at_entry",
         "flown"  : "flown" }
 
-    # FIXME: if ctr = ZZZ then path MUST be within (right?)
-    geo_col = "%s_%s_geog" % (src_to_col[source], path)
+    if ctr != 'ZZZ':
+        geo_col = "%s_%s_geog" % (src_to_col[source], path)
+    else:
+        # if ctr = ZZZ then path MUST be within (right?)
+        geo_col = "%s_within_geog" % src_to_col[source]
+
+    # and get all distances for no particular reason...
+
+    if path == "upto":
+
+        distances = """
+scheduled_upto_dist     as sch_dist,
+first_filed_upto_dist   as fld_dist,
+last_filed_upto_dist    as dep_dist,
+flown_upto_dist         as flw_dist,
+0 as ent_dist """
+
+    else:  # path = within or full
+
+        distances = """
+scheduled_within_dist   as sch_dist,
+first_filed_within_dist as fld_dist,
+last_filed_within_dist  as dep_dist,
+flown_within_dist       as flw_dist,
+at_entry_within_dist    as ent_dist """
 
     # ============ flown paths
+
     paths_sql = """
     --  ============ flown paths
   SELECT jsonb_build_object(
@@ -97,19 +121,22 @@ def retrieve_path_center_geojson_f20(lgr, gdate, ctr, path, source, verbose=Fals
     'properties',   to_jsonb(inputs_flw) - '%s'
     ) AS feature
   FROM (
-  SELECT acid, fid, dep_apt, arr_time, corner, ac_type, %s
+  SELECT acid, fid, dep_apt, arr_time, corner, ac_type, %s, %s
     FROM fvfb_%s
     WHERE artcc = '%s'
     AND   arr_time >= to_timestamp('%s 08:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
     AND   arr_time <  to_timestamp('%s 08:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
     %s
-) inputs_flw """ % ( geo_col, geo_col, geo_col, y_m, ctr, yhmhd, yhmhd_tom, limit )
+) inputs_flw """ % ( geo_col, geo_col, distances, geo_col, y_m, ctr, yhmhd, yhmhd_tom, limit )
 
     # ============ artcc
     # note: no properties, boundary only
+    # note: if path = full   : tracon
+    #       if path = within : center - tracon
+    #       if path = upto   : center
 
-    # FIXME:  name='DEN' <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    artcc_sql = """
+    if path == "within":    # ============== center minus tracon
+        artcc_sql = """
     -- ============ artcc
   SELECT jsonb_build_object(
     'type',         'Feature',
@@ -121,6 +148,32 @@ SELECT ST_Difference(
     (SELECT boundary::geometry from centers where name='%s'),
     (SELECT ST_Transform(ST_Transform(boundary::geometry,26754),4326) FROM tracons WHERE name='DEN')
 ) as boundary) inputs_ctr """  % ctr
+
+    if path == "upto":    # ============== center only
+        artcc_sql = """
+    -- ============ artcc
+  SELECT jsonb_build_object(
+    'type',         'Feature',
+    'id',           1,  -- watch out for this
+    'geometry',     ST_AsGeoJSON(boundary)::jsonb
+    ) AS feature
+  FROM (
+      SELECT boundary::geometry as boundary
+      FROM centers WHERE name='%s'
+  ) inputs_ctr """  % ctr
+
+    if path == "full":    # ============== tracon only  FIXME: 'DEN'
+        artcc_sql = """
+    -- ============ artcc
+  SELECT jsonb_build_object(
+    'type',         'Feature',
+    'id',           1,  -- watch out for this
+    'geometry',     ST_AsGeoJSON(boundary)::jsonb
+    ) AS feature
+  FROM (
+    SELECT ST_Transform(ST_Transform(boundary::geometry,26754),4326) as boundary
+      FROM tracons WHERE name='DEN'
+    ) inputs_ctr """
 
     # ============  everything together
 
@@ -419,6 +472,10 @@ def get_circle_from_details(lgr, details_df, ctr):
     return(circ_dct)
 
 #############################################################################
+
+# main function called from app.py (if running under Flask)
+#               or called from below (if running from command line)
+# output is a dictionary to be json-encoded
 
 def get_postg_data_from_asdidb_f20(lgr, gdate, ctr, path, source ):
 
