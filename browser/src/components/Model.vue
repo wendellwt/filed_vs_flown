@@ -10,6 +10,7 @@
 // CONSIDER: for FLASK, when publishing, make this a very small valid json file!
 //import e_feb from "./files/n_2020-01-10.json";    // set to empty file for flask
 
+/***************** vscode
 import g_at_ent_within from "./files/at_ent_within.json";
 import g_depart_upto   from "./files/depart_upto.json";
 import g_depart_within from "./files/depart_within.json";
@@ -25,6 +26,7 @@ import z_depart_within from "./files/zzz_depart_within.json";
 import z_filed_within  from "./files/zzz_filed_within.json";
 import z_flown_within  from "./files/zzz_flown_within.json";
 import z_sched_within  from "./files/zzz_sched_within.json";
+***************** vscode */
 
 
 export default {
@@ -36,7 +38,7 @@ export default {
 
         // NEW feb 13: send data to their owner components
         all_json_data  : [],  // the (large) json received from server
-        y_m_d_h_m      : new Date(Date.UTC(2020,3,2,15,0,0)),
+        y_m_d_h_m      : new Date(Date.UTC(2020,1,10,15,0,0)),
    }
   },
 
@@ -53,9 +55,11 @@ export default {
         let force_reload = Math.floor(Math.random() * 99999);
 
         let the_query = "get_feb" +
-                        "?apt="  + fa.arr_apt +
+                        "?date=" + udate +
                         "&ctr="  + fa.center +
-                        "&date=" + udate +
+                        "&pth="  + fa.path +
+                        "&src="  + fa.source +
+                        "&apt="  + fa.arr_apt +
                         "&rand=" + force_reload;
 
         console.log("fetch:" + the_query);
@@ -111,9 +115,10 @@ console.log("emit:"+this.y_m_d_h_m);
         if (fetch_args.pickle==true) {
 
           console.log("using STORED json file.");
-          
+
 console.log("path="+fetch_args.path);
 let f = "helpme";
+/*************** vscode
 if (fetch_args.path == "full") {
     //if (fetch_args.source == "at_ent") {f= g_at_ent_upto;}
     if (fetch_args.source == "depart") {f= z_depart_within;}
@@ -137,10 +142,11 @@ if (fetch_args.path == "upto") {
     if (fetch_args.source == "flown")  {f= g_flown_upto;}
     if (fetch_args.source == "sched")  {f= g_sched_upto;}
 } }
+******************* vscode */
+
 console.log("about to process");
 console.log(f)
-          // not for flask:
-          this.process_fetch_response(f);
+          // not for flask: this.process_fetch_response(f);
           return; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         }
         let the_query = this.form_fetch_args(fetch_args)
