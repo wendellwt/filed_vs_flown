@@ -290,9 +290,11 @@ export default {
                            pickle    : this.use_pickle   };
 //console.log("fetch_data");
 //console.log(fetch_args);
-        //if (this.use_pickle==false) {  // don't spin it if just reading local file
-        //    this.go_button_loading = true;  // turn spin button on (==spin)
-        //}
+
+        if (this.use_pickle==false) {  // don't spin it if just reading local file
+            this.go_button_loading = true;  // turn spin button on (==spin)
+        }
+
         this.$root.$emit('fetch_data', (fetch_args) );
     },
     // ---------------------------------------
