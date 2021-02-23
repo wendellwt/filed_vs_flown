@@ -1,13 +1,14 @@
 <template>
-  <div>
-      <h3>total miles</h3>
-      <!-- not: p class="chsmall">red dot is sum of the at-entry schedule by hour</p -->
+  <div style="height: 250px">
+      <h3>total miles for {{ corner_data.ident}} ({{ corner_data.dir }})</h3>
 
     <!-- Create a div where the graph will take place -->
     <!-- div name is NOT local to this component; it is global for the web page! -->
-    <div id="my_dataviz_simp" class="chart_simp"></div>
+    <div :id="'svg_div_'+corner_data.dir" 
+           class="chart_simp" >
+    </div>
 
-    <div id="tooltip" class="tooltip"></div>
+    <!-- mouseover: div id="tooltip" class="tooltip"></div -->
   </div>
 </template>
 
@@ -17,18 +18,17 @@
 
 // overall chart size -- HELP this MUST match the css in <style>
 var chart_width  = 960; // MISSING: 760
-var chart_height = 450;
+var chart_height = 250;
 
 // bottom margin of ? leaves room for x-axis label rotated
-var margin = {top: 90, right: 30, bottom: 20, left: 50};
+var margin = {top: 40, right: 30, bottom: 60, left: 50};
 
 // position of legend
-var legend_x = 300;
-var legend_y =   5;
-var leg_size =  15;
-
+//leg: var legend_x = 300;
+//leg: var legend_y =   5;
+//leg: var leg_size =  15;
 // List of subgroups = header of the csv files
-var wt_subgroups = [ "ne_flw", "se_flw", "sw_flw", "nw_flw"];
+//leg: var wt_subgroups = [ "ne_flw", "se_flw", "sw_flw", "nw_flw"];
 
 // https://tools.aspm.faa.gov/confluence/display/prod/Tableau+Dashboard+Style+Guide
 
@@ -37,16 +37,16 @@ import * as d3 from 'd3';
 //*********** WRONG:
 // https://stackoverflow.com/questions/53715028/d3-js-in-vue-component-how-to-hook-mouse-events-to-elements
 
-
 export default {
   name: 'Charts',
+  props: {
+      corner_data: Object,
+   },
+
     data() {
       return {
 
-        ne_data : [],    // the chart data
-        se_data : [],    // the chart data
-        sw_data : [],    // the chart data
-        nw_data : [],    // the chart data
+        my_corner_data : [],    // the chart data
 
         the_date   : new Date(),  // in header/title
         arr_qh_set : [],
@@ -65,19 +65,15 @@ export default {
 
           this.the_date = chart_args.title_date;
 
-          // convert input as a list of lists into an assoc array
-
-          this.the_date = chart_args.title_date
-          this.ne_data = this.json2array(chart_args.cdata['ne'].data);
-          this.se_data = this.json2array(chart_args.cdata['se'].data);
-          this.sw_data = this.json2array(chart_args.cdata['sw'].data);
-
           this.arr_qh_set = [ ];
           this.xLabels    = [ ];
 
-          this.nw_data = this.json2array(chart_args.cdata['nw'].data);
+          // convert input as a list of lists into an assoc array
+          // and also populate x-axis label set (TWICE???)
+          this.my_corner_data = this.json2array(chart_args.cdata[this.corner_data.dir].data);
 
-          this.display_Bar_Data(this.ne_data, this.arr_qh_set, this.ymin, this.ymax, this.xLabels, this.high_qh);
+          this.display_Bar_Data(this.my_corner_data, this.arr_qh_set, this.ymin, this.ymax,
+                                this.xLabels, this.high_qh);
       }),
 
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%% incomming max y-val slider
@@ -87,23 +83,19 @@ export default {
           // BROKEN: this.ymin = chart_ef_args.slider_vals[0] * 100;
           this.ymax = chart_ef_args.slider_vals[1] * 100;
 
-          this.display_Bar_Data(this.ne_data, this.arr_qh_set, this.ymin, this.ymax, this.xLabels, this.high_qh);
+          this.display_Bar_Data(this.my_corner_data, this.arr_qh_set, this.ymin, this.ymax, this.xLabels, this.high_qh);
       }),
 
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%% quarter-hour indicator
 
     this.$root.$on('new_hour_slider', (map_args) => {
 
-//console.log("aaaaaaaaa");
-
          this.high_qh = String(map_args.hour.getUTCMonth()+1).padStart(2,'0') + '_' +
                         String(map_args.hour.getUTCDate()   ).padStart(2,'0') + '_' +
                         String(map_args.hour.getUTCHours()  ).padStart(2,'0') + ':' +
                         String(map_args.hour.getUTCMinutes()).padStart(2,'0');
 
-//console.log("bar hour:"+ this.high_qh);
-
-        this.display_Bar_Data(this.ne_data, this.arr_qh_set, this.ymin, this.ymax, this.xLabels, this.high_qh);
+        this.display_Bar_Data(this.my_corner_data, this.arr_qh_set, this.ymin, this.ymax, this.xLabels, this.high_qh);
     })
 
 
@@ -127,12 +119,9 @@ export default {
               // wait!  how come these are the same now???
               // note: we expect CALLER to have set lists to empty!
               // so that the LAST call is the one that actually worked...
-//console.log("k="+k+" 0="+json_data[k][0]+" subst="+json_data[k][0].substr(5,11));
               this.arr_qh_set.push(json_data[k][0].substr(5,11));
               this.xLabels   .push(json_data[k][0].substr(5,11));
           }
-//console.log("arr_qh_set:");
-//console.log(this.arr_qh_set);
 
           return(c_data);
       },
@@ -140,29 +129,28 @@ export default {
 /* %%%%%%%%%%%%%%%%%%%%%%  display_Bar_Data  %%%%%%%%%%%%%%%%%%%%%%%%%%%% */
 
         display_Bar_Data : function(simp_data, arr_qh_set, y_min, y_max, xLabels, phigh_qh) {
-//console.log("high_qh="+high_qh+"<<<");
-//for (let k=0; k<simp_data.length; k=k+1) {
-//  console.log("k="+k+" arr_qh="+simp_data[k].arr_qh+"<<"+(simp_data[k].arr_qh==high_qh?"yes":"no"));
-//}
-//console.log("phigh_qh:", phigh_qh); // lint
 
   // set the dimensions and margins of the graph
   let width  = chart_width  - margin.left - margin.right;
   let height = chart_height - margin.top  - margin.bottom;
 
   // "svg" is apparently the name of the component _and_ the type
+  //get the vector layer (unique) name of _our_ div element
+  let my_div = "#svg_div_"+this.corner_data.dir;
+  let my_stupid_translate = this.corner_data.offs + margin.top;
 
+  // "svg" is apparently the name of the component _and_ the type
   // ---- remove previous sub-components, if any
-  d3.select("#my_dataviz_simp").selectAll("svg").remove();
+  d3.select(my_div).selectAll("svg").remove();
 
   // ---- define the main div of the chart
-  let svg = d3.select("#my_dataviz_simp")
+  let svg = d3.select(my_div)
     .append("svg")
       .attr("width",  width  + margin.left + margin.right)
       .attr("height", height + margin.top  + margin.bottom)
     .append("g")
       .attr("transform",
-            "translate(" + margin.left + "," + margin.top + ")");
+            "translate(" + margin.left + "," + my_stupid_translate + ")");
 
   // ---- Add X axis
   let xScale = d3.scaleBand()  // function named xScale in other examples
@@ -206,7 +194,7 @@ svg.append("g")
       //.attr('fill',   'green')
 
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% mouseover
-
+/************* 
         // https://bl.ocks.org/d3noob/a22c42db65eb00d4e369
        .on("mouseover", function(event,d) {
 
@@ -224,7 +212,8 @@ svg.append("g")
            let tooltip = d3.select("#tooltip");
            tooltip.style("opacity", 0);
        });
-
+       ***********/
+/********************
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% legend
 //  https://www.d3-graph-gallery.com/graph/custom_legend.html
 
@@ -250,7 +239,7 @@ svg.selectAll("leg_text")
     .text( (d) => String(d).substr(0,2) )
     .attr("text-anchor", "left")
     .style("alignment-baseline", "middle")
-
+***************/
     }   // displayGData function
   } // methods
 } // export
@@ -264,7 +253,7 @@ svg.selectAll("leg_text")
 /* MISSING: width: 760px; */
 div.chart_simp {
   width:  960px;
-  height: 450px;
+  height: 250px;
   background-color: #f8f8f8;
 }
 
@@ -288,6 +277,15 @@ div.tooltip {
 .tt-country {
     font-size: 1.1rem;
     font-weight: 900;
+}
+/*** no difference: (useful for circle charts on map, however) */
+svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  position: absolute; /* ??? */
 }
 
 </style>

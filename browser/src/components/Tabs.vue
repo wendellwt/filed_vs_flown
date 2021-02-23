@@ -21,8 +21,16 @@
             </div>
          </b-tab-item>
 
-         <!-- ============= filed & at_entry chart tab ============== -->
-         <b-tab-item label="A chart" value="chart"> <Chart /> </b-tab-item>
+         <!-- ============= bar chart tab ============== -->
+
+         <b-tab-item label="Corner charts" value="chart">
+
+              <Chart v-for="corner in corners"
+                     v-bind:key="corner.ident"
+                     v-bind:corner_data="corner" >
+              </Chart>
+
+         </b-tab-item>
 
          <!-- ============= bar chart tab ============== -->
          <!-- OLD: b-tab-item label="Charts"> <Charts /> </b-tab-item -->
@@ -50,15 +58,11 @@
 <script>
 
 import Model      from "./Model.vue";
-//import FiledEntry from "./FiledEntry.vue";
 import OL         from './OL.vue';
 import DataPos    from "./DataPos.vue";
 import Details    from "./Details.vue";
 import About      from "./About.vue";
 import Chart     from "./Chart.vue";
-//import Stacked    from "./Stacked.vue";
-// import Circular   from "./Circular.vue";
-//import Table   from "./Table.vue";
 
 export default {
   name: 'Tabs',
@@ -70,12 +74,6 @@ export default {
       Details,
       About
 
-        // old, experimental:
-      //Charts,
-      //Stacked,
-      // Circular,
-      // 'mytable'  : Table,    // duh! 'table' is bad choice for a local html component!
-
   },
   props: {
     msg: String
@@ -83,7 +81,14 @@ export default {
 /****************************************/
     data() {
       return {
-          foo : 1
+
+        corners: [
+ { dir: "ne", ident: 'LANDR', coords: [-104.002, 40.357], colr: '#002664', offs:   0 },
+ { dir: "se", ident: 'DANDD', coords: [-103.939, 39.397], colr: '#007934', offs: 250 },
+ { dir: "sw", ident: 'LARKS', coords: [-105.305, 39.257], colr: '#AB8422', offs: 500 },
+ { dir: "nw", ident: 'RAMMS', coords: [-105.238, 40.493], colr: '#5E6A71', offs: 750 },
+        ]
+
       };
     },
 /****************************************/
