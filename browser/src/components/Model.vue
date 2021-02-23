@@ -10,7 +10,7 @@
 // CONSIDER: for FLASK, when publishing, make this a very small valid json file!
 //import e_feb from "./files/n_2020-01-10.json";    // set to empty file for flask
 
-/***************** vscode */
+/***************** vscode *
 import g_at_ent_within from "./files/at_ent_within.json";
 import g_depart_upto   from "./files/depart_upto.json";
 import g_depart_within from "./files/depart_within.json";
@@ -26,7 +26,7 @@ import z_depart_within from "./files/zzz_depart_within.json";
 import z_filed_within  from "./files/zzz_filed_within.json";
 import z_flown_within  from "./files/zzz_flown_within.json";
 import z_sched_within  from "./files/zzz_sched_within.json";
-/***************** vscode */
+***************** vscode */
 
 
 export default {
@@ -122,7 +122,7 @@ console.log("emit:"+this.y_m_d_h_m);
 
 console.log("path="+fetch_args.path);
 let f = "helpme";
-/*************** vscode */
+/*************** vscode *
 if (fetch_args.path == "full") {
     //if (fetch_args.source == "at_ent") {f= g_at_ent_upto;}
     if (fetch_args.source == "depart") {f= z_depart_within;}
@@ -146,7 +146,7 @@ if (fetch_args.path == "upto") {
     if (fetch_args.source == "flown")  {f= g_flown_upto;}
     if (fetch_args.source == "sched")  {f= g_sched_upto;}
 } }
-/******************* vscode */
+******************* vscode */
 
 //console.log("about to process");
 //console.log(f)
@@ -164,14 +164,14 @@ if (fetch_args.path == "upto") {
          // don't know which gzip might work...
         // content-encoding may be just for POST when SENDING to server...
 
-        // <<<<<<<<<<<<<<< when vscode on faa laptop:
+        // <<<<<<<<<<<<<<< when attempting on faa laptop:
         //the_query = "http://172.26.21.40:3939/content/201/" + the_query;
 
         // Q: need to manually gzip on server???
         // https://stackoverflow.com/questions/9622998/how-to-use-content-encoding-gzip-with-python-simplehttpserver
 
         fetch(the_query, {
-          mode: 'no-cors',  // so faa laptop + vscode can fetch from rserver
+          mode: 'no-cors',  // so faa laptop + ide can fetch from rserver
           headers: {
             'Content-Type': 'text/plain',
              // "Access-Control-Allow-Origin": "*",
