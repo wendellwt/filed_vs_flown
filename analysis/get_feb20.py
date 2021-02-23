@@ -384,22 +384,40 @@ def help_get_corner(c_df, corner, gdate):
     xx_data_slice = c_df[c_df['corner']==corner]
     xx_data  = xx_data_slice.drop(['corner'], axis=1)
 
+    #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
     # fill in missing/0 data
     fill_strt = datetime.datetime(gdate.year, gdate.month, gdate.day, 8, 0, 0)
     fill_step = datetime.timedelta(minutes=15)
     qh_list   = list(xx_data['arr_qh'])
 
+    #print("qh_list=", qh_list)
+
     for s in range(24*4):
 
         check = (fill_strt+s*fill_step).strftime("%Y_%m_%d_%H:%M")
+        #print("check=", check)
 
         if check not in qh_list:
-            # print("insert:", check)
-            xx_data.loc[len(xx_data.index)] = [check, 0]
+            #print("insert:", check)
+            #WRONG: xx_data.loc[len(xx_data.index)] = [check, 0]
+            #WRONG: xx_data.append([check, 0])
+            #xx_data.loc[len(xx_data)] = [check, 0]
+            xx_data = xx_data.append({'arr_qh':check, 'flw_dist':0}, ignore_index=True)
+            #print("len=", len(xx_data))
 
     xx_data.sort_values(by="arr_qh", inplace=True)
+
+    #print("xx_data")
+    #print(xx_data)
+
     #xx_data.reset_index(inplace=True)    # any real point in this??
     yy_data = xx_data.reset_index(drop=True)    # any real point in this??
+
+    #print("yy_data")
+    #print(yy_data)
+
+    #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     yy_jsn = yy_data.to_json(orient='split', index=False)
     yy_dct = json.loads(yy_jsn)
@@ -438,6 +456,9 @@ def get_cnr_bar_from_details(lgr, details_df, gdate, ctr, path, source):
     se_dct = help_get_corner(cnr_qh_df, 'se', gdate)
     sw_dct = help_get_corner(cnr_qh_df, 'sw', gdate)
     nw_dct = help_get_corner(cnr_qh_df, 'nw', gdate)
+
+    #print(nw_dct)
+    #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     circ_dct = { 'ne' : ne_dct,
                  'se' : se_dct,
