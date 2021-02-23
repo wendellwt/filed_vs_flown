@@ -84,7 +84,7 @@ console.log("emit:"+this.y_m_d_h_m);
 
         // =========== table details ==============
 
-        //CHART: this.$root.$emit('new_details_data', (new_data.details_data) );
+        this.$root.$emit('new_details_data', (new_data.details_data) );
 
         // =========== ef chart details ==============
         let chart_args = { cdata       : new_data.chart_data,
@@ -150,8 +150,8 @@ if (fetch_args.path == "upto") {
 
 //console.log("about to process");
 //console.log(f)
-          // use the next line for vscode: 
-          this.process_fetch_response(f);  //use this for vscode
+          // Q: can the next line be enables for both?
+          this.process_fetch_response(f);
           return; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         }
         let the_query = this.form_fetch_args(fetch_args)
