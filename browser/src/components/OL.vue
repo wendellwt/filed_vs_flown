@@ -421,7 +421,7 @@ destroyed() {
                       String(map_args.hour.getUTCHours()  ).padStart(2,'0') + ':' +
                       String(map_args.hour.getUTCMinutes()).padStart(2,'0');
 
-console.log("OL: hour_to_disp="+this.hour_to_disp);
+//console.log("OL: hour_to_disp="+this.hour_to_disp);
 
       this.help_display_model_data();
     })

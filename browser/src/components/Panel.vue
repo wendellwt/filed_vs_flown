@@ -149,7 +149,7 @@
         <!-- ========== max/min slider ========= -->
         <div class="panel-block">
           <b-field label="max chart y-axis">
-              <b-slider size="is-medium" :min="0" :max="70"
+              <b-slider size="is-medium" :min="0" :max="40"
                             type="is-info"
                             v-model="slider_vals"
                   >
@@ -157,33 +157,6 @@
           </b-field>
         </div>
         <!-- ========== end ========= -->
-<!-- ====================== menu selector ========= -->
-     <b-field label="Grouped">
-            <b-select placeholder="Select a character" icon="account">
-                <optgroup label="Black Sails">
-                    <option value="flint">Flint</option>
-                    <option value="silver">Silver</option>
-                    <option value="vane">Vane</option>
-                    <option value="billy">Billy</option>
-                    <option value="jack">Jack</option>
-                </optgroup>
-
-                <optgroup label="Breaking Bad">
-                    <option value="heisenberg">Heisenberg</option>
-                    <option value="jesse">Jesse</option>
-                    <option value="saul">Saul</option>
-                    <option value="mike">Mike</option>
-                </optgroup>
-
-                <optgroup label="Game of Thrones">
-                    <option value="tyrion-lannister">Tyrion Lannister</option>
-                    <option value="jamie-lannister">Jamie Lannister</option>
-                    <option value="daenerys-targaryen">Daenerys Targaryen</option>
-                    <option value="jon-snow">Jon Snow</option>
-                </optgroup>
-            </b-select>
-        </b-field>
-<!-- ====================== menu selector ========= -->
   </nav>
 </template>
 
@@ -240,7 +213,7 @@ export default {
         ptypelist   : path_types,
         sourcelist  : source_types,
 
-        slider_vals       : [0,70],
+        slider_vals       : [0,40],
         hour_slider_val   : 15*4,             // from ui chooser
         y_m_d_h_m         : new Date(Date.UTC(2020,1-1,10,15,0,0)),
         go_button_loading : false,
@@ -282,7 +255,7 @@ export default {
 
             // ---- tell Map component
             let hour_args = { hour : this.y_m_d_h_m };
-console.log("new_hour_slider:emit:"+this.y_m_d_h_m.toISOString());
+//console.log("new_hour_slider:emit:"+this.y_m_d_h_m.toISOString());
             this.$root.$emit('new_hour_slider', (hour_args) );
 
         }
@@ -315,8 +288,8 @@ console.log("new_hour_slider:emit:"+this.y_m_d_h_m.toISOString());
                            center    : this.center_selected,
                            source    : this.source_selected,
                            pickle    : this.use_pickle   };
-console.log("fetch_data");
-console.log(fetch_args);
+//console.log("fetch_data");
+//console.log(fetch_args);
         //if (this.use_pickle==false) {  // don't spin it if just reading local file
         //    this.go_button_loading = true;  // turn spin button on (==spin)
         //}

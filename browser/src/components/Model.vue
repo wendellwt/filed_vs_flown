@@ -82,15 +82,18 @@ export default {
 console.log("emit:"+this.y_m_d_h_m);
         this.$root.$emit('new_model_data', (map_args) );
 
-// =========== table details ==============
+        // =========== table details ==============
 
-        this.$root.$emit('new_details_data', (new_data.details_data) );
+        //CHART: this.$root.$emit('new_details_data', (new_data.details_data) );
+
+        // =========== ef chart details ==============
+        let chart_args = { cdata       : new_data.chart_data,
+                           title_date  : "put date/time here"   };
+//console.log("emit: new_bar_data");
+//console.log(chart_args.cdata);
+        this.$root.$emit('new_bar_data', (chart_args) );
 
 /*****************
-        // =========== ef chart details ==============
-        let chart_args = { ef_data     : new_data.chart_data,
-                           title_date  : "put date/time here"   };
-        this.$root.$emit('new_ef_data', (chart_args) );
 
         /*** OLD =========== chart details ==============
         let chart_args = { cdata: new_data.chart_data.ZDV,  // FIXME <<<<<<<<
@@ -145,8 +148,8 @@ if (fetch_args.path == "upto") {
 } }
 /******************* vscode */
 
-console.log("about to process");
-console.log(f)
+//console.log("about to process");
+//console.log(f)
           // use the next line for vscode: 
           this.process_fetch_response(f);  //use this for vscode
           return; // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<

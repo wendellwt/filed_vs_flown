@@ -22,7 +22,7 @@
          </b-tab-item>
 
          <!-- ============= filed & at_entry chart tab ============== -->
-         <b-tab-item label="Filed vs At Entry" value="chart"> <FiledEntry /> </b-tab-item>
+         <b-tab-item label="A chart" value="chart"> <Chart /> </b-tab-item>
 
          <!-- ============= bar chart tab ============== -->
          <!-- OLD: b-tab-item label="Charts"> <Charts /> </b-tab-item -->
@@ -50,12 +50,12 @@
 <script>
 
 import Model      from "./Model.vue";
-import FiledEntry from "./FiledEntry.vue";
+//import FiledEntry from "./FiledEntry.vue";
 import OL         from './OL.vue';
 import DataPos    from "./DataPos.vue";
 import Details    from "./Details.vue";
 import About      from "./About.vue";
-//import Charts     from "./Charts.vue";
+import Chart     from "./Chart.vue";
 //import Stacked    from "./Stacked.vue";
 // import Circular   from "./Circular.vue";
 //import Table   from "./Table.vue";
@@ -64,7 +64,7 @@ export default {
   name: 'Tabs',
     components: {
       Model,
-      FiledEntry,
+      Chart,
       OL,
       DataPos,
       Details,
