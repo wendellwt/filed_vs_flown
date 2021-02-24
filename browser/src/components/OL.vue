@@ -49,6 +49,32 @@
               </CornerCircBar>
            </div -->
 
+           <!-- ========== iastate nexrad ========= -->
+      <!-- HELP: div v-if="show_weather">
+        <vl-layer-tile>
+          <vl-source-wms  ref="nexwmsSource"
+                     :url="my_nexr_url()"
+                     projection='EPSG:4326'
+                     layers="nexrad-n0r-wmst"
+:ext-params="{ LAYERS : 'nexrad-n0r-wmst', TIME : '2020-02-24T14:00:30:00.000Z'}"
+server-type="geoserver"
+  />
+        </vl-layer-tile>
+      </div -->
+
+
+<!-- BUT THIS WORKED: vl-layer-tile id="wms">
+      <vl-source-wms ref="myWmsSource"
+      url="https://ahocevar.com/geoserver/wms"
+      projection='EPSG:4326'
+      layers="topp:states"
+:ext-params="{ LAYERS : 'topp:states', TILED: false, TIME: '2020-02-24T14:00:30:00.000Z' }" 
+server-type="geoserver"
+/>
+    </vl-layer-tile -->
+
+
+
       <!-- ========== end layers ========= -->
     </vl-map>
 
@@ -60,7 +86,7 @@ sched: <input type="text" class="at_entry"/>
 &nbsp; &nbsp; &nbsp;
     <b-checkbox type="is-info"
                         size="is-small"
-                        v-model="draw_circles">draw_circles</b-checkbox>
+                        v-model="show_weather">show IA State NexRad</b-checkbox>
 
     </div>
 
@@ -123,10 +149,19 @@ const cnr_nw_style = new Style({ stroke: new Stroke({ color: wt_corner_colors[3]
 const methods = {
 
     resize_yourself()  {  // MADE NO DIFFERENCE
-          this.$refs.map.updateSize();
-console.log("map timeout: updateSize");
+//console.log("resize_yourself:");
+//          this.$refs.map.updateSize();
     },
     // ==========================================================
+    my_nexr_url(extent, resolution, projection) {
+console.log(extent);
+console.log(resolution);
+console.log(projection);
+      return "hello_sailor";
+    },
+
+    // ==========================================================
+
     onMapMounted () {
       // now ol.Map instance is ready and we can work with it directly
       this.$refs.map.$map.getControls().extend([
@@ -134,12 +169,15 @@ console.log("map timeout: updateSize");
         new ZoomSlider(),
       ]);
       this.$refs.map.updateSize();   // when map is in a tab, do this
+
+      // NOPE:
+      //error: this.$refs.nexwmsSource.updateParams({'TIME': '2020-02-24T14:30:00.000Z'});
     },
 
     // ==========================================================
     // worked, but made no difference in initial display...
   myEventHandler() {   // param 'e' removed
-      this.$refs.map.updateSize();
+//      this.$refs.map.updateSize();
 // console.log("RESIZE event");
   },
 
@@ -258,7 +296,7 @@ let land_qh = this.model_data.features[k].properties.arr_time.substr(0,13)+':'+m
            }
       }
       this.display_data = flts_to_disp;
-      this.$refs.map.updateSize();  // when map is in a tab, do this
+//      this.$refs.map.updateSize();  // when map is in a tab, do this
 
       this.populate_datalist(flts_to_disp);
     }
@@ -287,7 +325,7 @@ export default {
         model_data: [],     // model data from source
         display_data: [],   // hour data selected for display
 
-        draw_circles : false,
+        show_weather : false,
 
         hour_to_disp: '2020_01_10T16',
 
@@ -298,7 +336,19 @@ export default {
           { dir: "se", ident: 'DANDD', coords: [-103.939133333333, 39.3970944444444], colr: '#007934' },
           { dir: "sw", ident: 'LARKS', coords: [-105.305161111111, 39.2573972222222], colr: '#AB8422' },
           { dir: "nw", ident: 'RAMMS', coords: [-105.238811111111, 40.49355],         colr: '#5E6A71' },
-        ]
+        ],
+
+      // attemts at IA State NexRad:
+      baseURL: "https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi",
+      nextime: '2021-02-24T14:15:00.000Z',
+      //nothing: nex_params: { 'TIME'  : '2021-02-24T14:15:00.000Z' }
+      // ascii: nex_params: "{ 'TIME'  : '2021-02-24T14:15:00.000Z' }" // ascii
+      // ascii: nex_params: "{ TIME  : '2021-02-24T14:15:00.000Z' }"
+
+      // params:nex_params: '{ TIME  : 2021-02-24T14:15:00.000Z }'  // nothing
+      //nparams: 'TIME=2021-02-24T14:15:00.000Z'  // :params - no errors and no params
+      //nothing:nparams: { 'TIME'  : '2021-02-24T14:15:00.000Z' } extP = nothing
+      nparams: { TIME  : '2021-02-24T14:15:00.000Z' }
 
       }
     },
@@ -385,8 +435,8 @@ destroyed() {
 
     // ================================
     this.$root.$on('map_tab_entered', () => { // param 'bogus' removed
-          this.$refs.map.updateSize();   // when map is in a tab, do this
-console.log("map tab entered; updateSize");
+//          this.$refs.map.updateSize();   // when map is in a tab, do this
+//console.log("map tab entered; setTimeout");
 
 setTimeout( this.resize_yourself(), 100);
     //map.updateSize();   // when map is in a tab, do this
@@ -410,7 +460,7 @@ setTimeout( this.resize_yourself(), 100);
 // console.log("OL: new_model_data");
 
       this.help_display_model_data();
-
+console.log("new_model_data: setTimeout");
 setTimeout( this.resize_yourself(), 100);  // q: does this help???
 
     }),
@@ -423,9 +473,11 @@ setTimeout( this.resize_yourself(), 100);  // q: does this help???
                       String(map_args.hour.getUTCHours()  ).padStart(2,'0') + ':' +
                       String(map_args.hour.getUTCMinutes()).padStart(2,'0');
 
-// console.log("OL: new_hour_slider:"+this.hour_to_disp);
+//console.log("OL: new_hour_slider:"+this.hour_to_disp);
 
       this.help_display_model_data();
+//      this.nextime = map_args.hour.toISOString();
+//console.log("nextime:"+this.nextime);
     })
 
   } // ---- mounted
@@ -455,4 +507,12 @@ svg {
   height: 100%;
   position: absolute;
 }
+/************/
+.layers {
+  position: absolute;
+  top: 10px;
+  left: 50px;
+  z-index: 1;
+}
+/***********/
 </style>
