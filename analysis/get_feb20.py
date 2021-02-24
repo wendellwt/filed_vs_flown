@@ -251,6 +251,12 @@ def get_details(lgr, gdate, ctr, path, verbose=False):
 
     distances = get_distances_for_path(path)
 
+    if path != 'full':
+        use_ctr = ctr
+    else:
+        # if ctr = ZZZ then path MUST be within (right?)
+        use_ctr = 'ZZZ'
+
     sql = """SELECT  acid, fid, corner, artcc, dep_apt, arr_apt,
 dep_time, arr_time,
 %s
@@ -258,7 +264,7 @@ FROM fvfb_%s
 WHERE artcc = '%s'
 AND arr_time >= to_timestamp('%s 08:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
 AND arr_time <  to_timestamp('%s 08:00:00+00', 'YYYY-MM-DD HH24:MI:SS+ZZ')
-""" % (distances, y_m, ctr, yhmhd, yhmhd_tom)
+""" % (distances, y_m, use_ctr, yhmhd, yhmhd_tom)
 
     if verbose: print(sql)
     lgr.debug(sql)
