@@ -39,12 +39,22 @@ export default {
         // NEW feb 13: send data to their owner components
         all_json_data  : [],  // the (large) json received from server
         y_m_d_h_m      : new Date(Date.UTC(2020,1,10,15,0,0)),
+
+        fetch_center  : "na",
+        fetch_path    : "na",
+        fetch_source  : "na",
+        fetch_arr_apt : "na"
    }
   },
 
     methods: {
 
       form_fetch_args(fa) {
+
+        this.fetch_center  = fa.center;
+        this.fetch_path    = fa.path;
+        this.fetch_source  = fa.source;
+        this.fetch_arr_apt = fa.arr_apt;
 
         let udate =        fa.sel_date.getUTCFullYear() + '_' +
                     String(fa.sel_date.getUTCMonth()+1).padStart(2,'0')  + '_' +
@@ -79,7 +89,9 @@ export default {
 
         let map_args = { mdata: new_data.map_data,
                          hour : this.y_m_d_h_m };
-console.log("emit:"+this.y_m_d_h_m);
+
+//console.log("emit: new_model_data:"+this.y_m_d_h_m);
+
         this.$root.$emit('new_model_data', (map_args) );
 
         // =========== table details ==============
@@ -87,25 +99,17 @@ console.log("emit:"+this.y_m_d_h_m);
         this.$root.$emit('new_details_data', (new_data.details_data) );
 
         // =========== ef chart details ==============
-        let chart_args = { cdata       : new_data.chart_data,
-                           title_date  : "put date/time here"   };
+        let chart_args = { cdata      : new_data.chart_data,
+                           center     : this.fetch_center,
+                           path       : this.fetch_path,
+                           source     : this.fetch_source,
+                           arr_apt    : this.fetch_arr_apt,
+                           title_date : "put date/time here"   };
+
 //console.log("emit: new_bar_data");
 //console.log(chart_args.cdata);
+
         this.$root.$emit('new_bar_data', (chart_args) );
-
-/*****************
-
-        /*** OLD =========== chart details ==============
-        let chart_args = { cdata: new_data.chart_data.ZDV,  // FIXME <<<<<<<<
-                         title_date  : this.y_m_dd_val   };
-        this.$root.$emit('new_barchart_data', (chart_args) );
-      *** /
-
-        // =========== corner circle chart ==============
-        let corner_args = { corner_data : new_data.circle_data,
-                            title_date  : "put date/time here"   };
-        this.$root.$emit('new_corner_data', (corner_args) );
-        ********************/
     },
 
   },
@@ -120,7 +124,7 @@ console.log("emit:"+this.y_m_d_h_m);
 
           console.log("using STORED json file.");
 
-console.log("path="+fetch_args.path);
+//console.log("path="+fetch_args.path);
 let f = "helpme";
 /*************** vscode *
 if (fetch_args.path == "full") {

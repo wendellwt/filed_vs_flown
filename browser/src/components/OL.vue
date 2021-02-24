@@ -62,12 +62,6 @@ sched: <input type="text" class="at_entry"/>
                         size="is-small"
                         v-model="draw_circles">draw_circles</b-checkbox>
 
-<!-- b-button type="is-warning is-light"
-                    size="is-small"
-                    rounded
-                    v-on:click="do_some_d3()"
-                    >do_some_d3</b-button -->
-
     </div>
 
   </div>
@@ -128,6 +122,10 @@ const cnr_nw_style = new Style({ stroke: new Stroke({ color: wt_corner_colors[3]
 
 const methods = {
 
+    resize_yourself()  {  // MADE NO DIFFERENCE
+          this.$refs.map.updateSize();
+console.log("map timeout: updateSize");
+    },
     // ==========================================================
     onMapMounted () {
       // now ol.Map instance is ready and we can work with it directly
@@ -142,7 +140,7 @@ const methods = {
     // worked, but made no difference in initial display...
   myEventHandler() {   // param 'e' removed
       this.$refs.map.updateSize();
-console.log("RESIZE event");
+// console.log("RESIZE event");
   },
 
    // ------------ everything paths have color in them
@@ -212,15 +210,8 @@ console.log("RESIZE event");
        // ---------------------------------
 
        // and send to DataPos list component
-//console.log(sortedlist);
-       //HELP::
-       this.$root.$emit('dlist', (dlist) );
-   },
-   // ==========================================================
 
-   do_some_d3() {
-     let corner_data = 1;
-     this.$root.$emit('draw_this_corner', (corner_data));
+       this.$root.$emit('dlist', (dlist) );
    },
    // ==========================================================
 
@@ -230,12 +221,12 @@ console.log("RESIZE event");
 
     help_display_model_data() {
 
-//console.log("OL:help_disp");
+// console.log("OL:help_disp");
 //console.log(this.model_data);
 
       let flts_to_disp = [ ]
       for (let k = 0; k < this.model_data.features.length; k++) {
-//console.log("k=",k);
+
           // Q: should this just check for existance of an 'arr_time' property???
 
           // if it is a (Multi) LineString (i.e. flight), then check arr time
@@ -267,11 +258,9 @@ let land_qh = this.model_data.features[k].properties.arr_time.substr(0,13)+':'+m
            }
       }
       this.display_data = flts_to_disp;
-
-      //new_fvf:
-      this.populate_datalist(flts_to_disp);
-
       this.$refs.map.updateSize();  // when map is in a tab, do this
+
+      this.populate_datalist(flts_to_disp);
     }
 
 }
@@ -396,8 +385,16 @@ destroyed() {
 
     // ================================
     this.$root.$on('map_tab_entered', () => { // param 'bogus' removed
-// HELP -- did not work!!!      this.$refs.map.updateSize();   // when map is in a tab, do this
-// HELP -- did not work!!!console.log("map tab entered; updateSize");
+          this.$refs.map.updateSize();   // when map is in a tab, do this
+console.log("map tab entered; updateSize");
+
+setTimeout( this.resize_yourself(), 100);
+    //map.updateSize();   // when map is in a tab, do this
+      // this.$refs.map.updateSize();
+//console.log("map timeout: updateSize");
+//}, 100);
+
+
     }),
     // ================================
 
@@ -410,7 +407,12 @@ destroyed() {
 
       this.hour_to_disp = map_args.hour;
 
+// console.log("OL: new_model_data");
+
       this.help_display_model_data();
+
+setTimeout( this.resize_yourself(), 100);  // q: does this help???
+
     }),
 
     this.$root.$on('new_hour_slider', (map_args) => {
@@ -421,7 +423,7 @@ destroyed() {
                       String(map_args.hour.getUTCHours()  ).padStart(2,'0') + ':' +
                       String(map_args.hour.getUTCMinutes()).padStart(2,'0');
 
-//console.log("OL: hour_to_disp="+this.hour_to_disp);
+// console.log("OL: new_hour_slider:"+this.hour_to_disp);
 
       this.help_display_model_data();
     })

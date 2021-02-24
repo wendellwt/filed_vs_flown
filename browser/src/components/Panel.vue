@@ -119,16 +119,6 @@
         </div>
         <div class="panel-block">
 
-          <!-- b-button type="is-danger is-light"
-                    size="is-small"
-                    rounded
-                    v-on:click="CallAFunction_draw_circle()"
-                    >draw_circle()</b-button -->
-          <!-- b-button type="is-danger is-light"
-                    size="is-small"
-                    rounded
-                    v-on:click="CallAFunction_fvf_geojson()"
-                    >fvf_geojson()</b-button -->
         </div>
 
   <p class="panel-heading">
@@ -149,7 +139,7 @@
         <!-- ========== max/min slider ========= -->
         <div class="panel-block">
           <b-field label="max chart y-axis">
-              <b-slider size="is-medium" :min="0" :max="40"
+              <b-slider size="is-medium" :min="0" :max="70"
                             type="is-info"
                             v-model="slider_vals"
                   >
@@ -206,7 +196,8 @@ export default {
         center_disabled : false,
         ptype_selected  : "within",
         source_selected : "flown",
-        date_selected   : new Date('January 10, 2020 14:00:00'),  // start???
+        //date_selected   : new Date('January 10, 2020 14:00:00'),  // start???
+        date_selected   : new Date('August 8, 2020 14:00:00'),  // start???
 
         airportlist : [ "DEN", "DFW" ],  // the only ones we've run so far
         tierlist    : zdv_tiers,
@@ -237,6 +228,9 @@ export default {
         slider_vals: function() {
 
             let chart_s_args = { slider_vals : this.slider_vals };
+
+//console.log("emit: new_slider_vals");
+
             this.$root.$emit('chart_slider_vals', (chart_s_args) );
         },
 
@@ -253,11 +247,12 @@ export default {
                               this.date_selected.getUTCMonth(),
                               od, oh, om, 0));   //  watch out!!!
 
-            // ---- tell Map component
+            // ---- tell Map and Chart components
             let hour_args = { hour : this.y_m_d_h_m };
-//console.log("new_hour_slider:emit:"+this.y_m_d_h_m.toISOString());
-            this.$root.$emit('new_hour_slider', (hour_args) );
 
+//console.log("emit: new_hour_slider:"+this.y_m_d_h_m.toISOString());
+
+            this.$root.$emit('new_hour_slider', (hour_args) );
         }
     },
 
@@ -298,15 +293,6 @@ export default {
         this.$root.$emit('fetch_data', (fetch_args) );
     },
     // ---------------------------------------
-
-    CallAFunction_draw_circle() { // DEBUGGING <<<<<<<<<<<<<<<<<<<
-
-            let chart_args = { cdata       : "use_local_data",
-                               slider_vals : this.slider_vals,
-                               title_date  : this.y_m_dd_val   };
-console.log("emit circ:");
-            this.$root.$emit('draw_circ_chart', (chart_args) );
-    },
 
   },
   mounted () {

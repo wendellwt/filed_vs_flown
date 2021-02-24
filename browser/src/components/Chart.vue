@@ -1,10 +1,16 @@
 <template>
   <div style="height: 250px">
-      <h3>total miles for {{ corner_data.ident}} ({{ corner_data.dir }})</h3>
+      <h3>total miles 
+corner: <b>{{ corner_data.dir }}</b>;
+arr apt:<b>{{arr_apt}}</b>;
+path center:<b>{{center}}</b>;
+path type:<b>{{path}}</b>;
+path source:<b>{{source}}</b>
+</h3>
 
     <!-- Create a div where the graph will take place -->
     <!-- div name is NOT local to this component; it is global for the web page! -->
-    <div :id="'svg_div_'+corner_data.dir" 
+    <div :id="'svg_div_'+corner_data.dir"
            class="chart_simp" >
     </div>
 
@@ -53,7 +59,12 @@ export default {
         xLabels    : [],
         ymin       : 0,
         ymax       : 4000,
-        high_qh    : "01_10_14:00"
+        high_qh    : "01_10_14:00",
+
+        center     : "na",
+        path       : "na",
+        source     : "na",
+        arr_apt    : "na"
       }
     },
 
@@ -62,6 +73,13 @@ export default {
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%% incomming chart data
 
       this.$root.$on('new_bar_data', (chart_args) => {
+
+// console.log("rcvd: new_bar_data:"+this.corner_data.dir);
+
+          this.center   = chart_args.center;
+          this.path     = chart_args.path;
+          this.source   = chart_args.source;
+          this.arr_apt  = chart_args.arr_apt;
 
           this.the_date = chart_args.title_date;
 
@@ -79,6 +97,8 @@ export default {
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%% incomming max y-val slider
 
       this.$root.$on('chart_slider_vals', (chart_ef_args) => {
+
+// console.log("rcvd: chart_slider_vals");
 
           // BROKEN: this.ymin = chart_ef_args.slider_vals[0] * 100;
           this.ymax = chart_ef_args.slider_vals[1] * 100;
@@ -139,6 +159,10 @@ export default {
   let my_div = "#svg_div_"+this.corner_data.dir;
   let my_stupid_translate = this.corner_data.offs + margin.top;
 
+  // down inside the depths, d3 doesn't know what 'this' is, so retrieve
+  // items here and pass down as explicit variables
+  let my_corner_colr = this.corner_data.colr;
+
   // "svg" is apparently the name of the component _and_ the type
   // ---- remove previous sub-components, if any
   d3.select(my_div).selectAll("svg").remove();
@@ -186,7 +210,8 @@ svg.append("g")
     .data(simp_data)
     .enter()
       .append("rect")
-      .attr("fill",   (d) => (d.arr_qh == phigh_qh) ? "orange" : 'green' )
+      .attr("fill",   (d) => (d.arr_qh == phigh_qh) ? "orange" : my_corner_colr )
+      //.attr("fill",   (d) => (d.arr_qh == phigh_qh) ? "orange" : 'green' )
       .attr("x",      (d) => xScale(d.arr_qh) )
       .attr("y",      (d) => yScale(d.dist)   )
       .attr("height", (d) => height - yScale(d.dist)   )
@@ -194,7 +219,7 @@ svg.append("g")
       //.attr('fill',   'green')
 
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% mouseover
-/************* 
+/*************
         // https://bl.ocks.org/d3noob/a22c42db65eb00d4e369
        .on("mouseover", function(event,d) {
 
@@ -257,9 +282,10 @@ div.chart_simp {
   background-color: #f8f8f8;
 }
 
-p.chsmall {
+span.chsmall {
   font-size: 80%;
 }
+
 
 div.tooltip {
     position: absolute;

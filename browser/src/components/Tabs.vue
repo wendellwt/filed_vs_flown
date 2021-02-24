@@ -95,7 +95,7 @@ export default {
     methods: {
         tabChanged: function(index) {
 console.log("tabChanged:"+index);
-            if (index == "map") {
+            if (index == "map") {  // OL is the only one that needs it
                 this.$root.$emit('map_tab_entered', (true) );
             }
         }
