@@ -26,6 +26,8 @@ host     = os.environ.get('PGHOST')
 pg_conn = psycopg2.connect(database=database)
 pg_csr = pg_conn.cursor( )
 
+pg_csr.execute("SET TIME ZONE 'UTC';")  # date has timezone ???
+
 # the sqlalchemy way:
 engine = create_engine('postgresql://' + \
                  username + ':' + password + '@' + host + ':5432/' + database)
@@ -619,6 +621,8 @@ cssi_engine = create_engine('postgresql://' + \
             cssi_username + ':' + cssi_password + '@' + cssi_host + \
                             ':5432/' + cssi_database)
 
+cssi_engine.execute("SET TIME ZONE 'UTC';")  # date has timezone ???
+
 # ==================================================================
 
 # feb20 - add all paths
@@ -769,5 +773,4 @@ def write_ff_to_postgis_cssi(y_m, ctr_df):
     cssi.end("wrote cssi postgis")
 
     #print("write to asdi-db finished.")
-    # code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
