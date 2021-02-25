@@ -81,12 +81,12 @@ corners = {
 
 artccs = [ (adapt[args.airport]['parent'], 'parent'),             ] + \
          [ ('ZZZ', 'full')                                        ] + \
-         [ (c, '1sttier') for c in adapt[args.airport]['1sttier'] ] # + \
+         [ (c, '1sttier') for c in adapt[args.airport]['1sttier'] ] + \
+         [ (c, '2ndtier') for c in adapt[args.airport]['2ndtier'] ]
 
 #artccs = [ (adapt[args.airport]['parent'], 'parent'),             ]
 #artccs = [ ('ZZZ', 'full') ]
 
-# not yet:[ (c, '2ndtier') for c in adapt[args.airport]['2ndtier'] ]
 
 # ####################################################################### #
 #                 schedule path processing routines                       #
@@ -739,22 +739,23 @@ for ctr, tier in artccs:
         ctr_df = both_df.drop([
 'at_entry_path',
 'scheduled_path_x',
-'first_filed_path_x',
-'ORIG_TIME_x',
-'WAYPOINTS_x',
-'last_filed_path_x',
-'ACID_x',
 'scheduled_path_y',
+'first_filed_path_x',
 'first_filed_path_y',
+'last_filed_path_x',
+'last_filed_path_y',
+'ACID_x',
 'ACID_y',
+'ORIG_TIME_x',
 'ORIG_TIME_y',
+'WAYPOINTS_x',
+'WAYPOINTS_y',
+
 'DEP_TIME_y',
 'ARR_TIME_y',
 'DEPT_APRT_y',
 'ARR_APRT_y',
 'ACFT_TYPE_y',
-'WAYPOINTS_y',
-'last_filed_path_y',
 
 'POSIT_TIME', 'position'
         ], axis=1)
@@ -810,7 +811,7 @@ for ctr, tier in artccs:
     ctr_df['OPSDAY'] = ctr_df['ARR_TIME'].apply(lambda dt:
          (dt - datetime.timedelta(hours=8))
                  .replace(hour=0,minute=0,second=0)
-                 .replace(tzinfo=pytz.UTC))
+                 .date())   # and remove any _hint_ of timezones
 
     # ==== m. output
 
