@@ -35,17 +35,18 @@ credentials = 'oracle+cx_oracle://' + \
               '/?service_name=' + service
 
 # q: should this be named sq_engine???
-sq_conn = create_engine(credentials, max_identifier_length=30)
+sq_eng = create_engine(credentials, max_identifier_length=30)
 
 # ======================================================================
 # this doesn't seem to hurt...
 
-with sq_conn.connect() as sq_con:
+with sq_eng.connect() as sq_con:
 
     sql_utc = "ALTER SESSION SET TIME_ZONE='UTC'"
 
     sq_con.execute(sql_utc)
 
+# and do it for extr1 just because...
 ex_csr = cxo.Cursor(ex_conn)
 ex_csr.execute(sql_utc)
 
@@ -199,6 +200,31 @@ def get_all_tz_using_temp(ops_date, fids, args_verbose):
 
 # =========================================================================
 
+def clean_oracle(opsday, ctr, verbose=False):
+
+    with sq_eng.connect() as sq_con:
+
+        #tbl_name = filed_vs_flown"   # note: lower case, otherwise:
+        tbl_name = "TEST_FLIGHT_LEVEL.FILED_VS_FLOWN"
+
+        sql_del = "DELETE FROM " + tbl_name + \
+                  " WHERE opsday = to_date('" + opsday + "','YYYY-MM-DD') " + \
+                  " AND artcc = '" + ctr + "' "
+
+        if verbose: print(sql_del)
+
+        code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+        sq_con.execute(sql_del)
+        print("executed???.")
+        sq_con.commit(sql_del)
+
+        print("deleted???.")
+        code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        # Q: need to do a commit here???
+
+# =========================================================================
+
 # Notes:
 # Timezone aware datetime columns will be written as Timestamp with timezone
 # type with SQLAlchemy if supported by the database. Otherwise, the datetimes
@@ -220,7 +246,7 @@ def write_to_flight_level(fvf_df, verbose=False):
 
     ora = elapsed.Elapsed()
 
-    fvf_df.to_sql(tbl_name, sq_conn, if_exists='append', index=False,
+    fvf_df.to_sql(tbl_name, sq_eng, if_exists='append', index=False,
                                      dtype=coltypes )
 
     #print("done:", len(fvf_df))
