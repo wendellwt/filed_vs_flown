@@ -17,13 +17,13 @@
 
       <!-- ========== OpenStreetMap base layer ================== -->
 
-      <vl-layer-tile id="osm">
+      <vl-layer-tile id="osm" ref="dbg_z_osm">
         <vl-source-osm></vl-source-osm>
       </vl-layer-tile>
 
       <!-- ===================== FeatureCollection everything ========= -->
 
-      <vl-layer-vector >
+      <vl-layer-vector id="my_vectors">
         <vl-source-vector :features.sync="display_data" />
         <vl-style-func    :factory="everythStyleFactory"></vl-style-func>
       </vl-layer-vector>
@@ -50,8 +50,8 @@
            </div -->
 
            <!-- ========== iastate nexrad ========= -->
-      <div v-if="show_weather">
-        <vl-layer-tile>
+      <!-- div v-if="show_weather">
+        <vl-layer-tile id="my_nexrad">
           <vl-source-wms  ref="nexwmsSource"
                      :url="my_nexr_url()"
                      projection='EPSG:3857'
@@ -59,7 +59,7 @@
 :ext-params="{ LAYERS : 'nexrad-n0r-wmst', TIME : '2020-02-23T14:00%3A30%3A00.000Z'}"
   />
         </vl-layer-tile>
-      </div>
+      </div -->
 
 
 <!-- BUT THIS WORKED: -->
@@ -87,8 +87,13 @@ sched: <input type="text" class="at_entry"/>
                         size="is-small"
                         v-model="show_weather">show IA State NexRad</b-checkbox>
 
-    </div>
+          <!-- b-button type='is-info'
+                    size="is-small"
+                    rounded
+                    v-on:click="debug_something()"
+                    >debug_something</b-button -->
 
+    </div>
   </div>
 </template>
 
@@ -147,6 +152,78 @@ const cnr_nw_style = new Style({ stroke: new Stroke({ color: wt_corner_colors[3]
 
 const methods = {
 
+    // ==========================================================
+
+    force_layer_levels() {
+
+        let d_layers = this.$refs.map.getLayers();
+        let osm_layer = 0;
+        let vec_layer = 0;
+
+        for (let k=0; k < d_layers.length; k=k+1){
+            if (d_layers[k].get('id')=="osm"       ) { osm_layer = d_layers[k]; }
+            if (d_layers[k].get('id')=="my_vectors") { vec_layer = d_layers[k]; }
+        }
+
+        if (osm_layer != 0) {osm_layer.setZIndex(5); } else {console.log("HELP: osm=0");}
+        if (vec_layer != 0) {vec_layer.setZIndex(8); } else {console.log("HELP: vec=0");}
+    },
+
+    // ==========================================================
+    // left in just in case it is needed...
+    debug_something() {
+        console.log("debug_something()");
+
+        /********** worked, and proved layer ops:
+console.log("map-z map.getLayers()");
+console.log(this.$refs.map.getLayers());
+let d_layers = this.$refs.map.getLayers();
+let osm_layer = 0;
+let vec_layer = 0;
+
+    for (let k=0; k < d_layers.length; k=k+1){
+        //console.log("k="+k);
+        console.log("k="+k+" id="+d_layers[k].get('id') );
+        if (d_layers[k].get('id')=="osm"       ) { osm_layer = d_layers[k]; }
+        if (d_layers[k].get('id')=="my_vectors") { vec_layer = d_layers[k]; }
+        console.log("k="+k+" ZIndex="+d_layers[k].getZIndex() );
+    }
+
+    if (this.show_weather == false) {
+        osm_layer.setZIndex(5);  // GOOD
+        vec_layer.setZIndex(8);
+    } else {
+        osm_layer.setZIndex(8);
+        vec_layer.setZIndex(5);
+    }
+
+    for (let k=0; k < d_layers.length; k=k+1){
+        console.log("k="+k+" new: ZIndex="+d_layers[k].getZIndex() );
+    }
+    *********************/
+
+    },
+    // ==========================================================
+
+    find_feature_by_fid(a_fid) {
+
+      // ---- find the vector layer that has a Feature with this id
+      const a_layer = this.$refs.map.getLayers().filter(layer => {
+        return layer instanceof VectorLayer &&
+                   layer.getSource().getFeatureById(a_fid)
+      })
+
+      // ---- this statement causes aSFF(?) to fire with valid arguments
+      if (a_layer[0] === undefined) {
+          console.log("could not find a_fid=" + a_fid)
+          return(undefined);
+          } else {
+
+          return(a_layer[0].getSource().getFeatureById(a_fid));
+          }
+    },
+
+    // ==========================================================
     resize_yourself()  {  // MADE NO DIFFERENCE
 //console.log("resize_yourself:");
 //          this.$refs.map.updateSize();
@@ -169,16 +246,17 @@ let baseURL = "https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi";
     // ==========================================================
 
     onMapMounted () {
-      // now ol.Map instance is ready and we can work with it directly
-      this.$refs.map.$map.getControls().extend([
-        new ScaleLine( { units: 'nautical'} ),
-        new ZoomSlider(),
-      ]);
-      this.$refs.map.updateSize();   // when map is in a tab, do this
-
-      // NOPE:
-      //error: this.$refs.nexwmsSource.updateParams({'TIME': '2020-02-24T14:30:00.000Z'});
+        // now ol.Map instance is ready and we can work with it directly
+        this.$refs.map.$map.getControls().extend([
+            new ScaleLine( { units: 'nautical'} ),
+            new ZoomSlider(),
+        ]);
+        this.$refs.map.updateSize();   // when map is in a tab, do this
     },
+
+        // NOPE:
+        //error: this.$refs.nexwmsSource.updateParams({'TIME': '2020-02-24T14:30:00.000Z'});
+
 
     // ==========================================================
     // worked, but made no difference in initial display...
@@ -341,8 +419,9 @@ export default {
 
         hour_to_disp: '2020_01_10T16',
 
-        highlightedFeat_flw : 0,   // the current (old) item that may need to be turned off
-        highlightedFeat_sch : 0,   // the current (old) item that may need to be turned off
+        highlighted_feat : undefined,   // the current (old) item that may need to be turned off
+        // old: highlightedFeat_sch : 0,   // the current (old) item that may need to be turned off
+
         corners: [
           { dir: "ne", ident: 'LANDR', coords: [-104.002963888889, 40.3575722222222], colr: '#002664' },
           { dir: "se", ident: 'DANDD', coords: [-103.939133333333, 39.3970944444444], colr: '#007934' },
@@ -380,71 +459,59 @@ destroyed() {
   mounted () {
 
     // -------------------------
-    this.$root.$on('highlightthis', (the_target) => {
+    this.$root.$on('highlightthis', (the_target_fid) => {
 
-        let high_me = the_target;
-        // ========== hightlight path -- FLOWN version
-      // ---- turn off the previous one:
-      if (this.highlightedFeat_flw != 0) {
-        // ------------------------------
-        // need to set back to PROPER color, which is always flown, right?
-        this.highlightedFeat_flw.setStyle(src_hi_style);
-        this.highlightedFeat_flw = 0;
-      }
+        /* $$$$$$$$$$$$$$$$$$$$$$ MESSES UP <<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-      // ---- find the vector layer that has a Feature with this id
-      const a_layer = this.$refs.map.getLayers().filter(layer => {
-        return layer instanceof VectorLayer &&
-                   layer.getSource().getFeatureById(high_me)
-      })
+LOOK AT THIS:
+https://stackoverflow.com/questions/58448436/openlayers-getfeatures-access-properties
+layer.getSource().getFeatures()[0].getProperties().values
 
-      // ---- this statement causes aSFF(?) to fire with valid arguments
-      if (a_layer[0] === undefined) {
-          console.log("could not find high_me=" + high_me)
-          } else {
+        // ---- 1. if there was a previous (current?) one, set it back to it's proper color
 
-          this.highlightedFeat_flw = a_layer[0].getSource().getFeatureById(high_me);
+        if (this.highlighted_feat === undefined) {
+                console.log("could not find previous one");
 
-          // ---- need Style
+            let last_feat = this.find_feature_by_fid(this.highlighted_feat);
+
+            if (last_feat === undefined) {
+                console.log("could not find previous one");
+            } else {
+                // ------------------------------
+                // need to set back to PROPER color, which is always flown, right?
+                if ('corner' in last_feat.properties) {
+                  if (last_feat.properties.corner=='ne') { last_feat.setStyle(cnr_ne_style); }
+                  if (last_feat.properties.corner=='se') { last_feat.setStyle(cnr_se_style); }
+                  if (last_feat.properties.corner=='sw') { last_feat.setStyle(cnr_sw_style); }
+                  if (last_feat.properties.corner=='nw') { last_feat.setStyle(cnr_nw_style); }
+                } else{
+                    console.log("no properties");
+                }
+              }
+          this.highlighted_fid = 0;
+        }
+        *********************/
+
+        // ---- 2. find and highlight the requested fid
+
+        let high_feat = this.find_feature_by_fid(the_target_fid);
+
+        if (high_feat === undefined) {
+            console.log("could not find fid=" + the_target_fid)
+        } else {
+
+          this.highlighted_fid = the_target_fid;  // Q: wouldn't saving the FEATURE be better here???
+
           // ---- need Style >> MAKE this a const if no acid!
           let targetHigh_flw = new Style({
               stroke: new Stroke({ color: 'red', width: 4.0 })
-              //text: new Text({ text: String(this.highlightedFeat_flw.get('acid')), }),
+              //text: new Text({ text: String(this.highlighted_fid.get('acid')), }),
            })
 
-          this.highlightedFeat_flw.setStyle(targetHigh_flw);
+          high_feat.setStyle(targetHigh_flw);
+          //this.highlighted_fid.setStyle(targetHigh_flw);
       }
 
-        // ========== hightlight path -- AT_ENTRY version
-
-      high_me = the_target + HELPME_OFFSET; // flight_ndx offset to at_ent path
-      // ---- turn off the previous one:
-      if (this.highlightedFeat_sch != 0) {
-        // ------------------------------
-        // need to set back to PROPER color, which is always flown, right?
-        this.highlightedFeat_sch.setStyle(cnr_ne_style);  // WRONG
-        this.highlightedFeat_sch = 0;
-      }
-
-      // ---- find the vector layer that has a Feature with this id
-      let b_layer = this.$refs.map.getLayers().filter(layer => {
-        return layer instanceof VectorLayer &&
-                   layer.getSource().getFeatureById(high_me)
-      })
-      // ---- this statement causes aSFF(?) to fire with valid arguments
-      if (b_layer[0] === undefined) {
-          console.log("could not find high_me=" + high_me)
-          } else {
-
-          this.highlightedFeat_sch = b_layer[0].getSource().getFeatureById(high_me);
-
-              // ---- need Style >> MAKE this a const if no acid!
-          let targetHigh_sch = new Style({
-              stroke: new Stroke({ color: '#990033', width: 4.0 }) // << diff
-           })
-
-          this.highlightedFeat_sch.setStyle(targetHigh_sch);
-      }
     }),
 
     // ================================
@@ -477,6 +544,7 @@ setTimeout( this.resize_yourself(), 100);
 console.log("new_model_data: setTimeout");
 setTimeout( this.resize_yourself(), 100);  // q: does this help???
 
+      this.force_layer_levels();
     }),
 
     this.$root.$on('new_hour_slider', (map_args) => {
