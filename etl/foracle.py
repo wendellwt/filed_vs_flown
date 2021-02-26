@@ -249,8 +249,8 @@ def write_to_flight_level(fvf_df, verbose=False):
     fvf_df.to_sql(tbl_name, sq_eng, if_exists='append', index=False,
                                      dtype=coltypes )
 
-    #print("done:", len(fvf_df))
-    ora.end("wrote oracle:" + str(len(fvf_df)))
+    # print("done:", len(fvf_df))
+    # ora.end("wrote oracle:" + str(len(fvf_df)))
 
     # print(conn.table_names())
 

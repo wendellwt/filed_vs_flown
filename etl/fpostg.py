@@ -770,7 +770,7 @@ def write_ff_to_postgis_cssi(y_m, ctr_df):
         print(">>>>>>>>>>>>> HELP!!!")
         sys.exit(1)
 
-    cssi.end("wrote cssi postgis")
+    # cssi.end("wrote cssi postgis")
 
     #print("write to asdi-db finished.")
 
