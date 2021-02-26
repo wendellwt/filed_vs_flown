@@ -941,7 +941,7 @@ import fjson
 
 for ctr, tier in artccs:
 
-    print("==== ", ctr, tier)
+    print("== ", ctr, tier)
     #delete_from_oracle_flight_level(ctr) # <<<<<<<<<<<<<<<<<<<<<<
 
     ce = elapsed.Elapsed()
