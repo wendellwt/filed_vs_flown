@@ -918,7 +918,7 @@ cn = elapsed.Elapsed()
 flown_ls_df['corner'] = flown_ls_df['flown_path'].apply(
                      lambda ls: closest_corner(ls))
 
-cn.end("find all corners")
+# cn.end("find all corners")
 
 # ++++++++++++++++++++++++++ Summary feb20 ++++++++++++++++++++++++++
 # all_scheds_df:
@@ -933,7 +933,7 @@ cn.end("find all corners")
 #                       first TZ point inside artcc
 # ++++++++++++++++++++++++++         ++++++++++++++++++++++++++
 
-print("end of setup")
+# print("end of setup")
 
 # >>>>>>>>>>>>>>>>>>>> begin loop on artccs <<<<<<<<<<<<<<<<<<<<<<<<<
 
