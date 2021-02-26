@@ -461,36 +461,29 @@ destroyed() {
     // -------------------------
     this.$root.$on('highlightthis', (the_target_fid) => {
 
-        /* $$$$$$$$$$$$$$$$$$$$$$ MESSES UP <<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
+/************
 LOOK AT THIS:
 https://stackoverflow.com/questions/58448436/openlayers-getfeatures-access-properties
 layer.getSource().getFeatures()[0].getProperties().values
+************/
 
         // ---- 1. if there was a previous (current?) one, set it back to it's proper color
 
         if (this.highlighted_feat === undefined) {
-                console.log("could not find previous one");
+                console.log("previous one === undefined");
+        } else {
 
-            let last_feat = this.find_feature_by_fid(this.highlighted_feat);
+            let old_props = this.highlighted_feat.getProperties();
 
-            if (last_feat === undefined) {
-                console.log("could not find previous one");
-            } else {
-                // ------------------------------
-                // need to set back to PROPER color, which is always flown, right?
-                if ('corner' in last_feat.properties) {
-                  if (last_feat.properties.corner=='ne') { last_feat.setStyle(cnr_ne_style); }
-                  if (last_feat.properties.corner=='se') { last_feat.setStyle(cnr_se_style); }
-                  if (last_feat.properties.corner=='sw') { last_feat.setStyle(cnr_sw_style); }
-                  if (last_feat.properties.corner=='nw') { last_feat.setStyle(cnr_nw_style); }
-                } else{
-                    console.log("no properties");
-                }
-              }
-          this.highlighted_fid = 0;
+            // need to set back to PROPER color, which is always flown, right?
+            if (old_props.corner=='ne') { this.highlighted_feat.setStyle(cnr_ne_style); }
+            if (old_props.corner=='se') { this.highlighted_feat.setStyle(cnr_se_style); }
+            if (old_props.corner=='sw') { this.highlighted_feat.setStyle(cnr_sw_style); }
+            if (old_props.corner=='nw') { this.highlighted_feat.setStyle(cnr_nw_style); }
+
+            this.highlighted_fid = undefined;
         }
-        *********************/
+        /*********************/
 
         // ---- 2. find and highlight the requested fid
 
@@ -500,8 +493,6 @@ layer.getSource().getFeatures()[0].getProperties().values
             console.log("could not find fid=" + the_target_fid)
         } else {
 
-          this.highlighted_fid = the_target_fid;  // Q: wouldn't saving the FEATURE be better here???
-
           // ---- need Style >> MAKE this a const if no acid!
           let targetHigh_flw = new Style({
               stroke: new Stroke({ color: 'red', width: 4.0 })
@@ -509,7 +500,8 @@ layer.getSource().getFeatures()[0].getProperties().values
            })
 
           high_feat.setStyle(targetHigh_flw);
-          //this.highlighted_fid.setStyle(targetHigh_flw);
+
+          this.highlighted_feat = high_feat;
       }
 
     }),
