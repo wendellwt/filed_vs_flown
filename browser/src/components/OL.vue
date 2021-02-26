@@ -50,26 +50,25 @@
            </div -->
 
            <!-- ========== iastate nexrad ========= -->
-      <!-- HELP: div v-if="show_weather">
+      <div v-if="show_weather">
         <vl-layer-tile>
           <vl-source-wms  ref="nexwmsSource"
                      :url="my_nexr_url()"
-                     projection='EPSG:4326'
+                     projection='EPSG:3857'
                      layers="nexrad-n0r-wmst"
-:ext-params="{ LAYERS : 'nexrad-n0r-wmst', TIME : '2020-02-24T14:00:30:00.000Z'}"
-server-type="geoserver"
+:ext-params="{ LAYERS : 'nexrad-n0r-wmst', TIME : '2020-02-23T14:00%3A30%3A00.000Z'}"
   />
         </vl-layer-tile>
-      </div -->
+      </div>
 
 
-<!-- BUT THIS WORKED: vl-layer-tile id="wms">
+<!-- BUT THIS WORKED: -->
+<!-- vl-layer-tile id="wms">
       <vl-source-wms ref="myWmsSource"
       url="https://ahocevar.com/geoserver/wms"
       projection='EPSG:4326'
       layers="topp:states"
-:ext-params="{ LAYERS : 'topp:states', TILED: false, TIME: '2020-02-24T14:00:30:00.000Z' }" 
-server-type="geoserver"
+:ext-params="{ LAYERS : 'topp:states-dddd', TILED: true, TIME: '2020-02-22T14:00:30:00.000Z' }"
 />
     </vl-layer-tile -->
 
@@ -157,7 +156,14 @@ const methods = {
 console.log(extent);
 console.log(resolution);
 console.log(projection);
-      return "hello_sailor";
+
+let baseURL = "https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi";
+
+//let nextime = encodeURIComponent('TIME=2021-02-24T14:15:00.000Z');
+//let nextime = 'TIME=2021-02-24T14%3A15%3A00.000Z';
+// wmst&TIME=2021-02-24T18%3A30%3A00.000Z&WIDTH
+
+      return baseURL + '?TIME=' + this.hour_in_url ;
     },
 
     // ==========================================================
@@ -340,7 +346,7 @@ export default {
 
       // attemts at IA State NexRad:
       baseURL: "https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi",
-      nextime: '2021-02-24T14:15:00.000Z',
+      nextime: '2021-02-20T14:15:00.000Z',
       //nothing: nex_params: { 'TIME'  : '2021-02-24T14:15:00.000Z' }
       // ascii: nex_params: "{ 'TIME'  : '2021-02-24T14:15:00.000Z' }" // ascii
       // ascii: nex_params: "{ TIME  : '2021-02-24T14:15:00.000Z' }"
@@ -348,7 +354,9 @@ export default {
       // params:nex_params: '{ TIME  : 2021-02-24T14:15:00.000Z }'  // nothing
       //nparams: 'TIME=2021-02-24T14:15:00.000Z'  // :params - no errors and no params
       //nothing:nparams: { 'TIME'  : '2021-02-24T14:15:00.000Z' } extP = nothing
-      nparams: { TIME  : '2021-02-24T14:15:00.000Z' }
+      nparams: { TIME  : '2021-02-24T14:15:00.000Z' },
+
+      hour_in_url : '2020-02-19T14:00%3A30%3A00.000Z'
 
       }
     },
@@ -472,6 +480,12 @@ setTimeout( this.resize_yourself(), 100);  // q: does this help???
                       String(map_args.hour.getUTCDate()   ).padStart(2,'0') + 'T' +
                       String(map_args.hour.getUTCHours()  ).padStart(2,'0') + ':' +
                       String(map_args.hour.getUTCMinutes()).padStart(2,'0');
+
+        this.hour_in_url =   map_args.hour.getUTCFullYear() + '-' +
+                      String(map_args.hour.getUTCMonth()+1).padStart(2,'0') + '-' +
+                      String(map_args.hour.getUTCDate()   ).padStart(2,'0') + 'T' +
+                      String(map_args.hour.getUTCHours()  ).padStart(2,'0') + '%3A' +
+                      String(map_args.hour.getUTCMinutes()).padStart(2,'0') + '%3A00.000Z';
 
 //console.log("OL: new_hour_slider:"+this.hour_to_disp);
 
