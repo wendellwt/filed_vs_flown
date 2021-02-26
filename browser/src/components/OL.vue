@@ -50,16 +50,16 @@
            </div -->
 
            <!-- ========== iastate nexrad ========= -->
-      <!-- div v-if="show_weather">
+      <div v-if="show_weather">
         <vl-layer-tile id="my_nexrad">
           <vl-source-wms  ref="nexwmsSource"
                      :url="my_nexr_url()"
                      projection='EPSG:3857'
                      layers="nexrad-n0r-wmst"
-:ext-params="{ LAYERS : 'nexrad-n0r-wmst', TIME : '2020-02-23T14:00%3A30%3A00.000Z'}"
+    :ext-params="{ LAYERS : 'nexrad-n0r-wmst', TIME : '2020-02-23T14%3A00%3A30.000Z'}"
   />
         </vl-layer-tile>
-      </div -->
+      </div>
 
 
 <!-- BUT THIS WORKED: -->
@@ -156,17 +156,20 @@ const methods = {
 
     force_layer_levels() {
 
-        let d_layers = this.$refs.map.getLayers();
         let osm_layer = 0;
         let vec_layer = 0;
+        let nxw_layer = 0;
 
+        let d_layers = this.$refs.map.getLayers();
         for (let k=0; k < d_layers.length; k=k+1){
             if (d_layers[k].get('id')=="osm"       ) { osm_layer = d_layers[k]; }
             if (d_layers[k].get('id')=="my_vectors") { vec_layer = d_layers[k]; }
+            if (d_layers[k].get('id')=="my_nexrad" ) { nxw_layer = d_layers[k]; }
         }
 
         if (osm_layer != 0) {osm_layer.setZIndex(5); } else {console.log("HELP: osm=0");}
-        if (vec_layer != 0) {vec_layer.setZIndex(8); } else {console.log("HELP: vec=0");}
+        if (nxw_layer != 0) {nxw_layer.setZIndex(6); } else {console.log("HELP: nxw=0");}
+        if (vec_layer != 0) {vec_layer.setZIndex(7); } else {console.log("HELP: vec=0");}
     },
 
     // ==========================================================
@@ -230,17 +233,9 @@ let vec_layer = 0;
     },
     // ==========================================================
     my_nexr_url(extent, resolution, projection) {
-console.log(extent);
-console.log(resolution);
-console.log(projection);
 
-let baseURL = "https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi";
+      return this.baseURL + '?TIME=' + this.hour_in_url ;
 
-//let nextime = encodeURIComponent('TIME=2021-02-24T14:15:00.000Z');
-//let nextime = 'TIME=2021-02-24T14%3A15%3A00.000Z';
-// wmst&TIME=2021-02-24T18%3A30%3A00.000Z&WIDTH
-
-      return baseURL + '?TIME=' + this.hour_in_url ;
     },
 
     // ==========================================================
@@ -430,18 +425,8 @@ export default {
         ],
 
       // attemts at IA State NexRad:
-      baseURL: "https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi",
-      nextime: '2021-02-20T14:15:00.000Z',
-      //nothing: nex_params: { 'TIME'  : '2021-02-24T14:15:00.000Z' }
-      // ascii: nex_params: "{ 'TIME'  : '2021-02-24T14:15:00.000Z' }" // ascii
-      // ascii: nex_params: "{ TIME  : '2021-02-24T14:15:00.000Z' }"
-
-      // params:nex_params: '{ TIME  : 2021-02-24T14:15:00.000Z }'  // nothing
-      //nparams: 'TIME=2021-02-24T14:15:00.000Z'  // :params - no errors and no params
-      //nothing:nparams: { 'TIME'  : '2021-02-24T14:15:00.000Z' } extP = nothing
-      nparams: { TIME  : '2021-02-24T14:15:00.000Z' },
-
-      hour_in_url : '2020-02-19T14:00%3A30%3A00.000Z'
+      baseURL     : "https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi",
+      hour_in_url : '2020-08-08T19%3A00%3A00.000Z'  // MAKE THIS the same as Panel
 
       }
     },
@@ -461,12 +446,6 @@ destroyed() {
     // -------------------------
     this.$root.$on('highlightthis', (the_target_fid) => {
 
-/************
-LOOK AT THIS:
-https://stackoverflow.com/questions/58448436/openlayers-getfeatures-access-properties
-layer.getSource().getFeatures()[0].getProperties().values
-************/
-
         // ---- 1. if there was a previous (current?) one, set it back to it's proper color
 
         if (this.highlighted_feat === undefined) {
@@ -475,7 +454,7 @@ layer.getSource().getFeatures()[0].getProperties().values
 
             let old_props = this.highlighted_feat.getProperties();
 
-            // need to set back to PROPER color, which is always flown, right?
+            // need to set back to corner color
             if (old_props.corner=='ne') { this.highlighted_feat.setStyle(cnr_ne_style); }
             if (old_props.corner=='se') { this.highlighted_feat.setStyle(cnr_se_style); }
             if (old_props.corner=='sw') { this.highlighted_feat.setStyle(cnr_sw_style); }
@@ -556,8 +535,6 @@ setTimeout( this.resize_yourself(), 100);  // q: does this help???
 //console.log("OL: new_hour_slider:"+this.hour_to_disp);
 
       this.help_display_model_data();
-//      this.nextime = map_args.hour.toISOString();
-//console.log("nextime:"+this.nextime);
     })
 
   } // ---- mounted
