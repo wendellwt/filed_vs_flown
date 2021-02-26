@@ -17,13 +17,13 @@
 
       <!-- ========== OpenStreetMap base layer ================== -->
 
-      <vl-layer-tile id="osm" ref="dbg_z_osm">
+      <vl-layer-tile id="osm" ref="dbg_z_osm" z-index:5 >
         <vl-source-osm></vl-source-osm>
       </vl-layer-tile>
 
       <!-- ===================== FeatureCollection everything ========= -->
 
-      <vl-layer-vector id="my_vectors">
+      <vl-layer-vector id="my_vectors" z-index:7 >
         <vl-source-vector :features.sync="display_data" />
         <vl-style-func    :factory="everythStyleFactory"></vl-style-func>
       </vl-layer-vector>
@@ -51,8 +51,9 @@
 
            <!-- ========== iastate nexrad ========= -->
       <div v-if="show_weather">
-        <vl-layer-tile id="my_nexrad">
+        <vl-layer-tile id="my_nexrad" z-index:6 >
           <vl-source-wms  ref="nexwmsSource"
+                          id="my_nexrad_wms"
                      :url="my_nexr_url()"
                      projection='EPSG:3857'
                      layers="nexrad-n0r-wmst"
@@ -60,39 +61,25 @@
   />
         </vl-layer-tile>
       </div>
-
-
-<!-- BUT THIS WORKED: -->
-<!-- vl-layer-tile id="wms">
-      <vl-source-wms ref="myWmsSource"
-      url="https://ahocevar.com/geoserver/wms"
-      projection='EPSG:4326'
-      layers="topp:states"
-:ext-params="{ LAYERS : 'topp:states-dddd', TILED: true, TIME: '2020-02-22T14:00:30:00.000Z' }"
-/>
-    </vl-layer-tile -->
-
-
-
       <!-- ========== end layers ========= -->
     </vl-map>
 
     <!-- ========== legend ========= -->
     <!-- pretty LAME, but works... -->
     <div class="legend">
-flown: <input type="text" class="flown"/>
-sched: <input type="text" class="at_entry"/>
-&nbsp; &nbsp; &nbsp;
     <b-checkbox type="is-info"
                         size="is-small"
                         v-model="show_weather">show IA State NexRad</b-checkbox>
+    {{ hour_in_url }}
 
+<!-- old: flown: <input type="text" class="flown"/>
+sched: <input type="text" class="at_entry"/>
+&nbsp; &nbsp; &nbsp; -->
           <!-- b-button type='is-info'
                     size="is-small"
                     rounded
                     v-on:click="debug_something()"
                     >debug_something</b-button -->
-
     </div>
   </div>
 </template>
@@ -156,20 +143,33 @@ const methods = {
 
     force_layer_levels() {
 
+        // HEY, WAIIT: z-index can be specified in the <layer> definition!!!
+
+/**************
+        let d_layers = this.$refs.map.getLayers();
+    for (let k=0; k < d_layers.length; k=k+1){
+        console.log("k="+k+" id="+d_layers[k].get('id')+" z="+d_layers[k].getZIndex() );
+        console.log(d_layers[k].getKeys());
+        console.log(d_layers[k].getProperties());
+    }
+console.log(d_layers);
+**************/
+        /*******************
         let osm_layer = 0;
         let vec_layer = 0;
         let nxw_layer = 0;
 
-        let d_layers = this.$refs.map.getLayers();
-        for (let k=0; k < d_layers.length; k=k+1){
+        //let d_layers = this.$refs.map.getLayers();
+        for (let k=0; k < d_layers.length; k=k+1) {
             if (d_layers[k].get('id')=="osm"       ) { osm_layer = d_layers[k]; }
-            if (d_layers[k].get('id')=="my_vectors") { vec_layer = d_layers[k]; }
             if (d_layers[k].get('id')=="my_nexrad" ) { nxw_layer = d_layers[k]; }
+            if (d_layers[k].get('id')=="my_vectors") { vec_layer = d_layers[k]; }
         }
 
         if (osm_layer != 0) {osm_layer.setZIndex(5); } else {console.log("HELP: osm=0");}
         if (nxw_layer != 0) {nxw_layer.setZIndex(6); } else {console.log("HELP: nxw=0");}
         if (vec_layer != 0) {vec_layer.setZIndex(7); } else {console.log("HELP: vec=0");}
+        ***************/
     },
 
     // ==========================================================
@@ -234,7 +234,7 @@ let vec_layer = 0;
     // ==========================================================
     my_nexr_url(extent, resolution, projection) {
 
-      return this.baseURL + '?TIME=' + this.hour_in_url ;
+      return this.baseURL + '?TIME=' + encodeURIComponent(this.hour_in_url);
 
     },
 
@@ -418,15 +418,15 @@ export default {
         // old: highlightedFeat_sch : 0,   // the current (old) item that may need to be turned off
 
         corners: [
-          { dir: "ne", ident: 'LANDR', coords: [-104.002963888889, 40.3575722222222], colr: '#002664' },
-          { dir: "se", ident: 'DANDD', coords: [-103.939133333333, 39.3970944444444], colr: '#007934' },
-          { dir: "sw", ident: 'LARKS', coords: [-105.305161111111, 39.2573972222222], colr: '#AB8422' },
-          { dir: "nw", ident: 'RAMMS', coords: [-105.238811111111, 40.49355],         colr: '#5E6A71' },
+          { dir: "ne", ident: 'LANDR', coords: [-104.00296, 40.35757], colr: '#002664' },
+          { dir: "se", ident: 'DANDD', coords: [-103.93913, 39.39709], colr: '#007934' },
+          { dir: "sw", ident: 'LARKS', coords: [-105.30516, 39.25739], colr: '#AB8422' },
+          { dir: "nw", ident: 'RAMMS', coords: [-105.23881, 40.49355], colr: '#5E6A71' },
         ],
 
       // attemts at IA State NexRad:
       baseURL     : "https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi",
-      hour_in_url : '2020-08-08T19%3A00%3A00.000Z'  // MAKE THIS the same as Panel
+      hour_in_url : '2020-08-08T19:00:00.000Z'  // MAKE THIS the same as Panel
 
       }
     },
@@ -439,6 +439,16 @@ created() {
 destroyed() {
   window.removeEventListener("resize", this.myEventHandler);
 },
+// ==========================================================
+    /**********
+    watch: {
+        show_weather: function() {
+            setTimeout( this.force_layer_levels(), 100);
+            //this.force_layer_levels();
+console.log("watch scheduled force_layer_levels");
+        }
+    },
+    **********/
 // ==========================================================
 
   mounted () {
@@ -515,7 +525,8 @@ setTimeout( this.resize_yourself(), 100);
 console.log("new_model_data: setTimeout");
 setTimeout( this.resize_yourself(), 100);  // q: does this help???
 
-      this.force_layer_levels();
+//      this.force_layer_levels();
+//console.log("new_model just called force_layer_levels");
     }),
 
     this.$root.$on('new_hour_slider', (map_args) => {
@@ -529,12 +540,14 @@ setTimeout( this.resize_yourself(), 100);  // q: does this help???
         this.hour_in_url =   map_args.hour.getUTCFullYear() + '-' +
                       String(map_args.hour.getUTCMonth()+1).padStart(2,'0') + '-' +
                       String(map_args.hour.getUTCDate()   ).padStart(2,'0') + 'T' +
-                      String(map_args.hour.getUTCHours()  ).padStart(2,'0') + '%3A' +
-                      String(map_args.hour.getUTCMinutes()).padStart(2,'0') + '%3A00.000Z';
+                      String(map_args.hour.getUTCHours()  ).padStart(2,'0') + ':' +
+                      String(map_args.hour.getUTCMinutes()).padStart(2,'0') + ':00.000Z';
 
 //console.log("OL: new_hour_slider:"+this.hour_to_disp);
 
       this.help_display_model_data();
+//      this.force_layer_levels();
+//console.log("new_hour just called force_layer_levels");
     })
 
   } // ---- mounted
