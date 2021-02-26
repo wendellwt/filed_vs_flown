@@ -136,51 +136,7 @@ def retrieve_path_center_geojson_f20(lgr, gdate, ctr, path, source, verbose=Fals
     %s
 ) inputs_flw """ % ( geo_col, geo_col, distances, geo_col, y_m, use_ctr, yhmhd, yhmhd_tom, limit )
 
-    # ============ artcc
-    # note: no properties, boundary only
-    # note: if path = full   : tracon
-    #       if path = within : center - tracon
-    #       if path = upto   : center
-
-    if path == "within":    # ============== center minus tracon
-        artcc_sql = """
-    -- ============ artcc
-  SELECT jsonb_build_object(
-    'type',         'Feature',
-    'id',           1,  -- watch out for this
-    'geometry',     ST_AsGeoJSON(boundary)::jsonb
-    ) AS feature
-  FROM (
-SELECT ST_Difference(
-    (SELECT boundary::geometry from centers where name='%s'),
-    (SELECT ST_Transform(ST_Transform(boundary::geometry,26754),4326) FROM tracons WHERE name='DEN')
-) as boundary) inputs_ctr """  % ctr
-
-    if path == "upto":    # ============== center only
-        artcc_sql = """
-    -- ============ artcc
-  SELECT jsonb_build_object(
-    'type',         'Feature',
-    'id',           1,  -- watch out for this
-    'geometry',     ST_AsGeoJSON(boundary)::jsonb
-    ) AS feature
-  FROM (
-      SELECT boundary::geometry as boundary
-      FROM centers WHERE name='%s'
-  ) inputs_ctr """  % ctr
-
-    if path == "full":    # ============== tracon only  FIXME: 'DEN'
-        artcc_sql = """
-    -- ============ artcc
-  SELECT jsonb_build_object(
-    'type',         'Feature',
-    'id',           1,  -- watch out for this
-    'geometry',     ST_AsGeoJSON(boundary)::jsonb
-    ) AS feature
-  FROM (
-    SELECT ST_Transform(ST_Transform(boundary::geometry,26754),4326) as boundary
-      FROM tracons WHERE name='DEN'
-    ) inputs_ctr """
+    artcc_sql = get_artcc_sql(ctr, path, source)
 
     # ============  everything together
 
@@ -221,6 +177,75 @@ UNION ALL
     #if args.elapsed: aa.end("retr paths:" + ctr)
 
     return(gjsn)
+
+# ===========================================================================
+
+# ============ artcc
+# note: no properties, boundary only
+# note: if path = full   : tracon
+#       if path = within : center - tracon
+#       if path = upto   : exteriorRing of tiers
+
+tier_1 = [ "ZLA", "ZLC", "ZMP", "ZKC", "ZAB",]
+
+def get_artcc_sql(ctr, path, source):
+
+    # print("get_artcc_sql:", ctr, path, source)
+
+    # ============== tracon only  FIXME: 'DEN'
+
+    if path == "full":
+
+        inner_artcc_sql = """
+    SELECT ST_Transform(ST_Transform(boundary::geometry,26754),4326) as boundary
+      FROM tracons WHERE name='DEN' """
+
+    # ============== center minus tracon (others minus D01 is ok, right?)
+
+    else:
+        if path == "within":
+
+            inner_artcc_sql = """ SELECT ST_Difference(
+    (SELECT boundary::geometry from centers where name='%s'),
+    (SELECT ST_Transform(ST_Transform(boundary::geometry,26754),4326) FROM tracons WHERE name='DEN')
+) as boundary """  % ctr
+
+        else:
+            # ============== union of this tier level and all inside
+            if path == "upto":  # it had better be this!
+
+               if ctr == 'ZDV':
+
+                   inner_artcc_sql = """ SELECT boundary::geometry as boundary
+                               FROM centers WHERE name='%s' """  % ctr
+
+               else:
+                   if ctr in tier_1:
+                       inner_artcc_sql = """ SELECT ST_ExteriorRing(
+               ST_Union(c.boundary::geometry)) as boundary
+               FROM centers c
+               WHERE name IN ('ZDV', 'ZLA', 'ZLC', 'ZMP', 'ZKC', 'ZAB')"""
+
+                   else:
+                       inner_artcc_sql = """ SELECT ST_ExteriorRing(
+               ST_Union(c.boundary::geometry)) as boundary
+               FROM centers c
+               WHERE name IN ('ZDV', 'ZLA', 'ZLC', 'ZMP', 'ZKC', 'ZAB',
+                              'ZOA', 'ZSE', 'ZAU', 'ZID', 'ZME', 'ZFW' ) """
+
+    artcc_sql = """
+    -- ============ artcc
+  SELECT jsonb_build_object(
+    'type',         'Feature',
+    'id',           1,  -- watch out for this
+    'geometry',     ST_AsGeoJSON(boundary)::jsonb
+    ) AS feature
+  FROM ( %s) inputs_ctr """ % inner_artcc_sql
+
+    # print("inner_artcc_sql:", inner_artcc_sql)
+    # print("artcc_sql:", artcc_sql)
+
+    return(artcc_sql)
 
 # ===========================================================================
 
