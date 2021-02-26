@@ -156,12 +156,12 @@ var zdv_tiers = [ ["ZDV",  "ZDV (parent)"   ],
                   ["ZMP",  "ZMP (1st tier)" ],
                   ["ZLC",  "ZLC (1st tier)" ],
                   ["ZLA",  "ZLA (1st tier)" ],
-                  ["ZAB",  "ZAB (1st tier)" ]  //,
+                  ["ZAB",  "ZAB (1st tier)" ],
 
                   //["ZFW",  "ZFW (2nd tier)" ],
                   //["ZME",  "ZME (2nd tier)" ],
                   //["ZID",  "ZID (2nd tier)" ],
-                  //["ZAU",  "ZAU (2nd tier)" ],
+                  ["ZAU",  "ZAU (2nd tier)" ]
                   //["ZSE",  "ZSE (2nd tier)" ],
                   //["ZOA",  "ZOA (2nd tier)" ],
                   //["ZHU",  "ZHU (2nd tier)" ]
