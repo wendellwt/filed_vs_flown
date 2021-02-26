@@ -17,7 +17,7 @@
     "vue": "^2.6.6",
     "vue-material": "^1.0.0-beta-13",
     "vue-material-design-icons": "^4.6.0",
-    "vuelayers": "^0.11.22"
+    "vuelayers": "^0.11.28"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.4.0",
