@@ -279,6 +279,10 @@ let baseURL = "https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi";
                (this.model_data.features[k].geometry.type == "MultiLineString")) {
                if (this.model_data.features[k].id < HELPME_OFFSET) {
 
+                 // some null items may not have this field
+                 if ("properties" in this.model_data.features[k]) {
+                  if ("arr_time" in this.model_data.features[k].properties) {
+
 //console.log("++++"+this.model_data.features[k].properties.arr_time);
 let land_mins = parseInt(this.model_data.features[k].properties.arr_time.substr(14,2));
 //console.log("lm:"+land_mins);
@@ -288,12 +292,14 @@ let land_qh = this.model_data.features[k].properties.arr_time.substr(0,13)+':'+m
 //console.log("lq:"+land_qh);
 //console.log("re:"+this.hour_to_disp);
 
-                   if (land_qh == this.hour_to_disp) {
+                     if (land_qh == this.hour_to_disp) {
 
-                  // TODO: COMBINE this with DataPos generation!!!
-                  // (maybe not so bad; DataPos list is constructed from this list)
-                  flts_to_disp.push(this.model_data.features[k]);
+                    // TODO: COMBINE this with DataPos generation!!!
+                    // (maybe not so bad; DataPos list is constructed from this list)
+                    flts_to_disp.push(this.model_data.features[k]);
+                   }
                  }
+                }
                }
            } else {
 
