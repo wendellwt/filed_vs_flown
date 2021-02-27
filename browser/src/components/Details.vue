@@ -68,7 +68,7 @@ export default {
     this.$root.$on('new_details_data', (the_data) => {
 
       this.detailColumns = the_data['columns'];
-      this.detailData = the_data['data'];
+      this.detailData    = the_data['data'   ];
 
     })
   }
