@@ -696,15 +696,19 @@ def output_postgis(ctr_df):
 
 def get_all_withins(ctr_df):
 
-    ctr_df['scheduled_within_path'  ] = ctr_df['scheduled_path'   ].apply(lambda p: do_w_intersect(p))
-    ctr_df['first_filed_within_path'] = ctr_df['first_filed_path' ].apply(lambda p: do_w_intersect(p))
-    ctr_df['last_filed_within_path' ] = ctr_df['last_filed_path'  ].apply(lambda p: do_w_intersect(p))
-    ctr_df['flown_within_path'      ] = ctr_df['flown_path'       ].apply(lambda p: do_w_intersect(p))
+    for (wp, p) in ( ('scheduled_within_path'  , 'scheduled_path'   ),
+                     ('first_filed_within_path', 'first_filed_path' ),
+                     ('last_filed_within_path' , 'last_filed_path'  ),
+                     ('flown_within_path'      , 'flown_path'       ) ):
 
-    ctr_df['scheduled_within_dist'  ] = ctr_df['scheduled_within_path'  ].apply(lambda p: gc_length(p))
-    ctr_df['first_filed_within_dist'] = ctr_df['first_filed_within_path'].apply(lambda p: gc_length(p))
-    ctr_df['last_filed_within_dist' ] = ctr_df['last_filed_within_path' ].apply(lambda p: gc_length(p))
-    ctr_df['flown_within_dist'      ] = ctr_df['flown_within_path'      ].apply(lambda p: gc_length(p))
+        ctr_df[wp] = ctr_df[p].apply(lambda p: do_w_intersect(p))
+
+    for (wd, wp) in ( ('scheduled_within_dist'  , 'scheduled_within_path'  ),
+                      ('first_filed_within_dist', 'first_filed_within_path'),
+                      ('last_filed_within_dist' , 'last_filed_within_path' ),
+                      ('flown_within_dist'      , 'flown_within_path'      ) ):
+
+        ctr_df[wd] = ctr_df[wp].apply(lambda p: gc_length(p))
 
     return(ctr_df)
 
@@ -714,15 +718,19 @@ def get_all_withins(ctr_df):
 
 def get_all_uptos(ctr_df):
 
-    ctr_df['scheduled_upto_path'  ] = ctr_df['scheduled_path'   ].apply(lambda p: do_u_difference(p))
-    ctr_df['first_filed_upto_path'] = ctr_df['first_filed_path' ].apply(lambda p: do_u_difference(p))
-    ctr_df['last_filed_upto_path' ] = ctr_df['last_filed_path'  ].apply(lambda p: do_u_difference(p))
-    ctr_df['flown_upto_path'      ] = ctr_df['flown_path'       ].apply(lambda p: do_u_difference(p))
+    for (up, p) in ( ('scheduled_upto_path'  , 'scheduled_path'   ),
+                     ('first_filed_upto_path', 'first_filed_path' ),
+                     ('last_filed_upto_path' , 'last_filed_path'  ),
+                     ('flown_upto_path'      , 'flown_path'       ) ):
 
-    ctr_df['scheduled_upto_dist'  ] = ctr_df['scheduled_upto_path'  ].apply(lambda p: gc_length(p))
-    ctr_df['first_filed_upto_dist'] = ctr_df['first_filed_upto_path'].apply(lambda p: gc_length(p))
-    ctr_df['last_filed_upto_dist' ] = ctr_df['last_filed_upto_path' ].apply(lambda p: gc_length(p))
-    ctr_df['flown_upto_dist'      ] = ctr_df['flown_upto_path'      ].apply(lambda p: gc_length(p))
+        ctr_df[up] = ctr_df[p].apply(lambda p: do_u_difference(p))
+
+    for (ud, up) in ( ('scheduled_upto_dist'  , 'scheduled_upto_path'  ),
+                      ('first_filed_upto_dist', 'first_filed_upto_path'),
+                      ('last_filed_upto_dist' , 'last_filed_upto_path' ),
+                      ('flown_upto_dist'      , 'flown_upto_path'      ) ):
+
+        ctr_df[ud] = ctr_df[up].apply(lambda p: gc_length(p))
 
     # print(ctr_df)
     # print(ctr_df.columns)
@@ -757,10 +765,8 @@ def do_w_intersect(path_ls):
 
     if ctr != 'ZZZ':
         int_path = path_ls.intersection(within_shp)
-        #int_path = int_path[0] if int_path.geom_type == "MultiLineString" else int_path
     else:
         int_path = path_ls.difference(tracon_shp)
-        #int_path = int_path[0] if int_path.geom_type == "MultiLineString" else int_path
     return int_path
 
 # ++++++++++++++++++++++++++++++++++++++++++++
@@ -769,7 +775,6 @@ def do_w_intersect(path_ls):
 def do_u_difference(path_ls):
 
     int_path = path_ls.difference(upto_shp)
-    #int_path = int_path[0] if int_path.geom_type == "MultiLineString" else int_path
     return int_path
 
 # ++++++++++++++++++++++++++++++++++++++++++++
@@ -777,7 +782,6 @@ def do_u_difference(path_ls):
 def do_f_difference(path_ls):
 
     int_path = path_ls.difference(tracon_shp)
-    #int_path = int_path[0] if int_path.geom_type == "MultiLineString" else int_path
     return int_path
 
 # ==========================================================================
@@ -898,7 +902,8 @@ def finalize_cols(ctr_df, ctr):
 #                                  main                                   #
 # ####################################################################### #
 
-all = elapsed.Elapsed()
+fall = elapsed.Elapsed()
+ro = elapsed.Elapsed()
 
 # ==== a. read _all_ schedules from oracle
 
@@ -912,13 +917,12 @@ all_scheds_df = make_all_scheds(sched_df)
 
 flown_pts_df, flown_ls_df = get_flown_data(just_fids)
 
-cn = elapsed.Elapsed()
 # print("beginning corners")
 
 flown_ls_df['corner'] = flown_ls_df['flown_path'].apply(
                      lambda ls: closest_corner(ls))
 
-# cn.end("find all corners")
+ro.end("read oracle")
 
 # ++++++++++++++++++++++++++ Summary feb20 ++++++++++++++++++++++++++
 # all_scheds_df:
@@ -1009,5 +1013,5 @@ for ctr, tier in artccs:
 
     ou.end("databases written")
 
-all.end("finished " +  args.airport + ' ' +  args.date.strftime('%Y-%m-%d'))
+fall.end("finished " +  args.airport + ' ' +  args.date.strftime('%Y-%m-%d'))
 
