@@ -14,8 +14,8 @@ from flask_cors import cross_origin
 sys.path.append('copied')  # stupid git/sharing  work-around
 import get_paths
 import fvf_by_artcc
-import everything    # CATION: each of these makes a new PosgGreSQL connection
-import get_feb20       # CATION: each of these makes a new PosgGreSQL connection
+import everything    # CAUTION: each of these makes a new PosgGreSQL connection
+import get_feb20     # CAUTION: each of these makes a new PosgGreSQL connection
 import web_logging
 
 # --------------------------------------------------------------------
@@ -24,6 +24,9 @@ import web_logging
 
 app = Flask(__name__)
 Compress(app)
+
+# suggested response.headers.add('Access-Control-Allow-Origin', '*') here:
+# https://gokhang1327.medium.com/separate-front-end-from-back-end-with-flask-ajax-a5b22b12d001
 
 # --------------------------------------------------------------------
 
