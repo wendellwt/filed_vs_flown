@@ -119,7 +119,7 @@ const unk_style   =new Style({ stroke: new Stroke({ color: 'grey',   width: 2.0 
 // const src_a_style = new Style({ stroke: new Stroke({ color: wt_map_colors[1], width: 2.0 }) })
 // const src_f_style = new Style({ stroke: new Stroke({ color: wt_map_colors[2], width: 2.0 }) })
 
-const src_hi_style = new Style({ stroke: new Stroke({ color: 'red', width: 2.0 }) })
+//unused:const src_hi_style = new Style({ stroke: new Stroke({ color: 'red', width: 2.0 }) })
 
 const wt_corner_colors = [
     '#002664',   // from ajr style guide
@@ -144,9 +144,9 @@ const methods = {
     force_layer_levels() {
 
         // HEY, WAIIT: z-index can be specified in the <layer> definition!!!
+        let d_layers = this.$refs.map.getLayers();
 
 /**************
-        let d_layers = this.$refs.map.getLayers();
     for (let k=0; k < d_layers.length; k=k+1){
         console.log("k="+k+" id="+d_layers[k].get('id')+" z="+d_layers[k].getZIndex() );
         console.log(d_layers[k].getKeys());
@@ -154,7 +154,7 @@ const methods = {
     }
 console.log(d_layers);
 **************/
-        /*******************
+        /*******************/
         let osm_layer = 0;
         let vec_layer = 0;
         let nxw_layer = 0;
@@ -169,7 +169,7 @@ console.log(d_layers);
         if (osm_layer != 0) {osm_layer.setZIndex(5); } else {console.log("HELP: osm=0");}
         if (nxw_layer != 0) {nxw_layer.setZIndex(6); } else {console.log("HELP: nxw=0");}
         if (vec_layer != 0) {vec_layer.setZIndex(7); } else {console.log("HELP: vec=0");}
-        ***************/
+        /***************/
     },
 
     // ==========================================================
@@ -232,7 +232,8 @@ let vec_layer = 0;
 //          this.$refs.map.updateSize();
     },
     // ==========================================================
-    my_nexr_url(extent, resolution, projection) {
+    // my_nexr_url(extent, resolution, projection) {
+    my_nexr_url() {
 
       return this.baseURL + '?TIME=' + encodeURIComponent(this.hour_in_url);
 
@@ -525,8 +526,8 @@ setTimeout( this.resize_yourself(), 100);
 console.log("new_model_data: setTimeout");
 setTimeout( this.resize_yourself(), 100);  // q: does this help???
 
-//      this.force_layer_levels();
-//console.log("new_model just called force_layer_levels");
+      this.force_layer_levels();
+console.log("new_model just called force_layer_levels");
     }),
 
     this.$root.$on('new_hour_slider', (map_args) => {
