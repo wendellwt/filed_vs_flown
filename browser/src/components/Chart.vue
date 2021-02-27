@@ -84,14 +84,13 @@ export default {
           this.the_date = chart_args.title_date;
 
           this.arr_qh_set = [ ];
-          this.xLabels    = [ ];
 
           // convert input as a list of lists into an assoc array
           // and also populate x-axis label set (TWICE???)
           this.my_corner_data = this.json2array(chart_args.cdata[this.corner_data.dir].data);
 
           this.display_Bar_Data(this.my_corner_data, this.arr_qh_set, this.ymin, this.ymax,
-                                this.xLabels, this.high_qh);
+                                this.high_qh);
       }),
 
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%% incomming max y-val slider
@@ -103,7 +102,7 @@ export default {
           // BROKEN: this.ymin = chart_ef_args.slider_vals[0] * 100;
           this.ymax = chart_ef_args.slider_vals[1] * 100;
 
-          this.display_Bar_Data(this.my_corner_data, this.arr_qh_set, this.ymin, this.ymax, this.xLabels, this.high_qh);
+          this.display_Bar_Data(this.my_corner_data, this.arr_qh_set, this.ymin, this.ymax, this.high_qh);
       }),
 
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%% quarter-hour indicator
@@ -115,7 +114,7 @@ export default {
                         String(map_args.hour.getUTCHours()  ).padStart(2,'0') + ':' +
                         String(map_args.hour.getUTCMinutes()).padStart(2,'0');
 
-        this.display_Bar_Data(this.my_corner_data, this.arr_qh_set, this.ymin, this.ymax, this.xLabels, this.high_qh);
+        this.display_Bar_Data(this.my_corner_data, this.arr_qh_set, this.ymin, this.ymax, this.high_qh);
     })
 
 
@@ -140,7 +139,6 @@ export default {
               // note: we expect CALLER to have set lists to empty!
               // so that the LAST call is the one that actually worked...
               this.arr_qh_set.push(json_data[k][0].substr(5,11));
-              this.xLabels   .push(json_data[k][0].substr(5,11));
           }
 
           return(c_data);
@@ -148,7 +146,7 @@ export default {
 
 /* %%%%%%%%%%%%%%%%%%%%%%  display_Bar_Data  %%%%%%%%%%%%%%%%%%%%%%%%%%%% */
 
-        display_Bar_Data : function(simp_data, arr_qh_set, y_min, y_max, xLabels, phigh_qh) {
+        display_Bar_Data : function(simp_data, arr_qh_lbls, y_min, y_max, phigh_qh) {
 
   // set the dimensions and margins of the graph
   let width  = chart_width  - margin.left - margin.right;
@@ -178,7 +176,7 @@ export default {
 
   // ---- Add X axis
   let xScale = d3.scaleBand()  // function named xScale in other examples
-      .domain(arr_qh_set)
+      .domain(arr_qh_lbls)
       .range([0, width])
       .padding([0.2])
 
@@ -187,7 +185,7 @@ export default {
     .attr("transform", "translate(0," + height + ")")
     .call(d3.axisBottom(xScale) // x-axis generator
               .tickSizeOuter(0)
-              .tickFormat((d,i) => i % 4 == 0 ? xLabels[i] : "" )
+              .tickFormat((d,i) => i % 4 == 0 ? arr_qh_lbls[i] : "" )
          )
       .selectAll("text")
         .style("text-anchor", "end")
