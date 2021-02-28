@@ -1,6 +1,6 @@
 <template>
   <div style="height: 250px">
-      <h3>total miles 
+      <h3>total miles
 corner: <b>{{ corner_data.dir }}</b>;
 arr apt:<b>{{arr_apt}}</b>;
 path center:<b>{{center}}</b>;
@@ -56,7 +56,7 @@ export default {
 
         the_date   : new Date(),  // in header/title
         arr_qh_set : [],
-        xLabels    : [],
+        //xLabels    : [],
         ymin       : 0,
         ymax       : 4000,
         high_qh    : "01_10_14:00",
@@ -86,8 +86,13 @@ export default {
           this.arr_qh_set = [ ];
 
           // convert input as a list of lists into an assoc array
-          // and also populate x-axis label set (TWICE???)
-          this.my_corner_data = this.json2array(chart_args.cdata[this.corner_data.dir].data);
+
+          let foo = this.json2array(chart_args.cdata[this.corner_data.dir]);
+
+          this.my_corner_data = foo.d;
+          this.arr_qh_set     = foo.x;
+console.log(this.arr_qh_set);
+console.log(this.my_corner_data);
 
           this.display_Bar_Data(this.my_corner_data, this.arr_qh_set, this.ymin, this.ymax,
                                 this.high_qh);
@@ -126,23 +131,34 @@ export default {
 
     methods: {
 
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+output of python's df.to_json(orient='split') :
+  "columns": [ "arr_qh", "flw_dist" ],
+  "data":    [ [ "2020_01_10_08:00", 0.0 ],
+               [ "2020_01_10_13:00", 228.7225525225 ],
+               [ "2020_01_10_13:15", 819.3925476606 ],
+               [ "2020_01_10_13:30", 1864.0145658695 ],
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
+
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
         // convert input as a list of lists into an assoc array
         json2array : function(json_data) {
-          let c_data = [];
-          for(var k = 0; k < json_data.length; k++) {
-              var item = { 'arr_qh' : json_data[k][0].substr(5,11),
-                           'dist'   : json_data[k][1]  };
-              c_data.push(item);
+          let c_data   = [];
+          let x_labels = [];
+          //let columns = json_data.columns;
+          for(var k = 0; k < json_data.data.length; k++) {
 
-              // collect grouping elements and x-axis data/labels
-              // wait!  how come these are the same now???
-              // note: we expect CALLER to have set lists to empty!
-              // so that the LAST call is the one that actually worked...
-              this.arr_qh_set.push(json_data[k][0].substr(5,11));
+              // HELP: how to get js to use column[0] as the name???
+              var item = { 'arr_qh' : json_data.data[k][0],
+                           'dist'   : json_data.data[k][1]  };
+
+              c_data.push(item);
+              x_labels.push( json_data.data[k][0]);  // always the first one, right?
           }
 
-          return(c_data);
+          return( {d:c_data, x:x_labels} );
       },
+/* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% */
 
 /* %%%%%%%%%%%%%%%%%%%%%%  display_Bar_Data  %%%%%%%%%%%%%%%%%%%%%%%%%%%% */
 

@@ -412,46 +412,51 @@ def OLD_CODE():
 
 def help_get_corner(c_df, corner, gdate):
 
+    # ---- 1. separate out just this corner
+
     xx_data_slice = c_df[c_df['corner']==corner]
     xx_data  = xx_data_slice.drop(['corner'], axis=1)
 
-    #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    # ---- 2. fill in missing/empty data with '0'
 
-    # fill in missing/0 data
+    # d3.js issue: missing data does not appear, so we need to explicityly
+    # go through each qh and put in a 0 if needed...
+
     fill_strt = datetime.datetime(gdate.year, gdate.month, gdate.day, 8, 0, 0)
     fill_step = datetime.timedelta(minutes=15)
     qh_list   = list(xx_data['arr_qh'])
 
-    #print("qh_list=", qh_list)
-
     for s in range(24*4):
 
         check = (fill_strt+s*fill_step).strftime("%Y_%m_%d_%H:%M")
-        #print("check=", check)
 
         if check not in qh_list:
-            #print("insert:", check)
-            #WRONG: xx_data.loc[len(xx_data.index)] = [check, 0]
-            #WRONG: xx_data.append([check, 0])
-            #xx_data.loc[len(xx_data)] = [check, 0]
             xx_data = xx_data.append({'arr_qh':check, 'flw_dist':0}, ignore_index=True)
-            #print("len=", len(xx_data))
 
     xx_data.sort_values(by="arr_qh", inplace=True)
 
-    #print("xx_data")
-    #print(xx_data)
-
-    #xx_data.reset_index(inplace=True)    # any real point in this??
     yy_data = xx_data.reset_index(drop=True)    # any real point in this??
 
-    #print("yy_data")
-    #print(yy_data)
+    # ---- 3. setup d3.js xLabels
 
-    #code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    # reformat x-labels here because doing it in javascript is cumbersome
+
+    yy_data['arr_qh'] = yy_data['arr_qh'].apply(lambda s: s[5:])
+
+    # ---- 4. finally, make it into the json we want
+
+    # /* %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    # output of python's df.to_json(orient='split') :
+    #   "columns": [ "arr_qh", "flw_dist" ],
+    #   "data":    [ [ "2020_01_10_08:00", 0.0 ],
+    #                [ "2020_01_10_13:00", 228.7225525225 ],
+    #                [ "2020_01_10_13:15", 819.3925476606 ],
+    #                [ "2020_01_10_13:30", 1864.0145658695 ],
+    # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 
     yy_jsn = yy_data.to_json(orient='split', index=False)
-    yy_dct = json.loads(yy_jsn)
+    yy_dct = json.loads(yy_jsn)  # but put it back into dict so flask can
+                                 # re-format into json (but the right way)
     return(yy_dct)
 
 # ===================================================================
