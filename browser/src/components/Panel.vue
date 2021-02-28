@@ -127,7 +127,7 @@
         <!-- ========== hour slider ========= -->
         <div class="panel-block">
           <b-field label="opsday quarter hour">
-              <b-slider size="is-medium" :min="0" :max="24*4-1"
+              <b-slider size="is-small" :min="0" :max="24*4-1"
                             indicator
                             type="is-info"
                             v-model="hour_slider_val"
@@ -139,7 +139,7 @@
         <!-- ========== max/min slider ========= -->
         <div class="panel-block">
           <b-field label="max chart y-axis">
-              <b-slider size="is-medium" :min="0" :max="70"
+              <b-slider size="is-small" :min="0" :max="70"
                             type="is-info"
                             v-model="slider_vals"
                   >
