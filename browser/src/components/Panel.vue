@@ -289,6 +289,13 @@ export default {
 /*************************************************/
     GoEverything_feb20() {
 
+        if ((this.source_selected == "at_ent") &&
+            (this.ptype_selected !== "within") ) {
+
+            this.$buefy.dialog.alert("Selection choices make no sense.");
+            return;
+        }
+
         let fetch_args = { sel_date  : this.date_selected,
                            arr_apt   : this.arr_selected,
                            path      : this.ptype_selected,
