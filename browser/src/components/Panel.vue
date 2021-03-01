@@ -238,15 +238,7 @@ export default {
         // hour selector changed, CALC NEW chart and map data
         hour_slider_val: function() {
 
-            let sval = parseInt(this.hour_slider_val);
-            let od = Math.floor(sval/64) + this.date_selected.getUTCDate();
-            let oh = Math.floor((sval + 32)/ 4) % 24;
-            let om = (sval % 4) * 15;
-
-            this.y_m_d_h_m =  new Date(Date.UTC(
-                              this.date_selected.getUTCFullYear(),  // PROB. with WRAP
-                              this.date_selected.getUTCMonth(),
-                              od, oh, om, 0));   //  watch out!!!
+            this.set_ymdhm_from_date_and_hour();
 
             // ---- tell Map and Chart components
             let hour_args = { hour : this.y_m_d_h_m };
@@ -254,6 +246,10 @@ export default {
 //console.log("emit: new_hour_slider:"+this.y_m_d_h_m.toISOString());
 
             this.$root.$emit('new_hour_slider', (hour_args) );
+        },
+
+        date_selected: function() {
+            this.set_ymdhm_from_date_and_hour();
         }
     },
 
@@ -276,6 +272,21 @@ export default {
         },
 
 /*************************************************/
+
+        set_ymdhm_from_date_and_hour() {
+
+            let sval = parseInt(this.hour_slider_val);
+            let od = Math.floor(sval/64) + this.date_selected.getUTCDate();
+            let oh = Math.floor((sval + 32)/ 4) % 24;
+            let om = (sval % 4) * 15;
+
+            this.y_m_d_h_m = new Date(Date.UTC(
+                              this.date_selected.getUTCFullYear(),  // PROB. with WRAP
+                              this.date_selected.getUTCMonth(),
+                              od, oh, om, 0));   //  be careful here!!!
+        },
+
+/*************************************************/
     GoEverything_feb20() {
 
         let fetch_args = { sel_date  : this.date_selected,
@@ -283,6 +294,7 @@ export default {
                            path      : this.ptype_selected,
                            center    : this.center_selected,
                            source    : this.source_selected,
+                           ol_dtime  : this.y_m_d_h_m,  // pass through to OL
                            pickle    : this.use_pickle   };
 //console.log("fetch_data");
 //console.log(fetch_args);

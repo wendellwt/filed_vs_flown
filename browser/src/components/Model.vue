@@ -44,6 +44,7 @@ export default {
         fetch_path    : "na",
         fetch_source  : "na",
         fetch_arr_apt : "na"
+
    }
   },
 
@@ -55,6 +56,7 @@ export default {
         this.fetch_path    = fa.path;
         this.fetch_source  = fa.source;
         this.fetch_arr_apt = fa.arr_apt;
+        this.y_m_d_h_m     = fa.ol_dtime;
 
         let udate =        fa.sel_date.getUTCFullYear() + '_' +
                     String(fa.sel_date.getUTCMonth()+1).padStart(2,'0')  + '_' +

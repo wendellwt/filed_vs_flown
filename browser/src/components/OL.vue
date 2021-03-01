@@ -339,7 +339,7 @@ let vec_layer = 0;
 
     help_display_model_data() {
 
-//console.log("OL:hour_to_disp:"+this.hour_to_disp);
+console.log("OL:hour_to_disp:"+this.hour_to_disp);
 //console.log(this.model_data);
 
       let flts_to_disp = [ ]
