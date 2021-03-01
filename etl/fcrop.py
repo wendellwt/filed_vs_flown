@@ -285,7 +285,7 @@ def get_before_entry_single_artcc(ctr_df, all_scheds_df, flown_pts_df):
     for (wp, p) in ( ('at_entry_within_path', 'at_entry_path'), ):
 
         at_entry_df[wp] = at_entry_df[p].apply(
-                                         ambda p: do_w_intersect(p, 'NOT_ZZZ'))
+                                         lambda p: do_w_intersect(p, 'NOT_ZZZ'))
 
     for (wd, wp) in ( ('at_entry_within_dist', 'at_entry_within_path'), ):
 
