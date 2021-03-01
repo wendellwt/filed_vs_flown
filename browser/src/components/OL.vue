@@ -57,7 +57,7 @@
                      :url="my_nexr_url()"
                      projection='EPSG:3857'
                      layers="nexrad-n0r-wmst"
-    :ext-params="{ LAYERS : 'nexrad-n0r-wmst', TIME : '2020-02-23T14%3A00%3A30.000Z'}"
+    :ext-params="{ LAYERS : 'nexrad-n0r-wmst', TIME : '2020-08-08T23%3A30%3A00.000Z'}"
   />
         </vl-layer-tile>
       </div>
@@ -339,7 +339,7 @@ let vec_layer = 0;
 
     help_display_model_data() {
 
-// console.log("OL:help_disp");
+//console.log("OL:hour_to_disp:"+this.hour_to_disp);
 //console.log(this.model_data);
 
       let flts_to_disp = [ ]
@@ -413,7 +413,7 @@ export default {
 
         show_weather : false,
 
-        hour_to_disp: '2020_01_10T16',
+        hour_to_disp: '2020_08_08T23:30',
 
         highlighted_feat : undefined,   // the current (old) item that may need to be turned off
         // old: highlightedFeat_sch : 0,   // the current (old) item that may need to be turned off
@@ -427,7 +427,7 @@ export default {
 
       // attemts at IA State NexRad:
       baseURL     : "https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi",
-      hour_in_url : '2020-08-08T19:00:00.000Z'  // MAKE THIS the same as Panel
+      hour_in_url : '2020-08-08T23:30:00.000Z'  // MAKE THIS the same as Panel
 
       }
     },
@@ -518,7 +518,11 @@ setTimeout( this.resize_yourself(), 100);
 
       this.model_data  = map_args.mdata;  // this is the FC, should it be just the Features[] ???
 
-      this.hour_to_disp = map_args.hour;
+      this.hour_to_disp =  map_args.hour.getUTCFullYear() + '-' +
+                    String(map_args.hour.getUTCMonth()+1).padStart(2,'0') + '-' +
+                    String(map_args.hour.getUTCDate()   ).padStart(2,'0') + 'T' +
+                    String(map_args.hour.getUTCHours()  ).padStart(2,'0') + ':' +
+                    String(map_args.hour.getUTCMinutes()).padStart(2,'0');
 
 // console.log("OL: new_model_data");
 
