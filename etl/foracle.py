@@ -200,7 +200,7 @@ def get_all_tz_using_temp(ops_date, fids, args_verbose):
 
 # =========================================================================
 
-def clean_oracle(opsday, ctr, verbose=False):
+def delete_from_oracle(opsday, ctr, verbose=False):
 
     with sq_eng.connect() as sq_con:
 
