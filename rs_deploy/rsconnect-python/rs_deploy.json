@@ -2,10 +2,10 @@
     "http://172.26.21.40:3939": {
         "server_url": "http://172.26.21.40:3939",
         "filename": "/home/wturner/ciws/thyagarajan/filed_vs_flown/rs_deploy",
-        "app_url": "http://172.26.21.40:3939/connect/#/apps/194",
-        "app_id": "8b92531e-9470-4c66-ac24-6882018f5090",
-        "app_guid": "8b92531e-9470-4c66-ac24-6882018f5090",
-        "title": "filed_vs_flown",
+        "app_url": "http://172.26.21.40:3939/connect/#/apps/201",
+        "app_id": "c8c82f2d-788b-457f-837f-b99346007f5d",
+        "app_guid": "c8c82f2d-788b-457f-837f-b99346007f5d",
+        "title": "test_filed_vs_flown",
         "app_mode": "python-api"
     }
 }
