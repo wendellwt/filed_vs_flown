@@ -197,7 +197,8 @@ export default {
         ptype_selected  : "within",
         source_selected : "flown",
         //date_selected   : new Date('January 10, 2020 14:00:00'),  // start???
-        date_selected   : new Date('August 8, 2020 23:30:00'),  // start???
+        //date_selected   : new Date('August 8, 2020 23:30:00'),  // start???
+        date_selected     : new Date(Date.UTC(2020,8-1,8,23,30,0)),
 
         airportlist : [ "DEN", "DFW" ],  // the only ones we've run so far
         tierlist    : zdv_tiers,
