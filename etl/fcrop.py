@@ -268,6 +268,8 @@ def get_at_entry_sch_paths(all_scheds_df, flw_pts_df, center_shp):
 
 # ==========================================================================
 
+# note: artcc is a real one (not ZZZ), so shapes are properly formed
+
 def get_before_entry_single_artcc(ctr_df, all_scheds_df, flown_pts_df):
 
     # get df of rows from sched_df having orig_time last one before artcc entry
@@ -282,7 +284,8 @@ def get_before_entry_single_artcc(ctr_df, all_scheds_df, flown_pts_df):
 
     for (wp, p) in ( ('at_entry_within_path', 'at_entry_path'), ):
 
-        at_entry_df[wp] = at_entry_df[p].apply(lambda p: do_f_difference(p))
+        at_entry_df[wp] = at_entry_df[p].apply(
+                                         ambda p: do_w_intersect(p, 'NOT_ZZZ'))
 
     for (wd, wp) in ( ('at_entry_within_dist', 'at_entry_within_path'), ):
 

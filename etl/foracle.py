@@ -204,7 +204,6 @@ def clean_oracle(opsday, ctr, verbose=False):
 
     with sq_eng.connect() as sq_con:
 
-        #tbl_name = filed_vs_flown"   # note: lower case, otherwise:
         tbl_name = "TEST_FLIGHT_LEVEL.FILED_VS_FLOWN"
 
         sql_del = "DELETE FROM " + tbl_name + \
@@ -213,15 +212,14 @@ def clean_oracle(opsday, ctr, verbose=False):
 
         if verbose: print(sql_del)
 
-        code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        # code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
         sq_con.execute(sql_del)
-        print("executed???.")
-        sq_con.commit(sql_del)
 
-        print("deleted???.")
-        code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        # Q: need to do a commit here???
+        # print("executed???.")
+        #sq_con.commit(sql_del)  # nope, not for sqlalchemy
+        # print("deleted???.")
+        # code.interact(local=locals())   # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 # =========================================================================
 
@@ -244,7 +242,7 @@ def write_to_flight_level(fvf_df, verbose=False):
 
     if verbose: print("calling: to_sql()")
 
-    ora = elapsed.Elapsed()
+    # ora = elapsed.Elapsed()
 
     fvf_df.to_sql(tbl_name, sq_eng, if_exists='append', index=False,
                                      dtype=coltypes )
