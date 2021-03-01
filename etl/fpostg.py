@@ -94,22 +94,6 @@ def get_shape_of_ctr(ctr, args_verbose=False):
 
 # ==========================================================================
 
-# >>> used adaptation.py, which is now a toml file
-
-#def get_corners(apt):
-#
-#    corners = str(tuple(adaptation.corners[apt].values()))
-#
-#    sql = """select ident, position
-#FROM points
-#WHERE ident IN """ + corners + ";"
-#
-#    corner_gf = gpd.GeoDataFrame.from_postgis(sql, pg_conn,
-#                                              geom_col='position' )
-#    return(corner_gf)
-
-# ==========================================================================
-
 def get_corner_pos(ident):
 
     sql = "select ST_AsText(position) FROM points WHERE ident = '" + ident + "';"
@@ -217,7 +201,6 @@ def write_sched_df_as_loop(sch_df, sch_tbl, verbose=False):
     sch_df['geography'] = sch_df['sched_path'].apply(lambda g: g.wkt)
 
     # ewkt = ";".join(["SRID=4326", wkt])
-
 
     # and get rid of the shapely column
     sch_df.drop('sched_path', inplace=True, axis=1)
@@ -678,7 +661,19 @@ cre8_fvf = """ CREATE TABLE IF NOT EXISTS %s (
 );"""
 
 # ==================================================================
-#from geoalchemy2 import Geography, WKTElement
+
+def delete_from_postgis_cssi(y_m_d, ctr):
+
+    fvf_tbl = "fvfb_" + y_m_d[:7].replace('-','_')
+
+    sql_del = "delete from " + fvf_tbl + \
+              " where opsday='" + y_m_d + "' and artcc='" + ctr + "'"
+
+    #print(sql_del)
+
+    cssi_engine.execute(sql_del)
+
+# ==================================================================
 
 # write pandas df WITH MULTIPLE GEOGRAPHY COLUMNS out to postgis
 
@@ -686,10 +681,9 @@ def write_ff_to_postgis_cssi(y_m, ctr_df):
 
     fvf_tbl = "fvfb_" + y_m   # feb20: 'b' added
 
-    cssi = elapsed.Elapsed()
+    #cssi = elapsed.Elapsed()
 
     cre8_sql = cre8_fvf % fvf_tbl
-    #print(cre8_sql)
 
     cssi_engine.execute(cre8_sql)
 
@@ -699,15 +693,17 @@ def write_ff_to_postgis_cssi(y_m, ctr_df):
 
     # ---- 1) convert each geom from shapely to wkt
 
-    ctr_gf['scheduled_within_geog_wkt'  ] = ctr_gf['scheduled_within_path'  ].apply(lambda x: WKTElement(x.wkt, srid=4326))
-    ctr_gf['first_filed_within_geog_wkt'] = ctr_gf['first_filed_within_path'].apply(lambda x: WKTElement(x.wkt, srid=4326))
-    ctr_gf['last_filed_within_geog_wkt' ] = ctr_gf['last_filed_within_path' ].apply(lambda x: WKTElement(x.wkt, srid=4326))
-    ctr_gf['flown_within_geog_wkt'      ] = ctr_gf['flown_within_path'      ].apply(lambda x: WKTElement(x.wkt, srid=4326))
-    ctr_gf['at_entry_within_geog_wkt'   ] = ctr_gf['at_entry_within_path'   ].apply(lambda x: WKTElement(x.wkt, srid=4326))
-    ctr_gf['scheduled_upto_geog_wkt'    ] = ctr_gf['scheduled_upto_path'    ].apply(lambda x: WKTElement(x.wkt, srid=4326))
-    ctr_gf['first_filed_upto_geog_wkt'  ] = ctr_gf['first_filed_upto_path'  ].apply(lambda x: WKTElement(x.wkt, srid=4326))
-    ctr_gf['last_filed_upto_geog_wkt'   ] = ctr_gf['last_filed_upto_path'   ].apply(lambda x: WKTElement(x.wkt, srid=4326))
-    ctr_gf['flown_upto_geog_wkt'        ] = ctr_gf['flown_upto_path'        ].apply(lambda x: WKTElement(x.wkt, srid=4326))
+    for gw, p in (('scheduled_within_geog_wkt'  , 'scheduled_within_path'  ),
+                  ('first_filed_within_geog_wkt', 'first_filed_within_path'),
+                  ('last_filed_within_geog_wkt' , 'last_filed_within_path' ),
+                  ('flown_within_geog_wkt'      , 'flown_within_path'      ),
+                  ('at_entry_within_geog_wkt'   , 'at_entry_within_path'   ),
+                  ('scheduled_upto_geog_wkt'    , 'scheduled_upto_path'    ),
+                  ('first_filed_upto_geog_wkt'  , 'first_filed_upto_path'  ),
+                  ('last_filed_upto_geog_wkt'   , 'last_filed_upto_path'   ),
+                  ('flown_upto_geog_wkt'        , 'flown_upto_path'        ) ):
+
+        ctr_gf[gw] = ctr_gf[p].apply(lambda x: WKTElement(x.wkt, srid=4326))
 
     # ---- 2) drop the shapely columns
 
