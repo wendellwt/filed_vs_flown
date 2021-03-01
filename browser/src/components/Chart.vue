@@ -91,8 +91,8 @@ export default {
 
           this.my_corner_data = foo.d;
           this.arr_qh_set     = foo.x;
-console.log(this.arr_qh_set);
-console.log(this.my_corner_data);
+//console.log(this.arr_qh_set);
+//console.log(this.my_corner_data);
 
           this.display_Bar_Data(this.my_corner_data, this.arr_qh_set, this.ymin, this.ymax,
                                 this.high_qh);
