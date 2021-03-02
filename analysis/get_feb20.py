@@ -154,7 +154,7 @@ UNION ALL
 
     #print(sql)
     #lgr.debug(sql)
-    lgr.info(sql)
+    #lgr.info(sql)
 
     lgr.info("calling .execute()")
 
