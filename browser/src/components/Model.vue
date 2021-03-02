@@ -38,7 +38,7 @@ export default {
 
         // NEW feb 13: send data to their owner components
         all_json_data  : [],  // the (large) json received from server
-        y_m_d_h_m      : new Date(Date.UTC(2020,8-1,8,23,30,0)),
+        y_m_d_h_m      : new Date(Date.UTC(2020,1-1,4,23,30,0)),
 
         fetch_center  : "na",
         fetch_path    : "na",

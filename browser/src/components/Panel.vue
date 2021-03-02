@@ -12,6 +12,7 @@
              v-model="date_selected"
              :min-date="our_min_date"
              :max-date="our_max_date"
+             :selectable-dates="populated_dates"
              maxlength=11
             >
           </b-datepicker>
@@ -188,7 +189,7 @@ export default {
 
   data () {
       return {
-        our_min_date: new Date("2020-01-01"),  // the only ones we've run so far
+        our_min_date: new Date("2019-01-01"),  // the only ones we've run so far
         our_max_date: new Date("2021-05-31"),  // the only ones we've run so far
 
         arr_selected    : "DEN",
@@ -196,21 +197,43 @@ export default {
         center_disabled : false,
         ptype_selected  : "within",
         source_selected : "flown",
-        //date_selected   : new Date('January 10, 2020 14:00:00'),  // start???
-        //date_selected   : new Date('August 8, 2020 23:30:00'),  // start???
-        date_selected     : new Date(Date.UTC(2020,8-1,8,23,30,0)),
+        date_selected   :   new Date(2020, 1-1, 4),
+        populated_dates : [
 
-        airportlist : [ "DEN", "DFW" ],  // the only ones we've run so far
-        tierlist    : zdv_tiers,
-        ptypelist   : path_types,
-        sourcelist  : source_types,
+// should use psqlcssi and sed for this:
+ new Date(2020,  1-1,  1),
+ new Date(2020,  1-1,  2),
+ new Date(2020,  1-1,  3),
+ new Date(2020,  1-1,  4),
+ new Date(2020,  1-1,  5),
+ new Date(2020,  1-1,  6),
+ new Date(2020,  1-1,  7),
+ new Date(2020,  1-1,  8),
+ new Date(2020,  1-1,  9),
+ new Date(2020,  1-1, 10),
+ new Date(2020,  1-1, 11),
+ new Date(2020,  1-1, 12),
+ new Date(2020,  1-1, 13),
+ new Date(2020,  1-1, 14),
+ new Date(2020,  1-1, 15),
+ new Date(2020,  1-1, 16),
+ new Date(2019,  8-1,  1),
+ new Date(2019,  8-1,  2),
+ new Date(2019,  8-1,  3),
+ new Date(2019,  8-1,  4)
+            ],
+
+        airportlist   : [ "DEN", "DFW" ],  // the only ones we've run so far
+        tierlist      : zdv_tiers,
+        ptypelist     : path_types,
+        sourcelist    : source_types,
 
         slider_vals       : [0,40],
         hour_slider_val   : 15*4,             // from ui chooser
-        y_m_d_h_m         : new Date(Date.UTC(2020,8-1,8,23,30,0)),
+        y_m_d_h_m         : new Date(Date.UTC(2020,1-1,4,23,30,0)),
         go_button_loading : false,
         use_pickle        : false,
-        isActive          : true  // menu TESTING
+
 
    }
   },
