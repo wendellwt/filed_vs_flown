@@ -57,7 +57,7 @@
                      :url="my_nexr_url()"
                      projection='EPSG:3857'
                      layers="nexrad-n0r-wmst"
-    :ext-params="{ LAYERS : 'nexrad-n0r-wmst', TIME : '2020-08-08T23%3A30%3A00.000Z'}"
+    :ext-params="{ LAYERS : 'nexrad-n0r-wmst', TIME : '2020-01-04T23%3A30%3A00.000Z'}"
   />
         </vl-layer-tile>
       </div>
@@ -413,10 +413,9 @@ export default {
 
         show_weather : false,
 
-        hour_to_disp: '2020_08_08T23:30',
+        hour_to_disp: '2020_01_04T23:30',
 
-        highlighted_feat : undefined,   // the current (old) item that may need to be turned off
-        // old: highlightedFeat_sch : 0,   // the current (old) item that may need to be turned off
+        highlighted_feats : undefined,   // the current highlighted features
 
         corners: [
           { dir: "ne", ident: 'LANDR', coords: [-104.00296, 40.35757], colr: '#002664' },
@@ -427,7 +426,7 @@ export default {
 
       // attemts at IA State NexRad:
       baseURL     : "https://mesonet.agron.iastate.edu/cgi-bin/wms/nexrad/n0r-t.cgi",
-      hour_in_url : '2020-08-08T23:30:00.000Z'  // MAKE THIS the same as Panel
+      hour_in_url : '2020-01-04T23:30:00.000Z'  // MAKE THIS the same as Panel
 
       }
     },
@@ -455,44 +454,52 @@ console.log("watch scheduled force_layer_levels");
   mounted () {
 
     // -------------------------
-    this.$root.$on('highlightthis', (the_target_fid) => {
+    this.$root.$on('highlightthis', list_of_fids => {
 
         // ---- 1. if there was a previous (current?) one, set it back to it's proper color
 
-        if (this.highlighted_feat === undefined) {
-                console.log("previous one === undefined");
+        if (this.highlighted_feats === undefined) {
+                console.log("previous list === undefined");
         } else {
 
-            let old_props = this.highlighted_feat.getProperties();
+            for (let k=0; k < this.highlighted_feats.length; k=k+1) {
 
-            // need to set back to corner color
-            if (old_props.corner=='ne') { this.highlighted_feat.setStyle(cnr_ne_style); }
-            if (old_props.corner=='se') { this.highlighted_feat.setStyle(cnr_se_style); }
-            if (old_props.corner=='sw') { this.highlighted_feat.setStyle(cnr_sw_style); }
-            if (old_props.corner=='nw') { this.highlighted_feat.setStyle(cnr_nw_style); }
+                let old_feat  = this.highlighted_feats[k];
+                let old_props = old_feat.getProperties();
 
-            this.highlighted_fid = undefined;
+                // need to set back to corner color
+                if (old_props.corner=='ne') { old_feat.setStyle(cnr_ne_style); }
+                if (old_props.corner=='se') { old_feat.setStyle(cnr_se_style); }
+                if (old_props.corner=='sw') { old_feat.setStyle(cnr_sw_style); }
+                if (old_props.corner=='nw') { old_feat.setStyle(cnr_nw_style); }
+            }
+            this.highlighted_feats = undefined;
         }
         /*********************/
 
+        this.highlighted_feats = [];
+
         // ---- 2. find and highlight the requested fid
 
-        let high_feat = this.find_feature_by_fid(the_target_fid);
+        for (let k=0; k < list_of_fids.length; k=k+1) {
 
-        if (high_feat === undefined) {
-            console.log("could not find fid=" + the_target_fid)
-        } else {
+            let high_feat = this.find_feature_by_fid(list_of_fids[k]);
 
-          // ---- need Style >> MAKE this a const if no acid!
-          let targetHigh_flw = new Style({
-              stroke: new Stroke({ color: 'red', width: 4.0 })
-              //text: new Text({ text: String(this.highlighted_fid.get('acid')), }),
-           })
+            if (high_feat === undefined) {
+                console.log("could not find fid=" + list_of_fids[k]);
+            } else {
 
-          high_feat.setStyle(targetHigh_flw);
+              // ---- need Style >> MAKE this a const if no acid!
+              let targetHigh_flw = new Style({
+                stroke: new Stroke({ color: 'red', width: 4.0 })
+                //text: new Text({ text: String(this.highlighted_fid.get('acid')), }),
+               })
 
-          this.highlighted_feat = high_feat;
-      }
+              high_feat.setStyle(targetHigh_flw);
+
+              this.highlighted_feats.push(high_feat);
+            }
+        }
 
     }),
 

@@ -26,12 +26,15 @@
            v-bind:class="item.corner"
            v-for="item in datablocks"
            :key="item.flt_ndx"
-           @click="datablockclicked(item)" >
+           @click.exact="datablockclicked(item)"
+           @click.ctrl.exact="datablockclicked_ctrl(item)" >
 
-           {{ item.acid       }} &nbsp; &nbsp;
+           <span v-if="fids_selected.includes(item.fid)" class="highlt">{{ item.acid }}</span>
+           <span v-else                                                >{{ item.acid }}</span>
+           &nbsp; &nbsp;
            {{ item.corner     }} &nbsp; &nbsp;
            <span v-if="sort_selected=='flown in artcc'"><b>{{ item.flw_dist_f }}</b></span>
-           <span v-if="sort_selected=='arr time'"      >{{ item.flw_dist_f }}</span>
+           <span v-if="sort_selected=='arr time'"      >{{    item.flw_dist_f }}</span>
          <br/>
          <div class="dbsmall">
             {{ item.dep_apt  }} &nbsp; &nbsp;
@@ -39,14 +42,13 @@
            <span v-if="sort_selected=='arr time'"      ><b>{{ item.arr_time }}</b></span>
             &nbsp; &nbsp;
             {{ item.ac_type   }} &nbsp; &nbsp;
-            ({{ item.diff     }})
             <br/>
             s:{{ item.sch_dist_f }} &nbsp;
             f:{{ item.fld_dist_f }} &nbsp;
             d:{{ item.dep_dist_f }} &nbsp;
             e:{{ item.ent_dist_f }} &nbsp;
             t:{{ item.flw_dist_f }}
-           
+
          </div>
 
        <!-- BAD li SIZE:  div>
@@ -69,13 +71,8 @@
 
 <script>
 
-/******************
-   acid:     features_list[k].properties.acid,
-   fid:      features_list[k].properties.fid,
-   corner:   features_list[k].properties.corner,
-   dep_apt:  features_list[k].properties.dep_apt,
-   diff:   ...
-*********************/
+  /***************************************************************/
+
 export default {
     data () {
       return {
@@ -89,10 +86,13 @@ export default {
           { fid: 2, acid: 'N112', actype: 'C172', corner: 'se' },
           { fid: 3, acid: 'N113', actype: 'C172', corner: 'sw' },
           { fid: 4, acid: 'N114', actype: 'C172', corner: 'nw' },
-          { fid: 5, acid: 'N115', actype: 'C172', corner: 'ne' } ]
+          { fid: 5, acid: 'N115', actype: 'C172', corner: 'ne' } ],
 
+        fids_selected : [ ]  // list of fids to highlight
       }
     },
+
+  /***************************************************************/
 
   mounted () {
 
@@ -117,6 +117,8 @@ export default {
     })
   },
 
+  /***************************************************************/
+
   watch: {
       sort_selected: function() {
 
@@ -134,19 +136,25 @@ export default {
       }
   },
 
+  /***************************************************************/
+
   methods: {
+
+  // ========================= =========================
 
       sort_by_flown_dist : function(dlist) {
 
           let sortedlist = dlist.sort(function(a, b) {
-              let a_srt = parseFloat(a.flw_dist_n);
-              let b_srt = parseFloat(b.flw_dist_n);
+              let a_srt = parseFloat(a.flw_dist_f);
+              let b_srt = parseFloat(b.flw_dist_f);
               if (a_srt < b_srt) { return -1; }
               if (a_srt > b_srt) { return  1; }
               return 0;  // names must be equal
            });
            return(sortedlist);
     },
+
+  // ========================= =========================
 
       sort_by_arr_time : function(dlist) {
           let sortedlist = dlist.sort(function(a, b) {
@@ -159,7 +167,8 @@ export default {
            return(sortedlist);
     },
 
-  // =========================
+  // ========================= =========================
+
   // https://firstclassjs.com/remove-duplicate-objects-from-javascript-array-how-to-performance-comparison/
   removeDuplicates: function(array, key) {
     return array.filter((obj, index, self) =>
@@ -168,13 +177,29 @@ export default {
         ))
     )
  },
+
  // =========================
 
   datablockclicked: function(item) {
 
-        console.log("highlightthis-emit:" + item.fid + ":" + item.acid); // + "_" + item.actype);
+        console.log("highlightthis-emit:" + item.fid + ":" + item.acid);
 
-        this.$root.$emit('highlightthis', (item.fid) );
+        this.fids_selected = [ item.fid ];
+
+console.log("fids_selected:"+this.fids_selected);
+        this.$root.$emit('highlightthis', this.fids_selected );
+  },
+
+ // =========================
+
+  datablockclicked_ctrl: function(item) {
+
+        console.log("highlightthis_CTRL-emit:" + item.fid + ":" + item.acid);
+
+        this.fids_selected.push( item.fid );  // TODO: REMOVE DUPLICATES!!!
+
+console.log("fids_selected:"+this.fids_selected);
+        this.$root.$emit('highlightthis', this.fids_selected );
     }
   }
 }
@@ -188,12 +213,14 @@ div.datacolumn { background-color: #ffecb3; }
 div.timestamp  { font-size: 70%; }
 div.dbsmall    { font-size: 70%; }
 
+
 li.datalist {
     border-style:     solid;
     background-color: #e6ffcc;
 
     margin-top:    2px;
     margin-bottom: 2px;
+    cursor: pointer;
 }
 
 li.ne { border-color:  #002664; }
@@ -201,6 +228,7 @@ li.se { border-color:  #007934; }
 li.sw { border-color:  #AB8422; }
 li.nw { border-color:  #5E6A71; }
 
+span.highlt { color: blue; font-weight: bold ; }
 span.dblft { float: left; width: 33.333%; text-align: left  ; }
 span.dbctr { float: left; width: 33.333%; text-align: center; }
 span.dbrgt { float: left; width: 33.333%; text-align: right ; }
